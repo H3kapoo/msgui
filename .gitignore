@@ -1,0 +1,4 @@
+artifacts/
+gui
+mock.cpp
+core/build_dir
