@@ -5,14 +5,13 @@
 
 namespace msgui
 {
+// ---- Static init ---- //
 uint32_t Shader::boundShaderId_ = 0;
 
 Shader::Shader(const uint32_t shaderId, const std::string& shaderName)
     : shaderId_(shaderId)
     , log_("Shader(" + shaderName + " = " + std::to_string(shaderId_) + ")")
-{
-    // log_.info("Created!");
-}
+{}
 
 Shader& Shader::operator=(Shader&& other)
 {
@@ -28,6 +27,20 @@ Shader::~Shader()
     // log_.info("Deleted shader");
 }
 
+// ---- Normal ---- //
+void Shader::bind() const
+{   
+    if (shaderId_ == boundShaderId_) { return; }
+    boundShaderId_ = shaderId_;
+    glUseProgram(boundShaderId_);
+}
+
+void Shader::unbind() const
+{
+    glUseProgram(0);
+}
+
+// ---- Setters ---- //
 void Shader::setTexture1D(const std::string& name, const TextureUnitId texUnit, const uint32_t texId) const
 {
     setTexture(name, texUnit, texId, GL_TEXTURE_1D);
@@ -105,6 +118,13 @@ void Shader::setMat4f(const std::string& name, const glm::mat4& value) const
     glUniformMatrix4fv(loc, 1, transposeMatrix, glm::value_ptr(value));
 }
 
+// ---- Getters ---- //
+uint32_t Shader::getShaderId() const
+{
+    return shaderId_;
+}
+
+// ---- Setters Private ---- //
 void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, const uint32_t texId,
     const TextureTargetType type) const
 {
@@ -126,25 +146,9 @@ void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, co
     glBindTexture(type, texId);
 }
 
+// ---- Normal Private ---- //
 inline void Shader::handleNotFoundLocation(const std::string& name) const
 {
-    log_.errorLine("Uniform \"%s\" not found", name.c_str());
+    log_.errorLn("Uniform \"%s\" not found", name.c_str());
 }
-
-void Shader::bind() const
-{   
-    if (shaderId_ == boundShaderId_) { return; }
-    boundShaderId_ = shaderId_;
-    glUseProgram(boundShaderId_);
-}
-
-void Shader::unbind() const
-{
-    glUseProgram(0);
-}
-
-uint32_t Shader::getShaderId() const
-{
-    return shaderId_;
-}
-}
+} // namespace msgui

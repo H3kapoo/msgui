@@ -2,6 +2,57 @@
 
 namespace msgui
 {
+
+Input::Input(const Window* window)
+    : log_("Input(" + window->getName() + ")")
+    , window_(window)
+{
+    setupEventCallbacks();
+    log_.infoLn("Callback slots have been initialized");
+}
+
+// ---- Event receiver callbacks ---- //
+void Input::onMouseMove(const MouseMoveCallback& callback)
+{
+    mouseMoveCb_ = callback;
+}
+
+void Input::onMouseButton(const MouseClickCallback& callback)
+{
+    mouseClickCb_ = callback;
+}
+
+void Input::onWindowResize(const WindowResizeCallback& callback)
+{
+    winResizeCb_ = callback;
+}
+
+void Input::onKeyPress(const KeyCallback& callback)
+{
+    keyPressCb_ = callback;
+}
+
+void Input::onKeyRelease(const KeyCallback& callback)
+{
+    keyReleaseCb_ = callback;
+}
+
+void Input::onKeyHold(const KeyCallback& callback)
+{
+    keyHoldCb_ = callback;
+}
+
+void Input::onKeyPressAndHold(const KeyCallback& callback)
+{
+    keyPressAndHoldCb_ = callback;
+}
+
+void Input::onRefresh(const RefreshCallback& callback)
+{
+    refreshCb_ = callback;
+}
+
+// ---- Normal Private ---- //
 void Input::setupEventCallbacks()
 {
     GLFWwindow* windowHandle = window_->getHandle();
@@ -81,53 +132,4 @@ void Input::setupEventCallbacks()
             }
         });
 }
-
-Input::Input(const Window* window)
-    : log_("Input(" + window->getName() + ")")
-    , window_(window)
-{
-    setupEventCallbacks();
-    log_.infoLn("Callback slots have been initialized");
-}
-
-void Input::onMouseMove(const MouseMoveCallback& callback)
-{
-    mouseMoveCb_ = callback;
-}
-
-void Input::onMouseButton(const MouseClickCallback& callback)
-{
-    mouseClickCb_ = callback;
-}
-
-void Input::onWindowResize(const WindowResizeCallback& callback)
-{
-    winResizeCb_ = callback;
-}
-
-void Input::onKeyPress(const KeyCallback& callback)
-{
-    keyPressCb_ = callback;
-}
-
-void Input::onKeyRelease(const KeyCallback& callback)
-{
-    keyReleaseCb_ = callback;
-}
-
-void Input::onKeyHold(const KeyCallback& callback)
-{
-    keyHoldCb_ = callback;
-}
-
-void Input::onKeyPressAndHold(const KeyCallback& callback)
-{
-    keyPressAndHoldCb_ = callback;
-}
-
-void Input::onRefresh(const RefreshCallback& callback)
-{
-    refreshCb_ = callback;
-}
-
 } // namespace msgui

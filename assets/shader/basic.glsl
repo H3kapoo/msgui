@@ -16,9 +16,9 @@ void main()
 /// frag ///
 #version 330 core
 
-uniform vec3 uColor = vec3(0.3, 0.1, 0.4);
+uniform vec4 uColor = vec4(0.3, 0.1, 0.4, 1.0);
 
 void main()
 {
-    gl_FragColor = vec4(uColor, 1.0f);
+    gl_FragColor = uColor;
 }

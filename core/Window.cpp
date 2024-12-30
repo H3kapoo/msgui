@@ -1,12 +1,10 @@
 #include "Window.hpp"
 
-#include <cstdint>
-#include <GLFW/glfw3.h>
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace msgui
 {
-
+// ---- Static Init ---- //
 GLXContext Window::sharedContext_ = {};
 Display* Window::sharedDisplay_ = nullptr;
 bool Window::uniqueContextAquired = false;
@@ -20,12 +18,8 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-    // move out
-    // if (hints.debuggable)
-    // {
-    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    // }
     windowHandle_ = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
     if (!windowHandle_)
     {
@@ -57,6 +51,41 @@ Window::~Window()
     destroy();
 }
 
+// ---- Normal ---- //
+void Window::swap() const
+{
+    glXSwapBuffers(sharedDisplay_, glfwGetX11Window(windowHandle_));
+}
+
+void Window::destroy() const
+{
+    glfwDestroyWindow(windowHandle_);
+}
+
+bool Window::shouldClose() const
+{
+    return glfwWindowShouldClose(windowHandle_);
+}
+
+// ---- Event receivers ---- //
+void Window::onResizeEvent(const uint32_t width, const uint32_t height)
+{
+    width_ = width;
+    height_ = height;
+
+    // Normally the Z axis in opengl points to the negative Z (into the screen).
+    // Reverse & flip sign of Z_near and Z_Far so that elements can be placed from
+    // [+Z_near, +Z_far] which lower Z appearing further into the camera and higher Z
+    // closer to the camera, mimicing layers.
+    // If not for this, we would of had to place elements with a negative Z and the highest Z
+    // (e.g -1) would of appeared in front of lowest Z (e.g -100) which is not what we want.
+    projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -100.0f, 0.0f);
+
+    setContextCurrent();
+    setCurrentViewport();
+}
+
+// ---- Setters ---- //
 void Window::setTitle(const std::string& title)
 {
     glfwSetWindowTitle(windowHandle_, title.c_str());
@@ -65,7 +94,6 @@ void Window::setTitle(const std::string& title)
 
 void Window::setContextCurrent() const
 {
-    // glfwMakeContextCurrent(windowHandle_);
     glXMakeCurrent(sharedDisplay_, glfwGetX11Window(windowHandle_), sharedContext_);
 }
 
@@ -74,27 +102,7 @@ void Window::setCurrentViewport() const
     glViewport(0, 0, width_, height_);
 }
 
-void Window::onResizeEvent(const uint32_t width, const uint32_t height)
-{
-    width_ = width;
-    height_ = height;
-    projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -100.0f, 0.0f);
-
-    setContextCurrent();
-    setCurrentViewport();
-}
-
-void Window::swap() const
-{
-    glXSwapBuffers(sharedDisplay_, glfwGetX11Window(windowHandle_));
-    // glfwSwapBuffers(windowHandle_);
-}
-
-void Window::destroy() const
-{
-    glfwDestroyWindow(windowHandle_);
-}
-
+// ---- Getters ---- //
 GLFWwindow* Window::getHandle() const
 {
     return windowHandle_;
@@ -120,11 +128,7 @@ const glm::mat4& Window::getProjectionMat() const
     return projMat_;
 }
 
-bool Window::shouldClose() const
-{
-    return glfwWindowShouldClose(windowHandle_);
-}
-
+// ---- Statics ---- //
 bool Window::initGlfwWindowing()
 {
     return glfwInit();
@@ -165,16 +169,7 @@ void Window::clearBits(const uint32_t bits)
     glClear(bits);
 }
 
-double Window::getTime()
-{
-    return glfwGetTime();
-}
-
-double Window::getFPS()
-{
-    return glfwGetTime();
-}
-
+// ---- Normal Private ---- //
 void Window::maskUnnecessaryEvents()
 {
     // On X11 systems when we have ONE context shared among MANY windows, the WM will spam out PropertyNotify

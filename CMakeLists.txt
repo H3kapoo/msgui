@@ -21,7 +21,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     # Link libs
     target_link_directories(${PROJECT_NAME} PRIVATE
-        "core/lib"
+        "lib_out"
     )
 
     # Needed for absolute include paths

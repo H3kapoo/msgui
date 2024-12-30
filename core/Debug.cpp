@@ -17,7 +17,7 @@ Debug::Debug()
 {
     if (glfwGetCurrentContext() == nullptr)
     {
-        log_.error("No active GLFW context found!");
+        log_.errorLn("No active GLFW context found!");
         return;
     }
 
@@ -25,7 +25,7 @@ Debug::Debug()
     glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
     if (!(contextFlags & GL_CONTEXT_FLAG_DEBUG_BIT))
     {
-        log_.warn("Debug messages context object created without window suppoting it!");
+        log_.warnLn("Debug messages context object created without window suppoting it!");
         return;
     }
 
@@ -34,33 +34,33 @@ Debug::Debug()
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(Debug::debugCallback, &this->log_);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    log_.debug("Context for debug messages enabled");
+    log_.debugLn("Context for debug messages enabled");
 
-    log_.debug("GPU Details: %s %s", glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+    log_.debugLn("GPU Details: %s %s", glGetString(GL_VENDOR), glGetString(GL_RENDERER));
 
     int32_t majorVersion{0}, minorVersion{0};
     glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-    log_.debug("OpenGL version: %d.%d | %s", majorVersion, minorVersion, glGetString(GL_VERSION));
+    log_.debugLn("OpenGL version: %d.%d | %s", majorVersion, minorVersion, glGetString(GL_VERSION));
 
     int32_t maxTextureUnits{0};
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-    log_.debug("Max texture units: %d", maxTextureUnits);
+    log_.debugLn("Max texture units: %d", maxTextureUnits);
 
     float maxAnisotropicFiltering{0.0f};
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropicFiltering);
-    log_.debug("Max AA supported: %f", maxAnisotropicFiltering);
+    log_.debugLn("Max AA supported: %f", maxAnisotropicFiltering);
 }
 
 void Debug::enableWireframe()
 {
-    log_.debug("Enabled wireframe mode");
+    log_.debugLn("Enabled wireframe mode");
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void Debug::disableWireframe()
 {
-    log_.debug("Disabled wireframe mode");
+    log_.debugLn("Disabled wireframe mode");
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -106,12 +106,12 @@ void Debug::debugCallback(GLenum eSource, GLenum eType, unsigned int id, GLenum 
     }
 
     const auto log_ = static_cast<const Logger*>(userParam);
-    log_->error("---------(id:%d)---------", id);
-    log_->error("Source  : %s", source.c_str());
-    log_->error("Type    : %s", type.c_str());
-    log_->error("Severity: %s", severity.c_str());
-    log_->error("Message : %s", message);
-    log_->error("-------------------------", id);
+    log_->errorLn("---------(id:%d)---------", id);
+    log_->errorLn("Source  : %s", source.c_str());
+    log_->errorLn("Type    : %s", type.c_str());
+    log_->errorLn("Severity: %s", severity.c_str());
+    log_->errorLn("Message : %s", message);
+    log_->errorLn("-------------------------", id);
 
 #undef E_TO_CASE
 }

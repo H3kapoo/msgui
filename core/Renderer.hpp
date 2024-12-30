@@ -9,7 +9,7 @@ namespace msgui
 class Renderer
 {
 public:
-    static void render(AbstractNode* node, const glm::mat4 projMat)
+    static void render(AbstractNodePtr node, const glm::mat4 projMat)
     {
         node->getMesh().bind();
         node->setShaderAttributes();

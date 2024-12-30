@@ -9,12 +9,7 @@ AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name)
         , shader_(shader)
 {}
 
-uint32_t AbstractNode::genetateNextId() const
-{
-    static uint32_t id = 0;
-    return ++id;
-}
-
+// ---- Normal ---- //
 void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
 {
     if (node->id_ == id_ || node->parent_.lock())
@@ -47,6 +42,25 @@ void AbstractNode::appendMany(std::vector<std::shared_ptr<AbstractNode>>&& nodes
     }
 }
 
+void AbstractNode::printTree(uint32_t currentDepth)
+{
+    currentDepth ? log_.raw("") : log_.infoLn("");
+    for (uint32_t i = 0; i < currentDepth; i++)
+    {
+        log_.raw("    ");
+    }
+
+    log_.raw("\\---");
+    log_.raw("%s (l:%d) (r:%d)\n", name_.c_str(), (int32_t)transform_.pos.z, currentDepth);
+    // details();
+
+    for (const auto& node : children_)
+    {
+        node->printTree(currentDepth + 1);
+    }
+}
+
+// ---- Getters ---- //
 Transform& AbstractNode::getTransform()
 {
     return transform_;
@@ -77,9 +91,14 @@ const Mesh& AbstractNode::getMesh() const
     return *mesh_;
 }
 
-uint32_t AbstractNode::getDepth() const
+const std::string& AbstractNode::getName() const
 {
-    return depth_;
+    return name_;
+}
+
+uint32_t AbstractNode::getId() const
+{
+    return id_;
 }
 
 std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
@@ -87,24 +106,13 @@ std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
     return children_;
 }
 
-void AbstractNode::printTree(uint32_t currentDepth)
-{
-    currentDepth ? log_.raw("") : log_.infoLn("");
-    for (uint32_t i = 0; i < currentDepth; i++)
-    {
-        log_.raw("    ");
-    }
-
-    log_.raw("\\---");
-    log_.raw("%s (l:%d) (r:%d)\n", name_.c_str(), depth_, currentDepth);
-    // details();
-
-    for (const auto& node : children_)
-    {
-        node->printTree(currentDepth + 1);
-    }
-}
-
+// ---- Virtual Private ---- //
 void AbstractNode::onMouseButtonNotify() {}
 
+// ---- Normal Private ---- //
+uint32_t AbstractNode::genetateNextId() const
+{
+    static uint32_t id = 0;
+    return ++id;
+}
 } // namespace msgui

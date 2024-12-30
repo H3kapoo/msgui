@@ -4,16 +4,7 @@
 
 namespace msgui
 {
-void Transform::setPos(const glm::vec3& pos)
-{
-    this->pos = pos;
-}
-
-void Transform::setScale(const glm::vec3& scale)
-{
-    this->scale = scale;
-}
-
+// ---- Normal ---- //
 glm::mat4& Transform::computeModelMatrix()
 {
     // if (!dirty)
@@ -26,5 +17,16 @@ glm::mat4& Transform::computeModelMatrix()
     modelMatrix = glm::scale(modelMatrix, scale);
     dirty = false;
     return modelMatrix;
+}
+
+// ---- Setters ---- //
+void Transform::setPos(const glm::vec3& posIn)
+{
+    pos = posIn;
+}
+
+void Transform::setScale(const glm::vec3& scaleIn)
+{
+    scale = scaleIn;
 }
 } // namespace msgui

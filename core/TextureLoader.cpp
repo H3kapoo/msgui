@@ -6,12 +6,7 @@
 
 namespace msgui
 {
-TextureLoader& TextureLoader::get()
-{
-    static TextureLoader instance;
-    return instance;
-}
-
+// ---- Statics ---- //
 TexturePtr TextureLoader::loadTexture(const std::string& resPath,
     const Texture::Params& params)
 {
@@ -36,6 +31,7 @@ TexturePtr TextureLoader::loadTexture(const std::string& resPath,
     return texturePtr;
 }
 
+// ---- Normal Private ---- //
 Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     const Texture::Params& params)
 {
@@ -72,4 +68,10 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     return Texture(id, width, height, numChannels, params);
 }
 
+// ---- Statics Private ---- //
+TextureLoader& TextureLoader::get()
+{
+    static TextureLoader instance;
+    return instance;
+}
 } // msgui

@@ -6,15 +6,9 @@
 
 namespace msgui
 {
-
+// ---- Static Init ---- //
 Logger ShaderLoader::log_ = {"ShaderLoader(null)"};
 std::unordered_map<std::string, Shader*> ShaderLoader::shaderPathToObject_ = {};
-
-ShaderLoader& ShaderLoader::get()
-{
-    static ShaderLoader instance = ShaderLoader();
-    return instance;
-}
 
 ShaderLoader::~ShaderLoader()
 {
@@ -27,6 +21,7 @@ ShaderLoader::~ShaderLoader()
     log_.infoLn("Unloaded all shader programs!");
 }
 
+// ---- Statics ---- //
 Shader* ShaderLoader::load(const std::string& shaderPath)
 {
     if (shaderPathToObject_.count(shaderPath))
@@ -73,6 +68,7 @@ void ShaderLoader::reload(const std::string& shaderPath)
     }
 }
 
+// ---- Normal Private ---- //
 uint32_t ShaderLoader::loadInternal(const std::string& shaderPath)
 {
     std::ifstream shaderFile(shaderPath);
@@ -151,5 +147,12 @@ uint32_t ShaderLoader::compileShaderData(const std::string& data, const ShaderPa
     }
 
     return shaderPart;
+}
+
+// ---- Statics Private ---- //
+ShaderLoader& ShaderLoader::get()
+{
+    static ShaderLoader instance = ShaderLoader();
+    return instance;
 }
 } // namesapce msgui

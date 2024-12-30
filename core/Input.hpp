@@ -12,6 +12,7 @@
 
 namespace msgui
 {
+// Callback Defs
 using MouseMoveCallback = std::function<void(double x, double y)>;
 using MouseClickCallback = std::function<void(int32_t btn, int32_t action)>;
 using WindowResizeCallback = std::function<void(uint32_t width, uint32_t height)>;
@@ -20,12 +21,11 @@ using RefreshCallback = std::function<void()>;
 
 class Input
 {
-private:
-    void setupEventCallbacks();
 
 public:
     Input(const Window* window);
 
+    // Event receiver callbacks
     void onMouseMove(const MouseMoveCallback& callback);
     void onMouseButton(const MouseClickCallback& callback);
     void onWindowResize(const WindowResizeCallback& callback);
@@ -34,6 +34,10 @@ public:
     void onKeyHold(const KeyCallback& callback);
     void onKeyPressAndHold(const KeyCallback& callback);
     void onRefresh(const RefreshCallback& callback);
+
+private:
+    // Normal
+    void setupEventCallbacks();
 
 private:
     Logger log_;

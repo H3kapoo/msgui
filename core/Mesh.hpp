@@ -13,8 +13,11 @@ public:
     Mesh(Mesh&& other);
     ~Mesh();
 
+    // Normal
     void bind() const;
     void unbind() const;
+
+    // Getters
     uint32_t getVaoId() const;
     uint32_t getVaoId();
 
@@ -22,7 +25,6 @@ private:
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
     Mesh& operator=(Mesh&&) = delete;
-
 
 private:
     Logger log_;

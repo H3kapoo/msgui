@@ -19,6 +19,11 @@ public:
     ~Shader();
     Shader& operator=(Shader&& other);
 
+    // Normal
+    void bind() const;
+    void unbind() const;
+
+    // Setters
     void setTexture1D(const std::string& name, const TextureUnitId texUnit, const uint32_t texId) const;
     void setTexture2D(const std::string& name, const TextureUnitId texUnit, const uint32_t texId) const;
     void setTexture3D(const std::string& name, const TextureUnitId texUnit, const uint32_t texId) const;
@@ -28,9 +33,8 @@ public:
     void setVec3f(const std::string& name, const glm::vec3& value) const;
     void setVec4f(const std::string& name, const glm::vec4& value) const;
     void setMat4f(const std::string& name, const glm::mat4& value) const;
-    void bind() const;
-    void unbind() const;
 
+    // Getters
     uint32_t getShaderId() const;
 
 private:
@@ -38,8 +42,11 @@ private:
     Shader(const Shader& other) = delete;
     Shader& operator=(const Shader& other) = delete;
 
+    // Setters
     void setTexture(const std::string& name, const TextureUnitId texUnit, const uint32_t texId,
         const TextureTargetType type) const;
+
+    // Normal
     inline void handleNotFoundLocation(const std::string& name) const;
 
 private:

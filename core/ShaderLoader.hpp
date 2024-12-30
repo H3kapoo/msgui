@@ -16,6 +16,7 @@ using ShaderPartType = uint32_t;
 class ShaderLoader
 {
 public:
+    // Statics
     static Shader* load(const std::string& shaderPath);
     static void reload(const std::string& shaderPath);
 
@@ -27,16 +28,17 @@ private:
     ShaderLoader& operator=(const ShaderLoader&);
     ShaderLoader& operator=(ShaderLoader&&);
 
-    static ShaderLoader& get();
-
+    // Normal
     uint32_t loadInternal(const std::string& shaderPath);
     uint32_t loadInternal(const std::string& vertCode, const std::string& fragCode);
     uint32_t linkShaders(int vertShaderId, int fragShaderId);
     uint32_t compileShaderData(const std::string& data, const ShaderPartType shaderType);
 
+    // Statics
+    static ShaderLoader& get();
+
 private:
     static Logger log_;
-
     static std::unordered_map<std::string, Shader*> shaderPathToObject_;
 };
 } // namespace msgui

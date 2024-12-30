@@ -24,6 +24,7 @@ struct Texture
     explicit Texture(const uint32_t id, const uint32_t width, const uint32_t height, const uint32_t numChannels,
         const Params& params);
 
+    // Getters
     uint32_t getId() const;
     int32_t getWidth() const;
     int32_t getHeight() const;

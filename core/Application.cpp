@@ -5,16 +5,6 @@
 
 namespace msgui
 {
-
-Application& Application::get()
-{
-    static Application app;
-    return app;
-}
-
-Application::Application()
-{}
-
 Application::~Application()
 {
     /* Release the frames in reverse order, just in case. terminate() needs to be called last */
@@ -28,6 +18,7 @@ Application::~Application()
     log_.infoLn("App terminated..");
 }
 
+// ---- Normal ---- //
 bool Application::init()
 {
     /* Initialize glfw windowing */
@@ -69,12 +60,10 @@ void Application::run()
     {
         for (const auto& frame : frames_)
         {
-            // shouldAppClose = frame->run() || frame->isPrimaryFrame();
             if (frame->run())
             {
                 shouldAppClose = true;
             }
-            // Window::pollEvents();
         }
 
         if (shouldAppClose)
@@ -83,7 +72,14 @@ void Application::run()
         }
 
         Window::waitEvents();
-        log_.infoLn("pe aici");
     }
 }
+
+// ---- Statics ---- //
+Application& Application::get()
+{
+    static Application app;
+    return app;
+}
+
 } // namespace msgui

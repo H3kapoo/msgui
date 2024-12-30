@@ -21,6 +21,7 @@ Mesh::~Mesh()
     log_.infoLn("Deleted vertex array");
 }
 
+// ---- Normal ---- //
 void Mesh::bind() const
 {
     glBindVertexArray(vaoId_);
@@ -31,6 +32,7 @@ void Mesh::unbind() const
    glBindVertexArray(0);
 }
 
+// ---- Getters ---- //
 uint32_t Mesh::getVaoId() const
 {
     return vaoId_;
