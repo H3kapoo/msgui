@@ -18,7 +18,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     windowHandle_ = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
     if (!windowHandle_)
@@ -31,8 +31,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     if (!uniqueContextAquired)
     {
         glfwMakeContextCurrent(windowHandle_);
-        // glfwSwapInterval(0);
-        // enableVSync();
+        enableVSync();
         glEnable(GL_DEPTH_TEST);
         sharedDisplay_ = glfwGetX11Display();
         sharedContext_ = glXGetCurrentContext();
@@ -136,12 +135,33 @@ bool Window::initGlfwWindowing()
 
 void Window::enableVSync()
 {
+#ifdef __linux__
+    typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
+    PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(
+        glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")));
+    if (glXSwapIntervalMESA)
+    {
+         glXSwapIntervalMESA(0);
+    }
+
+#else
     glfwSwapInterval(1);
+#endif
 }
 
 void Window::disableVSync()
 {
+#ifdef __linux__
+    typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
+    PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(
+        glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")));
+    if (glXSwapIntervalMESA)
+    {
+         glXSwapIntervalMESA(0);
+    }
+#else
     glfwSwapInterval(0);
+#endif
 }
 
 void Window::terminate()

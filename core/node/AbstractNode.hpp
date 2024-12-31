@@ -18,7 +18,19 @@ class Frame;
 class AbstractNode
 {
 public:
-    explicit AbstractNode(Mesh* mesh, Shader* shader, const std::string& name);
+    // Internal Defs
+    enum class NodeType
+    {
+        COMMON,
+        BOX,
+        BUTTON,
+        SCROLL,
+        SCROLL_KNOB
+    };
+
+public:
+    explicit AbstractNode(Mesh* mesh, Shader* shader, const std::string& name,
+        const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
     // Normal
@@ -27,8 +39,9 @@ public:
     void appendMany(std::vector<std::shared_ptr<AbstractNode>>&& nodes);
     void printTree(uint32_t currentDepth = 1);
 
-    // Pure
+    // Pure Virtual
     virtual void setShaderAttributes() = 0;
+    virtual void* getProps() = 0;
 
     // Getters
     Transform& getTransform();
@@ -39,8 +52,8 @@ public:
     const Mesh& getMesh() const;
     const std::string& getName() const;
     uint32_t getId() const;
+    NodeType getType() const;
     std::vector<std::shared_ptr<AbstractNode>>& getChildren();
-
 
 private: // friend
     friend Frame;
@@ -59,6 +72,8 @@ protected:
     Mesh* mesh_{nullptr};
     Shader* shader_{nullptr};
     Transform transform_;
+    bool isParented_{false};
+    NodeType nodeType_{NodeType::COMMON};
     std::weak_ptr<AbstractNode> parent_;
     std::vector<std::shared_ptr<AbstractNode>> children_;
 

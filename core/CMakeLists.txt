@@ -45,6 +45,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         node/Button.cpp
         node/Frame.cpp
         node/Box.cpp
+        node/utils/ScrollBar.cpp
+        node/utils/ScrollBarKnob.cpp
         layoutEngine/SimpleLayoutEngine.cpp
         Application.cpp
     )

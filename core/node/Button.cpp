@@ -9,7 +9,7 @@
 namespace msgui
 {
 Button::Button(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basicTex.glsl"), name)
+    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basicTex.glsl"), name, NodeType::BUTTON)
 {
     log_ = ("Button(" + name + ")");
     btnTex = TextureLoader::loadTexture("assets/textures/wall.jpg");
@@ -21,6 +21,12 @@ void Button::setShaderAttributes()
     transform_.computeModelMatrix();
     shader_->setTexture2D("uTexture", GL_TEXTURE0, btnTex->getId());
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
+}
+
+void* Button::getProps()
+{
+    // No props yet
+    return nullptr;
 }
 
 // ---- Listeners ---- //

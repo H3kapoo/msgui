@@ -7,7 +7,11 @@
 #define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+
+#ifdef __linux__
 #include <GL/glx.h>
+#endif
+
 #include <glm/glm.hpp>
 
 #include "Logger.hpp"

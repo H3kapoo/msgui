@@ -15,6 +15,7 @@ public:
 
     // Overrides 
     void setShaderAttributes() override;
+    void* getProps() override;
 
     // Listeners
     void setMouseClickListener(std::function<void()> cb);

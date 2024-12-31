@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 #include "core/Logger.hpp"
 #include "core/node/Frame.hpp"
 #include "core/Window.hpp"
@@ -14,7 +16,12 @@ public:
 
     // Normal
     bool init();
-    void attachFrame(const FramePtr frame);
+
+    FrameUPtr& createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+        const bool isPrimary = false);
+    FrameUPtr* getFrameId(const uint32_t id);
+
+    // void attachFrame(const FramePtr& frame);
     void run();
 
     // Statics
@@ -22,8 +29,12 @@ public:
 
 private:
     Logger log_{"Application"};
-
     WindowPtr initializationWindow_;
-    std::vector<FramePtr> frames_;
+
+    // List references remain valid even after addition/removal and in this case, because of that, it is
+    // better to use lists instead of vectors.
+    std::list<FrameUPtr> frames_;
+    bool shouldAppClose_{false};
+    int32_t FPS_{0};
 };
 } // namespace msgui

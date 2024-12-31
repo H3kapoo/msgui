@@ -2,24 +2,37 @@
 
 namespace msgui
 {
-AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name)
+AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name, const NodeType nodeType)
         : name_(name)
         , id_(genetateNextId())
         , mesh_(mesh)
         , shader_(shader)
+        , nodeType_(nodeType)
 {}
 
 // ---- Normal ---- //
 void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
-{
-    if (node->id_ == id_ || node->parent_.lock())
+{   
+    if (!node)
     {
+        log_.errorLn("Trying to nullptr node!");
         return;
     }
 
-    children_.push_back(node);
+    if (node->id_ == id_ || node->isParented_)
+    {
+        log_.warnLn("Trying to append already parented nodeId: %d", node->id_);
+        return;
+    }
 
-    // Only if this node is parented (by parent hopping) to the Frame
+    // isParented_ is used as a quick mean to check even before all the layout "stabilization"
+    // if this node has been parented already so that we can avoid "double parenting" this node
+    // to yet another node.
+    // Only when the layout will be calculated again (next frame) will the parentNode & state be
+    // populated accordingly if absent.
+    node->isParented_ = true;
+
+    children_.push_back(node);
     if (state_)
     {
         state_->isLayoutDirty = true;
@@ -52,7 +65,6 @@ void AbstractNode::printTree(uint32_t currentDepth)
 
     log_.raw("\\---");
     log_.raw("%s (l:%d) (r:%d)\n", name_.c_str(), (int32_t)transform_.pos.z, currentDepth);
-    // details();
 
     for (const auto& node : children_)
     {
@@ -99,6 +111,11 @@ const std::string& AbstractNode::getName() const
 uint32_t AbstractNode::getId() const
 {
     return id_;
+}
+
+AbstractNode::NodeType AbstractNode::getType() const
+{
+    return nodeType_;
 }
 
 std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()

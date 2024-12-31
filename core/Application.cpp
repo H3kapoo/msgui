@@ -1,7 +1,9 @@
 #include "Application.hpp"
 
-#include "core/Window.hpp"
 #include <GLFW/glfw3.h>
+
+#include "core/Window.hpp"
+#include "core/node/Frame.hpp"
 
 namespace msgui
 {
@@ -48,29 +50,71 @@ bool Application::init()
     return true;
 }
 
-void Application::attachFrame(const FramePtr frame)
+FrameUPtr& Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+    const bool isPrimary)
 {
-    frames_.push_back(frame);
+    return frames_.emplace_back(std::make_unique<Frame>(windowName, width, height, isPrimary));
+}
+
+FrameUPtr* Application::getFrameId(const uint32_t id)
+{
+    const auto it = std::find_if(frames_.begin(), frames_.end(),
+        [&id](const FrameUPtr& frame)
+        {
+            return frame->getRoot()->getId() == id;
+        });
+    
+    if (it == frames_.end())
+    {
+        return nullptr;
+    }
+
+    return &(*it);
 }
 
 void Application::run()
 {
-    bool shouldAppClose{false};
-    while (!shouldAppClose)
-    {
-        for (const auto& frame : frames_)
-        {
-            if (frame->run())
-            {
-                shouldAppClose = true;
-            }
-        }
+    static double previousTime = 0;
+    static int32_t frameCount = 0;
 
-        if (shouldAppClose)
+    double currentTime = glfwGetTime();
+    double delta = currentTime - previousTime;
+
+    // Only close the App if the primary window is closed.
+    while (!shouldAppClose_)
+    {
+        std::erase_if(frames_,
+            [this, &delta, &currentTime](const FrameUPtr& frame)
+            {
+                currentTime = glfwGetTime();
+                delta = currentTime - previousTime;
+                frameCount++;
+
+                if (frame->isPrimary() && delta > 1.0f)
+                {
+                    FPS_ = frameCount / delta;
+                    // frame->window_.setTitle("FPS: " + std::to_string(FPS_));
+                    frame->window_.setTitle(std::to_string(FPS_));
+
+                    frameCount = 0;
+                    previousTime = currentTime;
+                }
+
+                bool shallFrameClose = frame->run();
+                if (shallFrameClose && frame->isPrimary())
+                {
+                    shouldAppClose_ = true;
+                }
+
+                return shallFrameClose;
+            });
+
+        if (shouldAppClose_)
         {
             break;
         }
 
+        // Window::pollEvents();
         Window::waitEvents();
     }
 }
