@@ -9,7 +9,6 @@
 
 #include "core/layoutEngine/SimpleLayoutEngine.hpp"
 #include "core/Renderer.hpp"
-#include "core/node/utils/ScrollBar.hpp"
 
 namespace msgui
 {
@@ -19,7 +18,7 @@ Frame::Frame(const std::string& windowName, const uint32_t width, const uint32_t
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
     , layoutEngine_(std::make_shared<SimpleLayoutEngine>())
-    , frameBox_(std::make_shared<Box>(log_.getName()))
+    , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
 {
     input_.onWindowResize([this](uint32_t width, uint32_t height)
@@ -55,7 +54,7 @@ Frame::Frame(const std::string& windowName, const uint32_t width, const uint32_t
     frameBox_->state_ = frameState_;
 
     // temp
-    frameBox_->enableVScroll();
+    // frameBox_->enableVScroll();
     // window_.setContextCurrent();
     // window_.disableVSync();
 }
@@ -158,6 +157,7 @@ void Frame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
 {
     // log_.debug("button is %d action %d", btn, action);
     frameState_->mouseButtonState[btn] = action;
+    frameState_->lastMouseButtonTriggeredIdx = btn;
 
     int32_t mX = frameState_->mouseX;
     int32_t mY = frameState_->mouseY;

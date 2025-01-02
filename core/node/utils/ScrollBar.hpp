@@ -1,10 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "core/node/AbstractNode.hpp"
-#include "core/MeshLoader.hpp"
-#include "core/ShaderLoader.hpp"
 #include "core/Utils.hpp"
 #include "core/node/utils/ScrollBarKnob.hpp"
 
@@ -22,7 +21,7 @@ public:
     };
 
 public:
-    ScrollBar(const Orientation orientation);
+    ScrollBar(const std::string& name, const Orientation orientation);
 
     // Overrides
     void* getProps() override;
@@ -39,7 +38,7 @@ private:
     void onMouseButtonNotify() override;
 
 private:
-    Logger log_{"ScrollBar"};
+    Logger log_;
     glm::vec4 color_{Utils::hexToVec4("#ffffffff")};
     float offset_{0};
     Orientation orientation_{Orientation::VERTICAL};

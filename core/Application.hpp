@@ -16,13 +16,13 @@ public:
 
     // Normal
     bool init();
-
-    FrameUPtr& createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
-        const bool isPrimary = false);
-    FrameUPtr* getFrameId(const uint32_t id);
-
-    // void attachFrame(const FramePtr& frame);
     void run();
+    FramePtr createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+        const bool isPrimary = false);
+
+    // Getters
+    FramePtr getFrameId(const uint32_t id);
+    // bool hasFrameId(const uint32_t id);
 
     // Statics
     static Application& get();
@@ -33,7 +33,7 @@ private:
 
     // List references remain valid even after addition/removal and in this case, because of that, it is
     // better to use lists instead of vectors.
-    std::list<FrameUPtr> frames_;
+    std::list<FramePtr> frames_;
     bool shouldAppClose_{false};
     int32_t FPS_{0};
 };

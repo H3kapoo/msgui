@@ -47,12 +47,55 @@ void AbstractNode::appendMany(const std::vector<std::shared_ptr<AbstractNode>>& 
     }
 }
 
-void AbstractNode::appendMany(std::vector<std::shared_ptr<AbstractNode>>&& nodes)
+void AbstractNode::appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes)
 {
     for (const auto& node : nodes)
     {
         append(node);
     }
+}
+
+std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
+{
+    const auto it = std::find_if(children_.begin(), children_.end(),
+        [&nodeName](const std::shared_ptr<AbstractNode>& node)
+        {
+            return node->getName() == nodeName;
+        });
+
+    if (it == children_.end())
+    {
+        return nullptr;
+    }
+
+    // Notify layout
+    (*it)->state_->isLayoutDirty = true;
+
+    // Reset to defaults
+    (*it)->state_ = nullptr;
+    (*it)->isParented_ = false;
+    (*it)->parent_.reset();
+
+    // Transfer ownership out of the vector and erase remaining iterator
+    std::shared_ptr<AbstractNode> returned = std::move(*it);
+    children_.erase(it);
+
+    return returned;
+}
+
+std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
+    const std::initializer_list<std::string>& nodeNames)
+{
+    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    for (const auto& nodeName : nodeNames)
+    {
+        if (const auto it = remove(nodeName))
+        {
+            removedNodes.emplace_back(it);
+        }
+    }
+
+    return removedNodes;
 }
 
 void AbstractNode::printTree(uint32_t currentDepth)

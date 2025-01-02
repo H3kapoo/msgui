@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "AbstractNode.hpp"
+#include "core/Listeners.hpp"
 #include "core/Texture.hpp"
 
 namespace msgui
@@ -15,18 +16,20 @@ public:
 
     // Overrides 
     void setShaderAttributes() override;
+
+    // Virtual Getters
     void* getProps() override;
 
-    // Listeners
-    void setMouseClickListener(std::function<void()> cb);
+    // Getters
+    Listeners& getListeners();
 
 private:
-    // Overrides
+    // Override Notifiers
     void onMouseButtonNotify() override;
 
 private:
     TexturePtr btnTex;
-    std::function<void()> mouseClickCb_{nullptr};
+    Listeners listeners_;
 };
 using ButtonPtr = std::shared_ptr<Button>;
 } // namespace msgui

@@ -54,5 +54,6 @@ private:
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
 };
-using FrameUPtr = std::unique_ptr<Frame>;
+// using FrameUPtr = std::unique_ptr<Frame>;
+using FramePtr = std::shared_ptr<Frame>;
 } // msgui

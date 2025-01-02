@@ -1,10 +1,14 @@
 #include "ScrollBar.hpp"
 
+#include "core/MeshLoader.hpp"
+#include "core/ShaderLoader.hpp"
+
 namespace msgui
 {
-ScrollBar::ScrollBar(const ScrollBar::Orientation orientation)
+ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orientation)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basic.glsl"),
-        "TestBar1", NodeType::SCROLL)
+        name, NodeType::SCROLL)
+    , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
 {
     knob_ = std::make_shared<ScrollBarKnob>();

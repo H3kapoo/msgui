@@ -61,17 +61,20 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
         return {0, 0, 0};
     }
 
+    bool bothSbOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
         Box::Props* p = (Box::Props*)parent->getProps();
-        log_.debugLn("props H: %d %d", p->isHScrollOn, p->isVScrollOn);
+        if (p->isHScrollOn && p->isVScrollOn)
+        {
+            bothSbOn = true;
+        }
     }
 
     auto& pPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;
 
     glm::vec3 returnedSizes{0};
-    bool gotOneBarAlready{false};
 
     // glm::vec2 sbSize = {20, pScale.y};
     const float hardcodedSize = 20;
@@ -99,7 +102,7 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
             pos.x = pPos.x + pScale.x - hardcodedSize;
             pos.y = pPos.y;
             scale.x = hardcodedSize;
-            scale.y = pScale.y - (gotOneBarAlready ? hardcodedSize : 0);
+            scale.y = pScale.y - (bothSbOn ? hardcodedSize : 0);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
@@ -116,8 +119,6 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
 
             // Horizonal available space needs to decrease
             returnedSizes.x = hardcodedSize;
-
-            gotOneBarAlready = true;
         }
         else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
         {
@@ -125,7 +126,7 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
             pos.y = pPos.y + pScale.y - hardcodedSize;
             pos.x = pPos.x;
             scale.y = hardcodedSize;
-            scale.x = pScale.x - (gotOneBarAlready ? hardcodedSize : 0);
+            scale.x = pScale.x - (bothSbOn ? hardcodedSize : 0);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
@@ -142,8 +143,6 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
 
             // Vertical available space needs to decrease
             returnedSizes.y = hardcodedSize;
-
-            gotOneBarAlready = true;
         }
     }
 

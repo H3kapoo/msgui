@@ -23,24 +23,26 @@ void Button::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 
+// ---- Virtual Getters ---- //
 void* Button::getProps()
 {
     // No props yet
     return nullptr;
 }
 
-// ---- Listeners ---- //
-void Button::setMouseClickListener(std::function<void()> cb)
+// ---- Getters ---- //
+Listeners& Button::getListeners()
 {
-    mouseClickCb_ = cb;
+    return listeners_;
 }
 
-// ---- Overrides Private ---- //
+// ---- Override Notifiers ---- //
 void Button::onMouseButtonNotify()
 {
-    if (not state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && mouseClickCb_)
-    {
-        mouseClickCb_();
-    }
+    listeners_.callOnMouseButton(
+        state_->lastMouseButtonTriggeredIdx,
+        state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
+        state_->mouseX,
+        state_->mouseY);
 }
 } // msgui

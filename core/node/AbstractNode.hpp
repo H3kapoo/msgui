@@ -36,7 +36,10 @@ public:
     // Normal
     void append(const std::shared_ptr<AbstractNode>& node);
     void appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes);
-    void appendMany(std::vector<std::shared_ptr<AbstractNode>>&& nodes);
+    void appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes);
+    std::shared_ptr<AbstractNode> remove(const std::string& nodeName);
+    std::vector<std::shared_ptr<AbstractNode>> remove(const std::initializer_list<std::string>& nodeNames) = delete;
+    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<std::string>& nodeNames);
     void printTree(uint32_t currentDepth = 1);
 
     // Pure Virtual

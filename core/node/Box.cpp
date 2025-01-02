@@ -14,7 +14,25 @@ Box::Box(const std::string& name)
     transform_.setPos({100, 100, 2});
 }
 
-// Overrides
+// ---- Overrides ---- //
+void* Box::getProps()
+{
+    return (void*)&props_;
+}
+
+// ---- Setters ---- //
+void Box::setColor(const glm::vec4& color)
+{
+    color_ = color;
+}
+
+// ---- Getters ---- //
+Listeners& Box::getListeners()
+{
+    return listeners_;
+}
+
+// ---- Overrides Private ---- //
 void Box::setShaderAttributes()
 {
     transform_.computeModelMatrix();
@@ -24,12 +42,11 @@ void Box::setShaderAttributes()
 
 void Box::onMouseButtonNotify()
 {
-    log_.infoLn("I was clicked at %d %d", state_->mouseX, state_->mouseY);
-}
-
-// Setters
-void Box::setColor(const glm::vec4& color)
-{
-    color_ = color;
+    listeners_.callOnMouseButton(
+        state_->lastMouseButtonTriggeredIdx,
+        state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
+        state_->mouseX,
+        state_->mouseY);
+    // log_.infoLn("I was clicked at %d %d", state_->mouseX, state_->mouseY);
 }
 } // namespace msgui

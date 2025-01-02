@@ -13,6 +13,7 @@
 // #include "core/node/Button.hpp"
 #include "core/Logger.hpp"
 #include "core/Utils.hpp"
+#include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/Button.hpp"
 #include "core/node/Frame.hpp"
@@ -32,56 +33,62 @@ int main()
 
     Debug& dbg = Debug::get();
 
-    FrameUPtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
+    FramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
 
     BoxPtr leftBox = std::make_shared<Box>("BoxLeft");
     BoxPtr middleBox = std::make_shared<Box>("BoxMiddle");
+    BoxPtr middleBox2 = std::make_shared<Box>("BoxMiddle2");
     BoxPtr rightBox = std::make_shared<Box>("BoxRight");
 
     leftBox->setColor(Utils::hexToVec4("#ffaaffff"));
     middleBox->setColor(Utils::hexToVec4("#aaffffff"));
+    middleBox2->setColor(Utils::hexToVec4("#ddffffff"));
     rightBox->setColor(Utils::hexToVec4("#ffffaaff"));
-    // ButtonPtr btn = std::make_shared<Button>("Btn1");
-    // ButtonPtr btn2 = std::make_shared<Button>("Btn2");
-    // btn->getTransform().setScale({50, 50, 1});
-    // // btn->getTransform().setPos({100, 100, 2});
-
-    // btn2->getTransform().setScale({100, 200, 1});
-    // // btn2->getTransform().setPos({170, 100, 2});
 
     leftBox->getTransform().setScale({200, 200, 1});
     middleBox->getTransform().setScale({200, 200, 1});
+    middleBox2->getTransform().setScale({200, 200, 1});
     rightBox->getTransform().setScale({200, 200, 1});
 
-    // frame->append(btn);
-    // frame->append(box1);
-    // frame2->append(btn2);
-    // btn2->append(btn3);
-    frame->getRoot()->appendMany({leftBox, middleBox, rightBox});
-    // box2->append(btn);
-    // frame->append(btn2);
+    frame->getRoot()->appendMany({leftBox, middleBox, middleBox2, rightBox});
+    // frame->getRoot()->removeMany({"one", "two"});
 
     Logger mainLog{"MainLog"};
-    // FramePtr frame2;
-    // bool frame2;
-    // btn->setMouseClickListener([&mainLog, &app]()
-    // {
-    //     mainLog.infoLn("clicked me");
-    //     FrameUPtr& frame2 = app.createFrame("WindowAnnex", WINDOW_W/2, WINDOW_H/2);
-    //     uint32_t frame2Id = frame2->getRoot()->getId();
-    //     ButtonPtr b = std::make_shared<Button>("BtnSecond");
-    //     b->getTransform().setScale({100, 200, 1});
 
-    //     // FrameUPtr* frame2_ref = app.getFrameId(frame2Id+1);
-    //     // if (frame2_ref)
-    //     // {
-    //     //     ButtonPtr b2 = std::make_shared<Button>("BtnThird");
-    //     //     b2->getTransform().setScale({200, 100, 1});
-    //     //     frame2->getRoot()->append(b2);
-    //     // }
+    uint32_t frameId{0};
+    leftBox->getListeners().setOnMouseButton([&mainLog, &app, &frameId](auto btn, auto action, auto x, auto y)
+    {
+        if (action != 0) { return; }
 
-    //     frame2->getRoot()->append(b);
-    // });
+        mainLog.infoLn("clicked me %d %d %d %d", btn, action, x, y);
+        FramePtr frame2 = app.createFrame("WindowAnnex", WINDOW_W/2, WINDOW_H/2);
+        frameId = frame2->getRoot()->getId();
+    });
+
+    rightBox->getListeners().setOnMouseButtonLeftClick([&mainLog, &app, &frame, &frameId]()
+    {
+        mainLog.infoLn("clicked right");
+        if (FramePtr secondFrame = app.getFrameId(frameId))
+        {
+            mainLog.infoLn("has it");
+            AbstractNodePVec element = frame->getRoot()->removeMany({"BoxMiddle", "BoxMiddle3"});
+            if (element.size())
+            {
+                mainLog.infoLn("Got middle box %ld", element.size());
+                secondFrame->getRoot()->appendMany(element);
+            }
+        }
+    });
+
+    middleBox->getListeners().setOnMouseButtonLeftClick([&mainLog]()
+    {
+        mainLog.debugLn("clicked ME middleBox");
+    });
+
+    middleBox2->getListeners().setOnMouseButtonLeftClick([&mainLog]()
+    {
+        mainLog.debugLn("clicked ME middleBox 2");
+    });
 
     app.run();
 

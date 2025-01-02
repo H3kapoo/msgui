@@ -50,28 +50,6 @@ bool Application::init()
     return true;
 }
 
-FrameUPtr& Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
-    const bool isPrimary)
-{
-    return frames_.emplace_back(std::make_unique<Frame>(windowName, width, height, isPrimary));
-}
-
-FrameUPtr* Application::getFrameId(const uint32_t id)
-{
-    const auto it = std::find_if(frames_.begin(), frames_.end(),
-        [&id](const FrameUPtr& frame)
-        {
-            return frame->getRoot()->getId() == id;
-        });
-    
-    if (it == frames_.end())
-    {
-        return nullptr;
-    }
-
-    return &(*it);
-}
-
 void Application::run()
 {
     static double previousTime = 0;
@@ -84,7 +62,7 @@ void Application::run()
     while (!shouldAppClose_)
     {
         std::erase_if(frames_,
-            [this, &delta, &currentTime](const FrameUPtr& frame)
+            [this, &delta, &currentTime](const FramePtr& frame)
             {
                 currentTime = glfwGetTime();
                 delta = currentTime - previousTime;
@@ -117,6 +95,31 @@ void Application::run()
         // Window::pollEvents();
         Window::waitEvents();
     }
+}
+
+FramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+    const bool isPrimary)
+{
+    auto newFrame = std::make_shared<Frame>(windowName, width, height, isPrimary);
+    frames_.emplace_back(newFrame);
+    return newFrame;
+}
+
+// ---- Getters ---- //
+FramePtr Application::getFrameId(const uint32_t id)
+{
+    const auto it = std::find_if(frames_.begin(), frames_.end(),
+        [&id](const FramePtr& frame)
+        {
+            return frame->getRoot()->getId() == id;
+        });
+
+    if (it == frames_.end())
+    {
+        return nullptr;
+    }
+
+    return *it;
 }
 
 // ---- Statics ---- //
