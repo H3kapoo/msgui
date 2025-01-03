@@ -30,9 +30,12 @@ public:
 public:
     ScrollBar(const std::string& name, const Orientation orientation);
 
+    void setOverflow(const uint32_t overflow);
+
     void* getProps() override;
 
-    float getOffset();
+    float getKnobOffset();
+    int32_t geOverflowOffset();
     Orientation getOrientation();
 
 private:
@@ -44,7 +47,8 @@ public:
 
 private:
     Logger log_;
-    float offset_{0};
+    float knobOffset_{0};
+    int32_t overflowSize_{0};
     Orientation orientation_{Orientation::VERTICAL};
     ScrollBarKnobPtr knob_{nullptr};
 };

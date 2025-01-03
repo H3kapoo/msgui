@@ -1,6 +1,5 @@
 #include "Window.hpp"
 
-#include <GL/gl.h>
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace msgui
@@ -31,9 +30,9 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     if (!uniqueContextAquired)
     {
         glfwMakeContextCurrent(windowHandle_);
-        enableVSync();
-        enableDepthTest();
-        // enableBlending();
+        setVSync(1);
+        setDepthTest(true);
+        // setBlending(true);
         sharedDisplay_ = glfwGetX11Display();
         sharedContext_ = glXGetCurrentContext();
         uniqueContextAquired = true;
@@ -129,24 +128,19 @@ bool Window::initGlfwWindowing()
     return glfwInit();
 }
 
-void Window::enableBlending()
+void Window::setBlending(const bool state)
 {
     // Note: A context needs to be bound for this to work
-    glEnable(GL_BLEND);
+    state ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Window::enableDepthTest()
+void Window::setDepthTest(const bool state)
 {
-    glEnable(GL_DEPTH_TEST);
+    state ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 }
 
-void Window::disableDepthTest()
-{
-    glDisable(GL_DEPTH_TEST);
-}
-
-void Window::enableVSync()
+void Window::setVSync(const int32_t internal)
 {
 #ifdef __linux__
     typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
@@ -154,26 +148,11 @@ void Window::enableVSync()
         glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")));
     if (glXSwapIntervalMESA)
     {
-         glXSwapIntervalMESA(0);
+         glXSwapIntervalMESA(internal);
     }
 
 #else
-    glfwSwapInterval(1);
-#endif
-}
-
-void Window::disableVSync()
-{
-#ifdef __linux__
-    typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
-    PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(
-        glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")));
-    if (glXSwapIntervalMESA)
-    {
-         glXSwapIntervalMESA(0);
-    }
-#else
-    glfwSwapInterval(0);
+    glfwSwapInterval(internal);
 #endif
 }
 

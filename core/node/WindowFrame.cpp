@@ -17,19 +17,22 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
     , layoutEngine_(std::make_shared<SimpleLayoutEngine>())
-    , frameBox_(std::make_shared<Box>(log_.getName()))
+    , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
 {
-    input_.onWindowResize([this](uint32_t width, uint32_t height)
+    input_.onWindowResize([this](uint32_t newWidth, uint32_t newHeight)
     {
-        window_.setTitle(std::to_string(width) + " " + std::to_string(height));
-        window_.onResizeEvent(width, height);
-        frameBox_->transform_.setScale({width, height, 1});
+        window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
+        window_.onResizeEvent(newWidth, newHeight);
+        frameBox_->transform_.setScale({newWidth, newHeight, 1});
         frameState_->isLayoutDirty = true;
     });
 
     input_.onKeyPress([this](int32_t key, int32_t scanCode, int32_t mods)
     {
+        (void)scanCode;
+        (void)mods;
+
         if (key == GLFW_KEY_Q)
         {
             log_.infoLn("Quit called");
@@ -76,7 +79,8 @@ bool WindowFrame::run()
         // If the layout got dirty again we need to simulate a new frame RUN request.
         if (frameState_->isLayoutDirty)
         {
-            Window::requestEmptyEvent();
+            // Window::requestEmptyEvent(); // Use in case of deadlock
+            run();
         }
     }
 

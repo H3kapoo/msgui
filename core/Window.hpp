@@ -44,11 +44,9 @@ public:
     const glm::mat4& getProjectionMat() const;
 
     static bool initGlfwWindowing();
-    static void enableBlending();
-    static void enableDepthTest();
-    static void disableDepthTest();
-    static void enableVSync();
-    static void disableVSync();
+    static void setBlending(const bool state);
+    static void setDepthTest(const bool state);
+    static void setVSync(const int32_t interval);
     static void terminate();
     static void pollEvents();
     static void waitEvents();

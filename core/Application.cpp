@@ -54,14 +54,14 @@ void Application::run()
     static double previousTime = 0;
     static int32_t frameCount = 0;
 
-    double currentTime = glfwGetTime();
-    double delta = currentTime - previousTime;
+    static double currentTime = glfwGetTime();
+    static double delta = currentTime - previousTime;
 
     // Only close the App if the primary window is closed.
     while (!shouldAppClose_)
     {
         std::erase_if(frames_,
-            [this, &delta, &currentTime](const WindowFramePtr& frame)
+            [this](const WindowFramePtr& frame)
             {
                 currentTime = glfwGetTime();
                 delta = currentTime - previousTime;
@@ -91,7 +91,8 @@ void Application::run()
             break;
         }
 
-        // glfwPostEmptyEvent();
+        // Note: Event solvers (like callbacks) are processed before rendering & updating the layout
+        // at least for ON_EVENT polling.
         pollMode_ == PollMode::ON_EVENT ? Window::waitEvents() : Window::pollEvents();
     }
 }
@@ -107,6 +108,11 @@ WindowFramePtr Application::createFrame(const std::string& windowName, const uin
 void Application::setPollMode(const PollMode mode)
 {
     pollMode_ = mode;
+}
+
+void Application::setVSync(const Application::Toggle toggle)
+{
+    Window::setVSync(static_cast<int32_t>(toggle));
 }
 
 WindowFramePtr Application::getFrameId(const uint32_t id)

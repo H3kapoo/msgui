@@ -17,6 +17,12 @@ public:
         CONTINUOUS = 1
     };
 
+    enum class Toggle
+    {
+        OFF = 0,
+        ON  = 1
+    };
+
 public:
     Application() = default;
     ~Application();
@@ -27,6 +33,7 @@ public:
         const bool isPrimary = false);
 
     void setPollMode(const PollMode mode);
+    void setVSync(const Toggle toggle);
 
     WindowFramePtr getFrameId(const uint32_t id);
 

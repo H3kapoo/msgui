@@ -42,19 +42,48 @@ bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
 
 void Box::updateOverflow(const glm::ivec2 overflow)
 {
-    overflow_ = overflow;
-    // log_.infoLn("SB SIZE %d", overflow.x);
+    if (overflow_.x == overflow.x && overflow_.y == overflow.y)
+    {
+        return;
+    }
 
+    overflow_ = overflow;
+    // log_.infoLn("OF SIZE %d", overflow.y);
+
+    // Update with the new overflow value
+    if (hScrollBar_)
+    {
+        hScrollBar_->setOverflow(overflow.x);
+        state_->isLayoutDirty = true;
+    }
+
+    if (vScrollBar_)
+    {
+        vScrollBar_->setOverflow(overflow.y);
+        state_->isLayoutDirty = true;
+    }
+
+    // Handle horizontal OF
     if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflowX)
     {
-        hScrollBar_ = std::make_shared<ScrollBar>("SB_H", ScrollBar::Orientation::HORIZONTAL);
-        // hScrollBar_ = std::make_shared<ScrollBar>(log_.getName(), ScrollBar::Orientation::HORIZONTAL);
+        hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Orientation::HORIZONTAL);
         append(hScrollBar_);
     }
     else if ((overflow.x <= 0 || !props.layout.allowOverflowX) && hScrollBar_)
     {
         remove(hScrollBar_->getId());
         hScrollBar_.reset();
+    }
+    // Handle vertical OF
+    else if (overflow.y > 0 && !vScrollBar_ && props.layout.allowOverflowY)
+    {
+        vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Orientation::VERTICAL);
+        append(vScrollBar_);
+    }
+    else if ((overflow.y <= 0 || !props.layout.allowOverflowY) && vScrollBar_)
+    {
+        remove(vScrollBar_->getId());
+        vScrollBar_.reset();
     }
 }
 

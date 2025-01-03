@@ -38,8 +38,8 @@ int main()
 
     WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
 
-    // frame->getRoot()->enableVScroll();
     frame->getRoot()->props.layout.allowOverflowX = true;
+    frame->getRoot()->props.layout.allowOverflowY = true;
     // frame->getRoot()->props.layout.allowOverflowY = true;
 
     BoxPtr leftBox = std::make_shared<Box>("BoxLeft");
@@ -56,8 +56,8 @@ int main()
 
     leftBox->getTransform().setScale({200, 200, 1});
     middleBox->getTransform().setScale({200, 200, 1});
-    middleButton->getTransform().setScale({200, 200, 1});
-    rightBox->getTransform().setScale({200, 200, 1});
+    middleButton->getTransform().setScale({200, 300, 1});
+    rightBox->getTransform().setScale({500, 200, 1});
 
     frame->getRoot()->appendMany({leftBox, middleBox, middleButton, rightBox});
 
@@ -77,22 +77,23 @@ int main()
         
         rightBox->props.color = Utils::randomRGB();
         frameId++;
-        // frame->getRoot()->printTree();
     });
 
     middleButton->listeners.setOnMouseButtonLeftClick([&mainLog, &middleButton, &frameId]()
     {
-        middleButton->props.texture = frameId % 2 ? "assets/textures/wall.jpg" : "assets/textures/awesomeface.png";
+        middleButton->props.texture =
+            frameId % 2 ? "assets/textures/wall.jpg" : "assets/textures/container.jpg";
         frameId++;
         mainLog.debugLn("clicked ME middleBox");
+
     });
 
     // middleButton->listeners.setOnMouseButtonLeftClick([&mainLog]()
     // {
     //     mainLog.debugLn("clicked ME middleBox 2");
     // });
-    // msgui::Window::disableVSync();
-    // app.setPollMode(Application::PollMode::CONTINUOUS);
+    app.setPollMode(Application::PollMode::ON_EVENT);
+    app.setVSync(Application::Toggle::ON);
     app.run();
 
     return 0;

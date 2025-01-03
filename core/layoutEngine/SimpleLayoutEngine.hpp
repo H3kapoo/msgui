@@ -14,6 +14,7 @@ public:
     glm::ivec2 process(const AbstractNodePtr& parent) override;
 
 private:
+    glm::ivec2 computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale, const AbstractNodePVec& children);
     glm::vec3 processScrollbars(const AbstractNodePtr& parent);
 
 private:
