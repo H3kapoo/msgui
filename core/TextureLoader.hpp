@@ -11,7 +11,6 @@ namespace msgui
 class TextureLoader
 {
 public:
-    // Statics
     static TexturePtr loadTexture(const std::string& resPath,
         const Texture::Params& params = Texture::Params{});
 
@@ -22,11 +21,9 @@ private:
     TextureLoader(TextureLoader&&);
     TextureLoader& operator=(TextureLoader&&);
 
-    // Normal
     Texture loadTextureInternal(const std::string& resPath,
         const Texture::Params& params);
 
-    // Statics
     static TextureLoader& get();
 
 private:

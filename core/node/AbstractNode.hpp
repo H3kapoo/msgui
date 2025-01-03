@@ -12,13 +12,12 @@
 namespace msgui
 {
 // Friend
-class Frame;
+class WindowFrame;
 
 /* Base class for all UI nodes */
 class AbstractNode
 {
 public:
-    // Internal Defs
     enum class NodeType
     {
         COMMON,
@@ -33,20 +32,21 @@ public:
         const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
-    // Normal
     void append(const std::shared_ptr<AbstractNode>& node);
     void appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes);
     void appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes);
-    std::shared_ptr<AbstractNode> remove(const std::string& nodeName);
+    std::shared_ptr<AbstractNode>              remove(const uint32_t& nodeId);
+    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<uint32_t>& nodeIds);
+    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<uint32_t>& nodeIds);
+    std::shared_ptr<AbstractNode>              remove(const std::string& nodeName);
     std::vector<std::shared_ptr<AbstractNode>> remove(const std::initializer_list<std::string>& nodeNames) = delete;
     std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<std::string>& nodeNames);
+    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<std::string>& nodeNames);
     void printTree(uint32_t currentDepth = 1);
 
-    // Pure Virtual
     virtual void setShaderAttributes() = 0;
     virtual void* getProps() = 0;
 
-    // Getters
     Transform& getTransform();
     Shader& getShader();
     Mesh& getMesh();
@@ -54,18 +54,17 @@ public:
     const Shader& getShader() const;
     const Mesh& getMesh() const;
     const std::string& getName() const;
+    const char* getCName() const;
     uint32_t getId() const;
     NodeType getType() const;
     std::vector<std::shared_ptr<AbstractNode>>& getChildren();
 
 private: // friend
-    friend Frame;
+    friend WindowFrame;
 
-    // Virtual
     virtual void onMouseButtonNotify();
 
 private:
-    // Normal
     uint32_t genetateNextId() const;
 
 protected:

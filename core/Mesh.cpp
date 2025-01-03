@@ -4,6 +4,8 @@
 
 namespace msgui
 {
+uint32_t Mesh::boundVao_{0};
+
 Mesh::Mesh(uint32_t vaoId, uint32_t eboId, uint32_t vboId)
     : log_("Mesh (" + std::to_string(vaoId) +")")
     , vaoId_(vaoId)
@@ -21,10 +23,11 @@ Mesh::~Mesh()
     log_.infoLn("Deleted vertex array");
 }
 
-// ---- Normal ---- //
 void Mesh::bind() const
 {
-    glBindVertexArray(vaoId_);
+    if (vaoId_ == boundVao_) { return; }
+    boundVao_ = vaoId_;
+    glBindVertexArray(boundVao_);
 }
 
 void Mesh::unbind() const
@@ -32,7 +35,6 @@ void Mesh::unbind() const
    glBindVertexArray(0);
 }
 
-// ---- Getters ---- //
 uint32_t Mesh::getVaoId() const
 {
     return vaoId_;

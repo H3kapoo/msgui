@@ -4,6 +4,7 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/Utils.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
@@ -11,18 +12,25 @@ namespace msgui
 class ScrollBarKnob : public AbstractNode
 {
 public:
+    struct Props
+    {
+        Layout layout; // Do not change position
+        glm::vec4 color{Utils::hexToVec4("#000000ff")};
+    };
+
+public:
     ScrollBarKnob();
 
-    // Overrides
     void* getProps() override;
 
 private:
-    // Overrides
     void setShaderAttributes() override;
+
+public:
+    Props props;
 
 private:
     Logger log_{"ScrollBarKnob"};
-    glm::vec4 color_{Utils::hexToVec4("#000000ff")};
 };
 using ScrollBarKnobPtr = std::shared_ptr<ScrollBarKnob>;
 } // namespace msgui

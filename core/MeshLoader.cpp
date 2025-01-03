@@ -7,7 +7,6 @@
 namespace msgui
 {
 
-// ---- Static Init ---- //
 Logger MeshLoader::log_ = {"MeshLoader(null)"};
 std::unordered_map<std::string, Mesh*> MeshLoader::meshPathToObject_ = {};
 
@@ -22,7 +21,6 @@ MeshLoader::~MeshLoader()
     log_.infoLn("Unloaded all meshes!");
 }
 
-// ---- Statics ---- //
 Mesh* MeshLoader::loadQuad()
 {
     if (meshPathToObject_.count(INTERNAL_QUAD_KEY))
@@ -39,7 +37,6 @@ Mesh* MeshLoader::loadQuad()
     return meshPathToObject_.at(INTERNAL_QUAD_KEY);
 }
 
-// ---- Normal Private ---- //
 Mesh MeshLoader::loadInternalQuad()
 {
     // static std::vector<float> vertices = {
@@ -141,7 +138,6 @@ uint32_t MeshLoader::convertDrawType(const BufferType drawType) const
     return 0;
 }
 
-// ---- Statics Private ---- //
 MeshLoader& MeshLoader::get()
 {
     static MeshLoader instance;

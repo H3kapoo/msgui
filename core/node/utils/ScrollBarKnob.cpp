@@ -7,20 +7,18 @@ namespace msgui
 {
 ScrollBarKnob::ScrollBarKnob()
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basic.glsl"),
-        "KnobTestBar1", NodeType::SCROLL_KNOB)
+        "ScrollBarKnob", NodeType::SCROLL_KNOB)
 {}
 
-// ---- Overrides ---- //
 void* ScrollBarKnob::getProps()
 {
-    return nullptr;
+    return &props;
 }
 
-// ---- Overrides Private ---- //
 void ScrollBarKnob::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uColor", props.color);
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 } // msgui

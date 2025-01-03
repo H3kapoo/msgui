@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "core/Window.hpp"
-#include "core/node/Frame.hpp"
+#include "core/node/WindowFrame.hpp"
 
 namespace msgui
 {
@@ -20,7 +20,6 @@ Application::~Application()
     log_.infoLn("App terminated..");
 }
 
-// ---- Normal ---- //
 bool Application::init()
 {
     /* Initialize glfw windowing */
@@ -62,7 +61,7 @@ void Application::run()
     while (!shouldAppClose_)
     {
         std::erase_if(frames_,
-            [this, &delta, &currentTime](const FramePtr& frame)
+            [this, &delta, &currentTime](const WindowFramePtr& frame)
             {
                 currentTime = glfwGetTime();
                 delta = currentTime - previousTime;
@@ -92,24 +91,28 @@ void Application::run()
             break;
         }
 
-        // Window::pollEvents();
-        Window::waitEvents();
+        // glfwPostEmptyEvent();
+        pollMode_ == PollMode::ON_EVENT ? Window::waitEvents() : Window::pollEvents();
     }
 }
 
-FramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+WindowFramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
     const bool isPrimary)
 {
-    auto newFrame = std::make_shared<Frame>(windowName, width, height, isPrimary);
+    auto newFrame = std::make_shared<WindowFrame>(windowName, width, height, isPrimary);
     frames_.emplace_back(newFrame);
     return newFrame;
 }
 
-// ---- Getters ---- //
-FramePtr Application::getFrameId(const uint32_t id)
+void Application::setPollMode(const PollMode mode)
+{
+    pollMode_ = mode;
+}
+
+WindowFramePtr Application::getFrameId(const uint32_t id)
 {
     const auto it = std::find_if(frames_.begin(), frames_.end(),
-        [&id](const FramePtr& frame)
+        [&id](const WindowFramePtr& frame)
         {
             return frame->getRoot()->getId() == id;
         });
@@ -122,7 +125,6 @@ FramePtr Application::getFrameId(const uint32_t id)
     return *it;
 }
 
-// ---- Statics ---- //
 Application& Application::get()
 {
     static Application app;

@@ -1,35 +1,47 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 
 #include "AbstractNode.hpp"
 #include "core/Listeners.hpp"
 #include "core/Texture.hpp"
+#include "core/Utils.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
 class Button : public AbstractNode
 {
 public:
+    struct Props
+    {
+        Layout layout; // Do not change position
+        glm::vec4 color;
+        AR<std::string> texture;
+    };
+
+public:
     Button(const std::string& name);
-
-    // Overrides 
     void setShaderAttributes() override;
-
-    // Virtual Getters
     void* getProps() override;
 
-    // Getters
-    Listeners& getListeners();
-
 private:
-    // Override Notifiers
     void onMouseButtonNotify() override;
 
+    void setupReloadables();
+
+    // Buttons shall not have user added children
+    void append();
+    void appendMany();
+    void remove();
+    void removeMany();
+
+public:
+    Listeners listeners;
+    Props props;
+
 private:
-    TexturePtr btnTex;
-    Listeners listeners_;
+    TexturePtr btnTex_;
 };
 using ButtonPtr = std::shared_ptr<Button>;
 } // namespace msgui

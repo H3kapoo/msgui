@@ -2,17 +2,17 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 
 namespace msgui
 {
-// ---- Overrides ---- //
-void SimpleLayoutEngine::process(const AbstractNodePtr& parent)
+glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
     if (children.empty())
     {
-        return;
+        return {0, 0};
     }
 
     glm::vec3 sbSize = processScrollbars(parent);
@@ -22,37 +22,81 @@ void SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
     // log_.infoLn("On it boss %s %d %ld", parent->getName().c_str(), parent->getId(), children.size());
 
-
     int32_t startX = pPos.x;
     int32_t startY = pPos.y;
 
-    int32_t rollingX = startX;
-    for (auto& ch : children)
+    Layout* layout = static_cast<Layout*>(parent->getProps());
+    if (!layout)
     {
-        // Already calculated, skip
-        if (ch->getType() == AbstractNode::NodeType::SCROLL ||
-            ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        {
-            continue;
-        }
-
-        auto& pos = ch->getTransform().pos;
-        auto& scale = ch->getTransform().scale;
-        rollingX += scale.x;
-        if (rollingX > pScale.x)
-        {
-            startX = 0;
-            startY += scale.y;
-            rollingX = pPos.x;
-        }
-
-        pos.x = startX;
-        pos.y = startY;
-        startX += scale.x;
+        log_.errorLn("Whoops no layout %s", parent->getCName());
+        return {0, 0};
     }
+
+    glm::ivec2 computedOverflow{0, 0};
+    glm::ivec2 currentScale{0, 0};
+    if (layout->orientation == Layout::Orientation::HORIZONTAL)
+    {
+        int32_t rollingX = startX;
+        for (auto& ch : children)
+        {
+            // Already calculated, skip
+            if (ch->getType() == AbstractNode::NodeType::SCROLL ||
+                ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
+            {
+                continue;
+            }
+
+            auto& pos = ch->getTransform().pos;
+            auto& scale = ch->getTransform().scale;
+            // rollingX += scale.x;
+            // if (rollingX > pScale.x)
+            // {
+            //     startX = 0;
+            //     startY += scale.y;
+            //     rollingX = pPos.x;
+            // }
+            currentScale.x += scale.x;
+
+            pos.x = startX;
+            pos.y = startY;
+            startX += scale.x;
+        }
+    }
+    else if (layout->orientation == Layout::Orientation::VERTICAL)
+    {
+        int32_t rollingY = startY;
+        for (auto& ch : children)
+        {
+            // Already calculated, skip
+            if (ch->getType() == AbstractNode::NodeType::SCROLL ||
+                ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
+            {
+                continue;
+            }
+
+            auto& pos = ch->getTransform().pos;
+            auto& scale = ch->getTransform().scale;
+            // rollingY += scale.y;
+            // if (rollingY > pScale.y)
+            // {
+            //     startY = 0;
+            //     startX += scale.x;
+            //     rollingY = pPos.y;
+            // }
+
+            pos.y = startY;
+            pos.x = startX;
+            startY += scale.y;
+        }
+    }
+
+    // Ignore negative values
+
+    computedOverflow.x = currentScale.x - pScale.x;
+    // log_.infoLn("overflow %d", computedOverflow.x);
+    return computedOverflow;
 }
 
-// ---- Normal Private ---- //
 glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
@@ -64,8 +108,8 @@ glm::vec3 SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
     bool bothSbOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
-        Box::Props* p = (Box::Props*)parent->getProps();
-        if (p->isHScrollOn && p->isVScrollOn)
+        Box* castBox = static_cast<Box*>(parent.get());
+        if (castBox->isScrollBarActive(ScrollBar::Orientation::ALL))
         {
             bothSbOn = true;
         }

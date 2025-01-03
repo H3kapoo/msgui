@@ -15,14 +15,15 @@ namespace msgui
 class Application;
 
 /* UI Window content manager */
-class Frame
+class WindowFrame
 {
+static constexpr uint32_t SCROLL_LAYER_START = 250;
+
 public:
-    Frame(const std::string& windowName, const uint32_t width, const uint32_t height,
+    WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
         const bool isPrimary = false);
 
-    // Normal
-    AbstractNodePtr getRoot();
+    BoxPtr getRoot();
 
     // Getters
     bool isPrimary() const;
@@ -30,16 +31,13 @@ public:
 private: // friend
     friend Application;
 
-    // Normal
     bool run();
 
 private:
-    // Normal
     void renderLayout();
     void updateLayout();
     void resolveNodeRelations();
 
-    // Window Input Resolvers
     void resolveOnMouseButtonFromInput(int32_t btn, int32_t action);
     void resolveOnMouseMoveFromInput(int32_t x, int32_t y);
 
@@ -54,6 +52,5 @@ private:
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
 };
-// using FrameUPtr = std::unique_ptr<Frame>;
-using FramePtr = std::shared_ptr<Frame>;
+using WindowFramePtr = std::shared_ptr<WindowFrame>;
 } // msgui

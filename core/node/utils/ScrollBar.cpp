@@ -17,13 +17,11 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
     append(knob_);
 }
 
-// ---- Overrides ---- //
 void* ScrollBar::getProps()
 {
-    return nullptr;
+    return &props;
 }
 
-// ---- Getters ---- //
 float ScrollBar::getOffset()
 {
     return offset_;
@@ -34,15 +32,13 @@ ScrollBar::Orientation ScrollBar::getOrientation()
     return orientation_;
 }
 
-// ---- Overrides Private ---- //
 void ScrollBar::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uColor", props.color);
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 
-// ---- Virtual Event Listeners ---- //
 void ScrollBar::onMouseButtonNotify()
 {
     if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
@@ -67,5 +63,4 @@ void ScrollBar::onMouseButtonNotify()
 
     state_->isLayoutDirty = true;
 }
-
 } // namespace msgui

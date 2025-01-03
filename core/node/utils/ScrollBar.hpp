@@ -5,6 +5,7 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/Utils.hpp"
+#include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/ScrollBarKnob.hpp"
 
 namespace msgui
@@ -13,33 +14,36 @@ namespace msgui
 class ScrollBar : public AbstractNode
 {
 public:
-    // Internal Defs
     enum class Orientation
     {
         HORIZONTAL,
-        VERTICAL
+        VERTICAL,
+        ALL
+    };
+
+    struct Props
+    {
+        Layout layout; // Do not change position
+        glm::vec4 color{Utils::hexToVec4("#ffffffff")};
     };
 
 public:
     ScrollBar(const std::string& name, const Orientation orientation);
 
-    // Overrides
     void* getProps() override;
 
-    // Getters
     float getOffset();
     Orientation getOrientation();
 
 private:
-    // Overrides
     void setShaderAttributes() override;
-
-    // Virtual Event Listeners
     void onMouseButtonNotify() override;
+
+public:
+    Props props;
 
 private:
     Logger log_;
-    glm::vec4 color_{Utils::hexToVec4("#ffffffff")};
     float offset_{0};
     Orientation orientation_{Orientation::VERTICAL};
     ScrollBarKnobPtr knob_{nullptr};

@@ -14,7 +14,6 @@ class MeshLoader
 const static constexpr std::string INTERNAL_QUAD_KEY{"//iQuadMesh"};
 
 private:
-    // Inner Defs
     enum BufferType : uint8_t
     {
         STATIC,
@@ -30,7 +29,6 @@ private:
     };
 
 public:
-    // Statics
     static Mesh* loadQuad();
 
 private:
@@ -41,7 +39,6 @@ private:
     MeshLoader& operator=(const MeshLoader&);
     MeshLoader& operator=(MeshLoader&&);
 
-    // Normal
     Mesh loadInternalQuad();
     void setDataBuffer(uint32_t& vboId, std::vector<float>& data, const BufferType drawType = MeshLoader::STATIC);
     void setElementBuffer(uint32_t& eboId, std::vector<uint32_t>& data, const BufferType drawType = MeshLoader::STATIC);
@@ -50,10 +47,10 @@ private:
     void buildAttribLayers(std::vector<Layer>& layers);
     uint32_t convertDrawType(const BufferType drawType) const;
 
-    // Statics
     static MeshLoader& get();
 
 private:
+    //TODO: Maybe no need for these to be static
     static Logger log_;
     static std::unordered_map<std::string, Mesh*> meshPathToObject_;
 };

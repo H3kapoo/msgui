@@ -12,37 +12,40 @@ Button::Button(const std::string& name)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basicTex.glsl"), name, NodeType::BUTTON)
 {
     log_ = ("Button(" + name + ")");
-    btnTex = TextureLoader::loadTexture("assets/textures/wall.jpg");
+    // btnTex_ = TextureLoader::loadTexture("assets/textures/wall.jpg");
+
+    setupReloadables();
 }
 
-// ---- Overrides ---- //
 void Button::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setTexture2D("uTexture", GL_TEXTURE0, btnTex->getId());
+    if (btnTex_)
+    {
+        shader_->setTexture2D("uTexture", GL_TEXTURE0, btnTex_->getId());
+    }
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 
-// ---- Virtual Getters ---- //
 void* Button::getProps()
 {
-    // No props yet
-    return nullptr;
+    return (void*)&props;
 }
 
-// ---- Getters ---- //
-Listeners& Button::getListeners()
-{
-    return listeners_;
-}
-
-// ---- Override Notifiers ---- //
 void Button::onMouseButtonNotify()
 {
-    listeners_.callOnMouseButton(
+    listeners.callOnMouseButton(
         state_->lastMouseButtonTriggeredIdx,
         state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
         state_->mouseX,
         state_->mouseY);
+}
+
+void Button::setupReloadables()
+{
+    props.texture.onReload = [this]()
+    {
+        btnTex_ = TextureLoader::loadTexture(props.texture.value);
+    };
 }
 } // msgui

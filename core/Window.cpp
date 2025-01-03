@@ -1,10 +1,10 @@
 #include "Window.hpp"
 
+#include <GL/gl.h>
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace msgui
 {
-// ---- Static Init ---- //
 GLXContext Window::sharedContext_ = {};
 Display* Window::sharedDisplay_ = nullptr;
 bool Window::uniqueContextAquired = false;
@@ -32,7 +32,8 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     {
         glfwMakeContextCurrent(windowHandle_);
         enableVSync();
-        glEnable(GL_DEPTH_TEST);
+        enableDepthTest();
+        // enableBlending();
         sharedDisplay_ = glfwGetX11Display();
         sharedContext_ = glXGetCurrentContext();
         uniqueContextAquired = true;
@@ -50,7 +51,6 @@ Window::~Window()
     destroy();
 }
 
-// ---- Normal ---- //
 void Window::swap() const
 {
     glXSwapBuffers(sharedDisplay_, glfwGetX11Window(windowHandle_));
@@ -66,7 +66,6 @@ bool Window::shouldClose() const
     return glfwWindowShouldClose(windowHandle_);
 }
 
-// ---- Event receivers ---- //
 void Window::onResizeEvent(const uint32_t width, const uint32_t height)
 {
     width_ = width;
@@ -78,13 +77,12 @@ void Window::onResizeEvent(const uint32_t width, const uint32_t height)
     // closer to the camera, mimicing layers.
     // If not for this, we would of had to place elements with a negative Z and the highest Z
     // (e.g -1) would of appeared in front of lowest Z (e.g -100) which is not what we want.
-    projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -100.0f, 0.0f);
+    projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -(float)MAX_LAYERS, 0.0f);
 
     setContextCurrent();
     setCurrentViewport();
 }
 
-// ---- Setters ---- //
 void Window::setTitle(const std::string& title)
 {
     glfwSetWindowTitle(windowHandle_, title.c_str());
@@ -101,7 +99,6 @@ void Window::setCurrentViewport() const
     glViewport(0, 0, width_, height_);
 }
 
-// ---- Getters ---- //
 GLFWwindow* Window::getHandle() const
 {
     return windowHandle_;
@@ -127,10 +124,26 @@ const glm::mat4& Window::getProjectionMat() const
     return projMat_;
 }
 
-// ---- Statics ---- //
 bool Window::initGlfwWindowing()
 {
     return glfwInit();
+}
+
+void Window::enableBlending()
+{
+    // Note: A context needs to be bound for this to work
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void Window::enableDepthTest()
+{
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Window::disableDepthTest()
+{
+    glDisable(GL_DEPTH_TEST);
 }
 
 void Window::enableVSync()
@@ -179,6 +192,11 @@ void Window::waitEvents()
     glfwWaitEvents();
 }
 
+void Window::requestEmptyEvent()
+{
+    glfwPostEmptyEvent();
+}
+
 void Window::clearColor(const glm::vec4 color)
 {
     glClearColor(color.r, color.g, color.b, color.a);
@@ -189,7 +207,6 @@ void Window::clearBits(const uint32_t bits)
     glClear(bits);
 }
 
-// ---- Normal Private ---- //
 void Window::maskUnnecessaryEvents()
 {
     // On X11 systems when we have ONE context shared among MANY windows, the WM will spam out PropertyNotify

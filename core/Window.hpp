@@ -21,42 +21,42 @@ namespace msgui
 /* Manages creation & customization of actual OS windows. */
 class Window
 {
+static constexpr uint32_t MAX_LAYERS = 1000;
+
 public:
     Window(const std::string& windowName, const uint32_t width, const uint32_t height);
     ~Window();
 
-    // Normal
     void swap() const;
     void destroy() const;
     bool shouldClose() const;
 
-    // Event receivers
     void onResizeEvent(const uint32_t width, const uint32_t height);
 
-    // Setters
     void setTitle(const std::string& title);
     void setContextCurrent() const;
     void setCurrentViewport() const;
 
-    // Getters
     GLFWwindow* getHandle() const;
     std::string getName() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     const glm::mat4& getProjectionMat() const;
 
-    // Statics
     static bool initGlfwWindowing();
+    static void enableBlending();
+    static void enableDepthTest();
+    static void disableDepthTest();
     static void enableVSync();
     static void disableVSync();
     static void terminate();
     static void pollEvents();
     static void waitEvents();
+    static void requestEmptyEvent();
     static void clearColor(const glm::vec4 color);
     static void clearBits(const uint32_t bits);
 
 private:
-    // Normal
     void setupEventCallbacks();
     void maskUnnecessaryEvents();
 

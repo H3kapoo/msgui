@@ -6,7 +6,6 @@
 
 namespace msgui
 {
-// ---- Statics ---- //
 TexturePtr TextureLoader::loadTexture(const std::string& resPath,
     const Texture::Params& params)
 {
@@ -25,13 +24,12 @@ TexturePtr TextureLoader::loadTexture(const std::string& resPath,
     }
     else
     {
-        instance.log_.error("Load failed! Returning zero texture!");
+        instance.log_.errorLn("Load failed! Returning zero texture!");
     }
 
     return texturePtr;
 }
 
-// ---- Normal Private ---- //
 Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     const Texture::Params& params)
 {
@@ -42,7 +40,7 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     unsigned char* data = stbi_load(resPath.c_str(), &width, &height, &numChannels, 0);
     if (!data)
     {
-        log_.error("Cannot load texture. Check path correctness!");
+        log_.errorLn("Cannot load texture. Check path correctness!");
         return Texture(0, -1, -1, -1, params);
     }
 
@@ -68,7 +66,6 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     return Texture(id, width, height, numChannels, params);
 }
 
-// ---- Statics Private ---- //
 TextureLoader& TextureLoader::get()
 {
     static TextureLoader instance;

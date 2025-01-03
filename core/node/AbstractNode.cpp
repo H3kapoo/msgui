@@ -10,7 +10,6 @@ AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name, 
         , nodeType_(nodeType)
 {}
 
-// ---- Normal ---- //
 void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
 {   
     if (!node)
@@ -53,6 +52,62 @@ void AbstractNode::appendMany(std::initializer_list<std::shared_ptr<AbstractNode
     {
         append(node);
     }
+}
+
+std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
+{
+    const auto it = std::find_if(children_.begin(), children_.end(),
+        [&nodeId](const std::shared_ptr<AbstractNode>& node)
+        {
+            return node->getId() == nodeId;
+        });
+
+    if (it == children_.end())
+    {
+        return nullptr;
+    }
+
+    // Notify layout
+    (*it)->state_->isLayoutDirty = true;
+
+    // Reset to defaults
+    (*it)->state_ = nullptr;
+    (*it)->isParented_ = false;
+    (*it)->parent_.reset();
+
+    // Transfer ownership out of the vector and erase remaining iterator
+    std::shared_ptr<AbstractNode> returned = std::move(*it);
+    children_.erase(it);
+
+    return returned;
+}
+
+std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(const std::initializer_list<uint32_t>& nodeIds)
+{
+    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    for (const auto& nodeId : nodeIds)
+    {
+        if (const auto it = remove(nodeId))
+        {
+            removedNodes.emplace_back(it);
+        }
+    }
+
+    return removedNodes;
+}
+
+std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(const std::vector<uint32_t>& nodeIds)
+{
+    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    for (const auto& nodeId : nodeIds)
+    {
+        if (const auto it = remove(nodeId))
+        {
+            removedNodes.emplace_back(it);
+        }
+    }
+
+    return removedNodes;
 }
 
 std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
@@ -98,10 +153,25 @@ std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
     return removedNodes;
 }
 
+std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
+    const std::vector<std::string>& nodeNames)
+{
+    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    for (const auto& nodeName : nodeNames)
+    {
+        if (const auto it = remove(nodeName))
+        {
+            removedNodes.emplace_back(it);
+        }
+    }
+
+    return removedNodes;
+}
+
 void AbstractNode::printTree(uint32_t currentDepth)
 {
     currentDepth ? log_.raw("") : log_.infoLn("");
-    for (uint32_t i = 0; i < currentDepth; i++)
+    for (uint32_t i = 0; i < currentDepth - 1; i++)
     {
         log_.raw("    ");
     }
@@ -115,7 +185,6 @@ void AbstractNode::printTree(uint32_t currentDepth)
     }
 }
 
-// ---- Getters ---- //
 Transform& AbstractNode::getTransform()
 {
     return transform_;
@@ -151,6 +220,11 @@ const std::string& AbstractNode::getName() const
     return name_;
 }
 
+const char* AbstractNode::getCName() const
+{
+    return name_.c_str();
+}
+
 uint32_t AbstractNode::getId() const
 {
     return id_;
@@ -166,10 +240,8 @@ std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
     return children_;
 }
 
-// ---- Virtual Private ---- //
 void AbstractNode::onMouseButtonNotify() {}
 
-// ---- Normal Private ---- //
 uint32_t AbstractNode::genetateNextId() const
 {
     static uint32_t id = 0;

@@ -13,11 +13,9 @@ public:
     Mesh(Mesh&& other);
     ~Mesh();
 
-    // Normal
     void bind() const;
     void unbind() const;
 
-    // Getters
     uint32_t getVaoId() const;
     uint32_t getVaoId();
 
@@ -31,5 +29,7 @@ private:
     uint32_t vaoId_{0};
     uint32_t eboId_{0};
     uint32_t vboId_{0};
+
+    static uint32_t boundVao_;
 };
 } // namespace msgui

@@ -5,60 +5,44 @@
 #include "core/Listeners.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/ScrollBar.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
+class WindowFrame; //Friend
 class Box : public AbstractNode
 {
 public:
-    // Internal Defs
     struct Props
     {
-        bool isVScrollOn{false};
-        bool isHScrollOn{true};
+        Layout layout; // Do not change position
+        glm::vec4 color;
     };
 
 public:
     Box(const std::string& name);
 
+
     void* getProps() override;
+    bool isScrollBarActive(const ScrollBar::Orientation orientation);
 
-    // Setters
-    void setColor(const glm::vec4& color);
-
-    // Getters
-    Listeners& getListeners();
-
-    // Temporary
-    void enableVScroll()
-    {
-        log_.infoLn("appending sb");
-        if (!vScrollBar_)
-        {
-            props_.isVScrollOn = true;
-            vScrollBar_ = std::make_shared<ScrollBar>(log_.getName(), ScrollBar::Orientation::VERTICAL);
-            append(vScrollBar_);
-        }
-
-        if (!hScrollBar_)
-        {
-            props_.isHScrollOn = true;
-            hScrollBar_ = std::make_shared<ScrollBar>(log_.getName(), ScrollBar::Orientation::HORIZONTAL);
-            append(hScrollBar_);
-        }
-    }
+private: // friend
+    friend WindowFrame;
+    void updateOverflow(const glm::ivec2 overflow);
 
 private:
-    // Overrides
     void setShaderAttributes() override;
     void onMouseButtonNotify() override;
+    void setupReloadables();
+
+public:
+    Listeners listeners;
+    Props props;
 
 private:
-    glm::vec4 color_{1.0f};
+    glm::ivec2 overflow_{0, 0}; // temporary here
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
-    Listeners listeners_;
-    Props props_;
 };
 using BoxPtr = std::shared_ptr<Box>;
 } // namespace msgui

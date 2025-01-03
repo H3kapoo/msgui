@@ -11,11 +11,9 @@ class SimpleLayoutEngine : public ILayoutEngine
 public:
     SimpleLayoutEngine() = default;
 
-    // Overrides
-    void process(const AbstractNodePtr& parent) override;
+    glm::ivec2 process(const AbstractNodePtr& parent) override;
 
 private:
-    // Normal
     glm::vec3 processScrollbars(const AbstractNodePtr& parent);
 
 private:

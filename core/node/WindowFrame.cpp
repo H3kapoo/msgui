@@ -1,24 +1,23 @@
-#include "Frame.hpp"
+#include "WindowFrame.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <ranges>
 #include <queue>
 
-#include <GLFW/glfw3.h>
-
 #include "core/layoutEngine/SimpleLayoutEngine.hpp"
 #include "core/Renderer.hpp"
+#include "core/node/AbstractNode.hpp"
 
 namespace msgui
 {
-Frame::Frame(const std::string& windowName, const uint32_t width, const uint32_t height, const bool isPrimary)
-    : log_("Frame(" + windowName + ")")
+WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height, const bool isPrimary)
+    : log_("WindowFrame(" + windowName + ")")
     , window_(windowName, width, height)
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
     , layoutEngine_(std::make_shared<SimpleLayoutEngine>())
-    , frameBox_(std::make_shared<Box>(windowName))
+    , frameBox_(std::make_shared<Box>(log_.getName()))
     , isPrimary_(isPrimary)
 {
     input_.onWindowResize([this](uint32_t width, uint32_t height)
@@ -40,45 +39,45 @@ Frame::Frame(const std::string& windowName, const uint32_t width, const uint32_t
 
     input_.onMouseButton(
         std::bind(
-            &Frame::resolveOnMouseButtonFromInput,
+            &WindowFrame::resolveOnMouseButtonFromInput,
             this, std::placeholders::_1, std::placeholders::_2));
     
     input_.onMouseMove(
         std::bind(
-            &Frame::resolveOnMouseMoveFromInput,
+            &WindowFrame::resolveOnMouseMoveFromInput,
             this, std::placeholders::_1, std::placeholders::_2));
 
-    frameBox_->setColor({204/255.0f, 51/255.0f, 139/255.0f, 1.0f});
+    frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.setPos({0, 0, 1});
     frameBox_->transform_.setScale({width, height, 1});
     frameBox_->state_ = frameState_;
-
-    // temp
-    // frameBox_->enableVScroll();
-    // window_.setContextCurrent();
-    // window_.disableVSync();
 }
 
-// ---- Normal ---- //
-AbstractNodePtr Frame::getRoot()
+BoxPtr WindowFrame::getRoot()
 {
     return frameBox_;
 }
 
-// ---- Getters ---- //
-bool Frame::isPrimary() const
+bool WindowFrame::isPrimary() const
 {
     return isPrimary_;
 }
 
-// ---- Normal Private ---- //
-bool Frame::run()
+bool WindowFrame::run()
 {
     // layout pass
     if (frameState_->isLayoutDirty)
     {
-        updateLayout();
+        // It's important for variable to be reset before the layout update is called as layoutUpdate
+        // and SET the variable to true again if it decides the layout got dirty.
         frameState_->isLayoutDirty = false;
+        updateLayout();
+
+        // If the layout got dirty again we need to simulate a new frame RUN request.
+        if (frameState_->isLayoutDirty)
+        {
+            Window::requestEmptyEvent();
+        }
     }
 
     // render pass
@@ -94,19 +93,24 @@ bool Frame::run()
     return shouldWindowClose_ || window_.shouldClose();
 }
 
-void Frame::renderLayout()
-{   
+void WindowFrame::renderLayout()
+{
+    const auto pMat = window_.getProjectionMat();
+
     // Currently we need front to back to minimize overdraw by making use of the depth buffer.
     // Not sure how this will work when we need alpha blending between nodes. Maybe we will need
     // to render back to front in that case and take overdrawing as a compromise.
-    const auto pMat = window_.getProjectionMat();
+    // TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
+    // transparent objects.
+    // for (auto& node : allFrameChildNodes_ | std::views::reverse) -> back to front Z
+    // for (auto& node : allFrameChildNodes_) -> front to back Z
     for (auto& node : allFrameChildNodes_)
     {
         Renderer::render(node, pMat);
     }
 }
 
-void Frame::updateLayout()
+void WindowFrame::updateLayout()
 {
     // Must redo internal vector structure if something was added/removed
     resolveNodeRelations();
@@ -114,11 +118,16 @@ void Frame::updateLayout()
     // Iterate from lowest depth to highest
     for (auto& node : allFrameChildNodes_ | std::views::reverse)
     {
-        layoutEngine_->process(node);
+        glm::ivec2 overflow = layoutEngine_->process(node);
+        if (node->getType() == AbstractNode::NodeType::BOX)
+        {
+            static_cast<Box*>(node.get())->updateOverflow(overflow);
+            // log_.infoLn("overflow %f", overflow.x);
+        }
     }
 }
 
-void Frame::resolveNodeRelations()
+void WindowFrame::resolveNodeRelations()
 {
     allFrameChildNodes_.clear();
 
@@ -136,8 +145,9 @@ void Frame::resolveNodeRelations()
             // Set children's frameState and depth if needed
             if (!ch->state_)
             {
+                bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
                 ch->parent_ = node;
-                ch->transform_.pos.z = node->transform_.pos.z + 1;
+                ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
                 ch->state_ = frameState_;
             }
             q.push(ch);
@@ -152,8 +162,7 @@ void Frame::resolveNodeRelations()
         });
 }
 
-// ---- Window Input Resolvers ---- //
-void Frame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
+void WindowFrame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
 {
     // log_.debug("button is %d action %d", btn, action);
     frameState_->mouseButtonState[btn] = action;
@@ -180,7 +189,7 @@ void Frame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
     }
 }
 
-void Frame::resolveOnMouseMoveFromInput(int32_t x, int32_t y)
+void WindowFrame::resolveOnMouseMoveFromInput(int32_t x, int32_t y)
 {
     frameState_->mouseX = x;
     frameState_->mouseY = y;
