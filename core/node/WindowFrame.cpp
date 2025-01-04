@@ -72,8 +72,8 @@ bool WindowFrame::run()
     // layout pass
     if (frameState_->isLayoutDirty)
     {
-        // It's important for variable to be reset before the layout update is called as layoutUpdate
-        // and SET the variable to true again if it decides the layout got dirty.
+        // It's important for the variable to be reset before the layout update is called as layoutUpdate
+        // can SET the variable to true again if it decides the layout got dirty.
         frameState_->isLayoutDirty = false;
         updateLayout();
 

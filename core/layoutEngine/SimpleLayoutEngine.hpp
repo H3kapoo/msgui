@@ -8,6 +8,13 @@ namespace msgui
 {
 class SimpleLayoutEngine : public ILayoutEngine
 {
+private:
+    struct ScrollBarsData
+    {
+        glm::ivec2 shrinkBy{0, 0};
+        glm::ivec2 offsetPx{0, 0};
+    };
+
 public:
     SimpleLayoutEngine() = default;
 
@@ -15,7 +22,7 @@ public:
 
 private:
     glm::ivec2 computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale, const AbstractNodePVec& children);
-    glm::vec3 processScrollbars(const AbstractNodePtr& parent);
+    ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
 
 private:
     Logger log_{"SimpleLayoutEngine"};

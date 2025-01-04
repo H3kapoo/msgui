@@ -112,5 +112,10 @@ void Box::setupReloadables()
     {
         state_->isLayoutDirty = true;
     };
+
+    props.layout.allowWrap.onReload = [this]()
+    {
+        state_->isLayoutDirty = true;
+    };
 }
 } // namespace msgui

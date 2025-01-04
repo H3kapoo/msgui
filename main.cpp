@@ -52,8 +52,6 @@ int main()
     middleButton->props.color = Utils::hexToVec4("#ddffffff");
     rightBox->props.color = Utils::hexToVec4("#ffffaaff");
 
-    // middleButton->props.texture = "assets/textures/wall.jpg";
-
     leftBox->getTransform().setScale({200, 200, 1});
     middleBox->getTransform().setScale({200, 200, 1});
     middleButton->getTransform().setScale({200, 300, 1});
@@ -62,18 +60,21 @@ int main()
     frame->getRoot()->appendMany({leftBox, middleBox, middleButton, rightBox});
 
     uint32_t frameId{0};
-    leftBox->listeners.setOnMouseButton([&mainLog, &app, &frameId](auto btn, auto action, auto x, auto y)
+    uint32_t anotherId{0};
+    leftBox->listeners.setOnMouseButton([&mainLog, &app, &anotherId, &frame](auto btn, auto action, auto x, auto y)
     {
         if (action != 0) { return; }
         mainLog.infoLn("clicked me %d %d %d %d", btn, action, x, y);
+        anotherId++;
+        frame->getRoot()->props.layout.allowWrap = anotherId % 2;
     });
 
     rightBox->listeners.setOnMouseButtonLeftClick([&mainLog, &app, &frame, &frameId, &rightBox]()
     {
         // frame->getRoot()->props.layout.allowOverflowX = frameId % 2? true : false;
         // frame->getRoot()->props.layout.allowOverflowY = frameId % 2? true : false;
-        // frame->getRoot()->props.layout.orientation =
-        //     frameId % 2 ? Layout::Orientation::HORIZONTAL : Layout::Orientation::VERTICAL;
+        frame->getRoot()->props.layout.orientation =
+            frameId % 2 ? Layout::Orientation::HORIZONTAL : Layout::Orientation::VERTICAL;
         
         rightBox->props.color = Utils::randomRGB();
         frameId++;
@@ -82,13 +83,21 @@ int main()
     middleButton->props.texture = "assets/textures/wall.jpg";
     middleButton->listeners.setOnMouseButtonLeftClick([&mainLog, &middleButton, &frameId, &frame]()
     {
-        ButtonPtr newBtn = std::make_shared<Button>("NewButton");
+        // ButtonPtr newBtn = std::make_shared<Button>("NewButton");
+        // newBtn->getTransform().setScale({100, 100, 1});
+        // newBtn->props.color = Utils::randomRGB();
+        // frame->getRoot()->append(newBtn);
 
-        frame->getRoot()->props.layout.allowOverflowX = frameId % 2 ? true : false;
-        frame->getRoot()->props.layout.allowOverflowY = frameId % 2 ? true : false;
-        mainLog.debugLn("ALLOW OVERFLOW: %d", frameId % 2 ? true : false);
+        // newBtn->listeners.setOnMouseButtonLeftClick([&mainLog]()
+        // {
+        //     mainLog.infoLn("Fac bani cand fac muzica");
+        // });
+
+        // frame->getRoot()->props.layout.allowOverflowX = frameId % 2 ? true : false;
+        // frame->getRoot()->props.layout.allowOverflowY = frameId % 2 ? true : false;
+        // mainLog.debugLn("ALLOW OVERFLOW: %d", frameId % 2 ? true : false);
         // frame->getRoot()->props.layout.allowOverflowY = frameId % 2? true : false;
-        frameId++;
+        // frameId++;
     });
 
 
