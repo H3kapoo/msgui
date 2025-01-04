@@ -63,6 +63,8 @@ private: // friend
     friend WindowFrame;
 
     virtual void onMouseButtonNotify();
+    virtual void onMouseHoverNotify();
+    virtual void onMouseDragNotify();
 
 private:
     uint32_t genetateNextId() const;

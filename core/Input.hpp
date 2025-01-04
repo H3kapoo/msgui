@@ -16,10 +16,10 @@ namespace msgui
 class Input
 {
 // Callback Defs
-using MouseMoveCallback = std::function<void(double x, double y)>;
-using MouseClickCallback = std::function<void(int32_t btn, int32_t action)>;
-using WindowResizeCallback = std::function<void(uint32_t width, uint32_t height)>;
-using KeyCallback = std::function<void(int32_t key, int32_t scanCode, int32_t mods)>;
+using MouseMoveCallback = std::function<void(const double x, const double y)>;
+using MouseClickCallback = std::function<void(const int32_t btn, const int32_t action)>;
+using WindowResizeCallback = std::function<void(const uint32_t width, const uint32_t height)>;
+using KeyCallback = std::function<void(const int32_t key, const int32_t scanCode, const int32_t mods)>;
 using RefreshCallback = std::function<void()>;
 
 public:

@@ -41,12 +41,15 @@ public:
 private:
     void setShaderAttributes() override;
     void onMouseButtonNotify() override;
+    void onMouseHoverNotify() override;
+    void onMouseDragNotify() override;
 
 public:
     Props props;
 
 private:
     Logger log_;
+    bool ignoreMouseState_{false};
     float knobOffset_{0};
     int32_t overflowSize_{0};
     Orientation orientation_{Orientation::VERTICAL};

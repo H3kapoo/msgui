@@ -38,8 +38,8 @@ private:
     void updateLayout();
     void resolveNodeRelations();
 
-    void resolveOnMouseButtonFromInput(int32_t btn, int32_t action);
-    void resolveOnMouseMoveFromInput(int32_t x, int32_t y);
+    void resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action);
+    void resolveOnMouseMoveFromInput(const int32_t x, const int32_t y);
 
 private:
     Logger log_;

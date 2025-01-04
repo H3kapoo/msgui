@@ -8,6 +8,7 @@
 #include "core/layoutEngine/SimpleLayoutEngine.hpp"
 #include "core/Renderer.hpp"
 #include "core/node/AbstractNode.hpp"
+#include "core/node/FrameState.hpp"
 
 namespace msgui
 {
@@ -166,7 +167,7 @@ void WindowFrame::resolveNodeRelations()
         });
 }
 
-void WindowFrame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
+void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action)
 {
     // log_.debug("button is %d action %d", btn, action);
     frameState_->mouseButtonState[btn] = action;
@@ -176,27 +177,61 @@ void WindowFrame::resolveOnMouseButtonFromInput(int32_t btn, int32_t action)
     int32_t mY = frameState_->mouseY;
     for (const auto& node : allFrameChildNodes_)
     {
-        // Ignore clicks on SCROLL_KNOB
-        if (node->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        {
-            continue;
-        }
+        // Ignore clicks on SCROLL_KNOB. SCROLL_KNOB is NOT draggable directly.
+        if (node->getType() == AbstractNode::NodeType::SCROLL_KNOB) { continue; }
 
+        // TODO: We shall not use absolute node values but the computed "viewable node area"
+        // after node scissoring with it's parent. Otherwise we can click the child node that's
+        // visually outside of it's parent.
         glm::vec3& nodePos = node->transform_.pos;
         glm::vec3& nodeScale = node->transform_.scale;
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
+            // If we got here by pressing the mouse button, this is the new selected node.
+            if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+            {
+                frameState_->clickedNodePtr = node;
+            }
+            // Otherwise we need to clear whatever we deduced to be pressed before
+            else
+            {
+                frameState_->clickedNodePtr = NO_PTR;
+            }
+
             node->onMouseButtonNotify();
             break; // event was consumed
         }
     }
 }
 
-void WindowFrame::resolveOnMouseMoveFromInput(int32_t x, int32_t y)
+void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
 {
     frameState_->mouseX = x;
     frameState_->mouseY = y;
+
+    // Having a selectedNodeId && currently holding down left click means we want to drag only.
+    if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
+    {
+        frameState_->clickedNodePtr->onMouseDragNotify();
+        return;
+    }
+
+    // Resolve hovered item
+    for (const auto& node : allFrameChildNodes_)
+    {
+        // TODO: We shall not use absolute node values but the computed "viewable node area"
+        // after node scissoring with it's parent. Otherwise we can click the child node that's
+        // visually outside of it's parent.
+        glm::vec3& nodePos = node->transform_.pos;
+        glm::vec3& nodeScale = node->transform_.scale;
+        if ((x >= nodePos.x && x <= nodePos.x + nodeScale.x) &&
+            (y >= nodePos.y && y <= nodePos.y + nodeScale.y))
+        {
+            node->onMouseHoverNotify();
+            break; // event was consumed
+        }
+    }
 }
 
 } // namespace msgui

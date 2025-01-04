@@ -241,6 +241,8 @@ std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
 }
 
 void AbstractNode::onMouseButtonNotify() {}
+void AbstractNode::onMouseHoverNotify() {}
+void AbstractNode::onMouseDragNotify() {}
 
 uint32_t AbstractNode::genetateNextId() const
 {

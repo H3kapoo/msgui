@@ -57,16 +57,10 @@ void ScrollBar::setShaderAttributes()
 
 void ScrollBar::onMouseButtonNotify()
 {
-    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-    {
-        return;
-    }
+    if (!ignoreMouseState_ && state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT]) { return; }
 
-    // offset: 0.........1
-    // size:  top_xy........bottom_xy
+    static constexpr int32_t knobHalf = 10;
 
-    const int32_t knobHalf = 10;
-    // const int32_t knobHalf = 0;
     if (orientation_ == Orientation::VERTICAL)
     {
         knobOffset_ = Utils::remap(state_->mouseY,
@@ -77,8 +71,18 @@ void ScrollBar::onMouseButtonNotify()
         knobOffset_ = Utils::remap(state_->mouseX,
             transform_.pos.x + knobHalf, transform_.pos.x + transform_.scale.x - knobHalf, 0.0f, 1.0f);
     }
-    log_.infoLn("clicked %f", knobOffset_);
 
     state_->isLayoutDirty = true;
+}
+
+void ScrollBar::onMouseHoverNotify()
+{}
+
+void ScrollBar::onMouseDragNotify()
+{
+    // log_.infoLn("Im getting dragged %d %d", state_->mouseX, state_->mouseY);
+    ignoreMouseState_ = true;
+    onMouseButtonNotify();
+    ignoreMouseState_ = false;
 }
 } // namespace msgui
