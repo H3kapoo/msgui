@@ -30,7 +30,7 @@ public:
 public:
     ScrollBar(const std::string& name, const Orientation orientation);
 
-    void setOverflow(const uint32_t overflow);
+    bool setOverflow(const uint32_t overflow);
 
     void* getProps() override;
 

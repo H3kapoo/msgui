@@ -40,27 +40,19 @@ bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
     return false;
 }
 
-void Box::updateOverflow(const glm::ivec2 overflow)
+void Box::updateOverflow(const glm::ivec2& overflow)
 {
-    if (overflow_.x == overflow.x && overflow_.y == overflow.y)
-    {
-        return;
-    }
-
     overflow_ = overflow;
-    // log_.infoLn("OF SIZE %d", overflow.y);
 
     // Update with the new overflow value
     if (hScrollBar_)
     {
-        hScrollBar_->setOverflow(overflow.x);
-        state_->isLayoutDirty = true;
+        state_->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
     }
 
     if (vScrollBar_)
     {
-        vScrollBar_->setOverflow(overflow.y);
-        state_->isLayoutDirty = true;
+        state_->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
     }
 
     // Handle horizontal OF
@@ -108,12 +100,12 @@ void Box::setupReloadables()
 {
     props.layout.allowOverflowX.onReload = [this]()
     {
-        updateOverflow(overflow_);
+        props.layout.allowOverflowX ? updateOverflow(overflow_) : updateOverflow({0, 0});
     };
 
     props.layout.allowOverflowY.onReload = [this]()
     {
-        updateOverflow(overflow_);
+        props.layout.allowOverflowY ? updateOverflow(overflow_) : updateOverflow({0, 0});
     };
 
     props.layout.orientation.onReload = [this]()

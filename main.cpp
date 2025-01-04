@@ -72,26 +72,26 @@ int main()
     {
         // frame->getRoot()->props.layout.allowOverflowX = frameId % 2? true : false;
         // frame->getRoot()->props.layout.allowOverflowY = frameId % 2? true : false;
-        frame->getRoot()->props.layout.orientation =
-            frameId % 2 ? Layout::Orientation::HORIZONTAL : Layout::Orientation::VERTICAL;
+        // frame->getRoot()->props.layout.orientation =
+        //     frameId % 2 ? Layout::Orientation::HORIZONTAL : Layout::Orientation::VERTICAL;
         
         rightBox->props.color = Utils::randomRGB();
         frameId++;
     });
 
-    middleButton->listeners.setOnMouseButtonLeftClick([&mainLog, &middleButton, &frameId]()
+    middleButton->props.texture = "assets/textures/wall.jpg";
+    middleButton->listeners.setOnMouseButtonLeftClick([&mainLog, &middleButton, &frameId, &frame]()
     {
-        middleButton->props.texture =
-            frameId % 2 ? "assets/textures/wall.jpg" : "assets/textures/container.jpg";
-        frameId++;
-        mainLog.debugLn("clicked ME middleBox");
+        ButtonPtr newBtn = std::make_shared<Button>("NewButton");
 
+        frame->getRoot()->props.layout.allowOverflowX = frameId % 2 ? true : false;
+        frame->getRoot()->props.layout.allowOverflowY = frameId % 2 ? true : false;
+        mainLog.debugLn("ALLOW OVERFLOW: %d", frameId % 2 ? true : false);
+        // frame->getRoot()->props.layout.allowOverflowY = frameId % 2? true : false;
+        frameId++;
     });
 
-    // middleButton->listeners.setOnMouseButtonLeftClick([&mainLog]()
-    // {
-    //     mainLog.debugLn("clicked ME middleBox 2");
-    // });
+
     app.setPollMode(Application::PollMode::ON_EVENT);
     app.setVSync(Application::Toggle::ON);
     app.run();

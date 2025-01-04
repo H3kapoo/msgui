@@ -28,7 +28,7 @@ public:
 
 private: // friend
     friend WindowFrame;
-    void updateOverflow(const glm::ivec2 overflow);
+    void updateOverflow(const glm::ivec2& overflow);
 
 private:
     void setShaderAttributes() override;

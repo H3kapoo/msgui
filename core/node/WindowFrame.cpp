@@ -127,7 +127,6 @@ void WindowFrame::updateLayout()
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
             static_cast<Box*>(node.get())->updateOverflow(overflow);
-            // log_.infoLn("overflow %f", overflow.x);
         }
     }
 }

@@ -33,7 +33,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     auto& pPos = parent->getTransform().pos;
     const auto pScale = parent->getTransform().scale - sbSize;
 
-    // log_.infoLn("On it boss %s %d %ld", parent->getName().c_str(), parent->getId(), children.size());
+    // log_.debugLn("On it boss %s %d %ld", parent->getName().c_str(), parent->getId(), children.size());
 
     // Get sb overflow val
     glm::ivec2 sbOffsets{0, 0};
@@ -64,9 +64,9 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         }
     }
 
-    // log_.infoLn("%s overflowX: %d offsets x:%f", parent->getCName(), over.x, pScale.x * sbOffsets.x);
-    log_.infoLn("%s offsets x:%d -- %f", parent->getCName(), sbOffsets.x, sbOffsetsF.x);
-    // log_.infoLn("%s offsets y:%d -- %f", parent->getCName(), sbOffsets.y, sbOffsetsF.y);
+    // log_.debugLn("%s overflowX: %d offsets x:%f", parent->getCName(), over.x, pScale.x * sbOffsets.x);
+    // log_.debugLn("%s offsets x:%d -- %f", parent->getCName(), sbOffsets.x, sbOffsetsF.x);
+    // log_.debugLn("%s offsets y:%d -- %f", parent->getCName(), sbOffsets.y, sbOffsetsF.y);
 
 
     int32_t startX = pPos.x;// - sbOffsets.x;
@@ -172,8 +172,8 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pPos, const glm
         currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
     }
 
-    log_.infoLn("overflow x:%d", currentScale.x - (int32_t)pScale.x);
-    // log_.infoLn("overflow y:%d", currentScale.y - (int32_t)pScale.y);
+    // log_.debugLn("overflow x:%d", currentScale.x - (int32_t)pScale.x);
+    // log_.debugLn("overflow y:%d", currentScale.y - (int32_t)pScale.y);
     return {currentScale.x - pScale.x, currentScale.y - pScale.y};
 }
 
