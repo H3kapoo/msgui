@@ -1,5 +1,6 @@
 #include "Window.hpp"
 
+#include <GLFW/glfw3.h>
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace msgui
@@ -17,7 +18,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     windowHandle_ = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
     if (!windowHandle_)
@@ -32,6 +33,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
         glfwMakeContextCurrent(windowHandle_);
         setVSync(1);
         setDepthTest(true);
+        setScissorTest(true);
         // setBlending(true);
         sharedDisplay_ = glfwGetX11Display();
         sharedContext_ = glXGetCurrentContext();
@@ -138,6 +140,11 @@ void Window::setBlending(const bool state)
 void Window::setDepthTest(const bool state)
 {
     state ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+}
+
+void Window::setScissorTest(const bool state)
+{
+    state ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
 }
 
 void Window::setVSync(const int32_t internal)

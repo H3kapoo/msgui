@@ -107,9 +107,8 @@ void WindowFrame::renderLayout()
     // to render back to front in that case and take overdrawing as a compromise.
     // TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
     // transparent objects.
-    // for (auto& node : allFrameChildNodes_ | std::views::reverse) -> back to front Z
-    // for (auto& node : allFrameChildNodes_) -> front to back Z
-    for (auto& node : allFrameChildNodes_)
+    // for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
+    for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
         Renderer::render(node, pMat);
     }
@@ -117,8 +116,12 @@ void WindowFrame::renderLayout()
 
 void WindowFrame::updateLayout()
 {
-    // Must redo internal vector structure if something was added/removed
-    resolveNodeRelations();
+    // Must redo internal vector structure if something was added.
+    // Removal preserves the node "depth"-ness so we don't need to redo it.
+    if (frameState_->layoutNeedsSort)
+    {
+        resolveNodeRelations();
+    }
 
     // Iterate from lowest depth to highest
     for (auto& node : allFrameChildNodes_ | std::views::reverse)
@@ -146,6 +149,8 @@ void WindowFrame::resolveNodeRelations()
 
         for (auto& ch : node->getChildren())
         {
+            //TODO: Resolve viewable area of the node
+
             // Set children's frameState and depth if needed
             if (!ch->state_)
             {
@@ -158,12 +163,17 @@ void WindowFrame::resolveNodeRelations()
         }
     }
 
-    // Sort nodes from high to low depth
-    std::ranges::sort(allFrameChildNodes_,
-        [](const AbstractNodePtr a, const AbstractNodePtr b)
-        {
-            return a->getTransform().pos.z > b->getTransform().pos.z;
-        });
+    // Sort only if necessary to speed-up things
+    if (frameState_->layoutNeedsSort)
+    {
+        // Sort nodes from high to low depth
+        std::ranges::sort(allFrameChildNodes_,
+            [](const AbstractNodePtr a, const AbstractNodePtr b)
+            {
+                return a->getTransform().pos.z > b->getTransform().pos.z;
+            });
+        frameState_->layoutNeedsSort = false;
+    }
 }
 
 void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action)

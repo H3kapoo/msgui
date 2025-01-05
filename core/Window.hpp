@@ -46,6 +46,7 @@ public:
     static bool initGlfwWindowing();
     static void setBlending(const bool state);
     static void setDepthTest(const bool state);
+    static void setScissorTest(const bool state);
     static void setVSync(const int32_t interval);
     static void terminate();
     static void pollEvents();

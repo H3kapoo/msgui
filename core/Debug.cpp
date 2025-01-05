@@ -106,12 +106,12 @@ void Debug::debugCallback(GLenum eSource, GLenum eType, unsigned int id, GLenum 
     }
 
     const auto log_ = static_cast<const Logger*>(userParam);
-    log_->errorLn("---------(id:%d)---------", id);
-    log_->errorLn("Source  : %s", source.c_str());
-    log_->errorLn("Type    : %s", type.c_str());
-    log_->errorLn("Severity: %s", severity.c_str());
-    log_->errorLn("Message : %s", message);
-    log_->errorLn("-------------------------", id);
+    log_->debugLn("---------(id:%d)---------", id);
+    log_->debugLn("Source  : %s", source.c_str());
+    log_->debugLn("Type    : %s", type.c_str());
+    log_->debugLn("Severity: %s", severity.c_str());
+    log_->debugLn("Message : %s", message);
+    log_->debugLn("-------------------------", id);
 
 #undef E_TO_CASE
 }

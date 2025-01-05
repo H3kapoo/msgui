@@ -17,7 +17,7 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
     append(knob_);
 }
 
-bool ScrollBar::setOverflow(const uint32_t overflow)
+bool ScrollBar::setOverflow(const int32_t overflow)
 {
     // We shall indicate if the value was modified or not
     if (overflowSize_ == overflow)

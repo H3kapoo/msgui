@@ -50,6 +50,7 @@ public:
     Transform& getTransform();
     Shader& getShader();
     Mesh& getMesh();
+    std::weak_ptr<AbstractNode> getParent();
     const Transform& getTransform() const;
     const Shader& getShader() const;
     const Mesh& getMesh() const;

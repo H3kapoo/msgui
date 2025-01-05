@@ -49,7 +49,6 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
-
             if (layout->allowWrap)
             {
                 if (rollingX + scale.x > pScale.x)
@@ -71,6 +70,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     else if (layout->orientation == Layout::Orientation::VERTICAL)
     {
         int32_t rollingY = startY;
+        int32_t maxX{0};
         for (auto& ch : children)
         {
             // Already calculated, skip
@@ -82,16 +82,21 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
-            // rollingY += scale.y;
-            // if (rollingY > pScale.y)
-            // {
-            //     startY = 0;
-            //     startX += scale.x;
-            //     rollingY = pPos.y;
-            // }
+            if (layout->allowWrap)
+            {
+                if (rollingY + scale.y > pScale.y)
+                {
+                    startX += maxX;
+                    startY = 0;
+                    rollingY = 0;
+                    maxX = 0;
+                }
+                rollingY += scale.y;
+                maxX = std::max(maxX, (int32_t)scale.x);
+            }
 
-            pos.y = startY;
             pos.x = startX;
+            pos.y = startY;
             startY += scale.y;
         }
     }

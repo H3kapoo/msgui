@@ -35,6 +35,10 @@ void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
     if (state_)
     {
         state_->isLayoutDirty = true;
+
+        // Ideally layout resorting should only happen on node addition. Node removal will not invalidate
+        // the relative positioning of the nodes.
+        state_->layoutNeedsSort = true;
     }
 }
 
@@ -198,6 +202,11 @@ Shader& AbstractNode::getShader()
 Mesh& AbstractNode::getMesh()
 {
     return *mesh_;
+}
+
+std::weak_ptr<AbstractNode> AbstractNode::getParent()
+{
+    return parent_;
 }
 
 const Transform& AbstractNode::getTransform() const

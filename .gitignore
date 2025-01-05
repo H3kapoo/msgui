@@ -2,3 +2,5 @@ artifacts/
 gui
 mock.cpp
 core/build_dir
+lib_out/
+perf_img/

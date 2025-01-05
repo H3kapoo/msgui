@@ -22,6 +22,7 @@ struct FrameState
     int32_t mouseY                                  {NO_VALUE};
     AbstractNodePtr clickedNodePtr                  {NO_PTR};
     bool isLayoutDirty                              {true};
+    bool layoutNeedsSort                            {true};
 };
 using FrameStatePtr = std::shared_ptr<FrameState>;
 } // msgui
