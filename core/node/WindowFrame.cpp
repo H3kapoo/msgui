@@ -5,6 +5,9 @@
 #include <ranges>
 #include <queue>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "core/vendor/stb_image_write.h"
+
 #include "core/layoutEngine/SimpleLayoutEngine.hpp"
 #include "core/Renderer.hpp"
 #include "core/node/AbstractNode.hpp"
@@ -25,7 +28,8 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     {
         window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
         window_.onResizeEvent(newWidth, newHeight);
-        frameBox_->transform_.setScale({newWidth, newHeight, 1});
+        frameBox_->transform_.scale = {newWidth, newHeight, 1};
+        frameBox_->transform_.vScale = {newWidth, newHeight};
         frameState_->isLayoutDirty = true;
     });
 
@@ -52,9 +56,37 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
             this, std::placeholders::_1, std::placeholders::_2));
 
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
-    frameBox_->transform_.setPos({0, 0, 1});
-    frameBox_->transform_.setScale({width, height, 1});
+    frameBox_->transform_.pos = {0, 0, 1};
+    frameBox_->transform_.scale = {width, height, 1};
+    frameBox_->transform_.vPos = {0, 0};
+    frameBox_->transform_.vScale = {width, height};
     frameBox_->state_ = frameState_;
+}
+
+void WindowFrame::saveBufferToFile(const std::string& filePath, const int32_t quality) const
+{
+    if (filePath.empty())
+    {
+        log_.warnLn("Empty file received for screenshot path!");
+        return;
+    }
+
+    const auto& w = window_.getWidth();
+    const auto& h = window_.getHeight();
+    const int32_t comps = 3;
+
+    std::unique_ptr<uint8_t[]> store(new uint8_t[w * h * comps]);
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, store.get());
+    stbi_flip_vertically_on_write(true);
+    int32_t res = stbi_write_jpg(filePath.c_str(), w, h, comps, store.get(), quality);
+    if (res != 0)
+    {
+        log_.infoLn("Screenshot written to: %s", filePath.c_str());
+    }
+    else
+    {
+        log_.errorLn("Failed to get and write screenshot to: %s", filePath.c_str());
+    }
 }
 
 BoxPtr WindowFrame::getRoot()
@@ -127,9 +159,17 @@ void WindowFrame::updateLayout()
     for (auto& node : allFrameChildNodes_ | std::views::reverse)
     {
         glm::ivec2 overflow = layoutEngine_->process(node);
+        // Currently only BOX type nodes support overflow handling
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
             static_cast<Box*>(node.get())->updateOverflow(overflow);
+        }
+
+        // After updating the node layout, we need to update the viewable area of the node. Raw parent is used
+        // for better performance (compared to locking each time).
+        if (auto p = node->getParentRaw())
+        {
+            node->transform_.computeViewableArea(p->transform_);
         }
     }
 }
@@ -149,16 +189,16 @@ void WindowFrame::resolveNodeRelations()
 
         for (auto& ch : node->getChildren())
         {
-            //TODO: Resolve viewable area of the node
-
             // Set children's frameState and depth if needed
             if (!ch->state_)
             {
                 bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
                 ch->parent_ = node;
+                ch->parentRaw_ = node.get();
                 ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
                 ch->state_ = frameState_;
             }
+
             q.push(ch);
         }
     }
@@ -242,5 +282,4 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
         }
     }
 }
-
 } // namespace msgui

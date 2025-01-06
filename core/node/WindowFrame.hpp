@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
+
+
 
 #include "core/layoutEngine/ILayoutEngine.hpp"
 #include "core/Window.hpp"
@@ -23,9 +26,9 @@ public:
     WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
         const bool isPrimary = false);
 
-    BoxPtr getRoot();
+    void saveBufferToFile(const std::string& filePath, const int32_t quality = 100) const;
 
-    // Getters
+    BoxPtr getRoot();
     bool isPrimary() const;
 
 private: // friend

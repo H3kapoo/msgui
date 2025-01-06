@@ -35,31 +35,31 @@ int main()
 
     WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
 
-    frame->getRoot()->props.layout.allowOverflowX = true;
-    frame->getRoot()->props.layout.allowOverflowY = true;
+    // frame->getRoot()->props.layout.allowOverflowX = true;
+    // frame->getRoot()->props.layout.allowOverflowY = true;
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
     theBox->props.layout.allowOverflowX = true;
     theBox->props.layout.allowOverflowY = true;
-    theBox->getTransform().setScale({300, 400, 1});
+    theBox->getTransform().scale = {500, 400, 1};
     frame->getRoot()->append(theBox);
 
     AbstractNodePVec nodes;
-    for (int32_t i = 0; i < 10'000; i++)
-    // for (int32_t i = 0; i < 20; i++)
+    for (int32_t i = 0; i < 60'000; i++)
+    // for (int32_t i = 0; i < 6; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         static_cast<Button*>(node.get())->props.texture = "assets/textures/container.jpg";
-        static_cast<Button*>(node.get())->getTransform().setScale({100, 100, 1});
+        static_cast<Button*>(node.get())->getTransform().scale = {100, 100, 1};
 
-        // if (i == 9)
-        // {
-        //     auto strangeBox = std::make_shared<Box>("StrangeBox");
-        //     strangeBox->props.color = Utils::randomRGB();
-        //     strangeBox->getTransform().setScale({200, 300, 1});
-        //     node->append(strangeBox);
-        // }
+        if (i == 9)
+        {
+            auto strangeBox = std::make_shared<Box>("StrangeBox");
+            strangeBox->props.color = Utils::randomRGB();
+            strangeBox->getTransform().scale = {200, 300, 1};
+            node->append(strangeBox);
+        }
     }
     theBox->appendMany(nodes);
     // BoxPtr leftBox = std::make_shared<Box>("BoxLeft");
@@ -122,6 +122,7 @@ int main()
 
 
     app.setPollMode(Application::PollMode::CONTINUOUS);
+    // app.setPollMode(Application::PollMode::ON_EVENT);
     app.setVSync(Application::Toggle::ON);
     app.run();
 

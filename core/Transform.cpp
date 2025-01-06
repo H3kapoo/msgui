@@ -1,32 +1,32 @@
 #include "Transform.hpp"
 
+#include <cstdio>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace msgui
 {
-// ---- Normal ---- //
 glm::mat4& Transform::computeModelMatrix()
 {
-    // if (!dirty)
-    // {
-    //     return modelMatrix;
-    // };
-
     modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, pos);
     modelMatrix = glm::scale(modelMatrix, scale);
-    dirty = false;
     return modelMatrix;
 }
 
-// ---- Setters ---- //
-void Transform::setPos(const glm::vec3& posIn)
+void Transform::computeViewableArea(const Transform& otherTrans)
 {
-    pos = posIn;
-}
+    const glm::ivec2 posScale = pos + scale;
+    const glm::ivec2 otherVPosScale = otherTrans.vPos + otherTrans.vScale;
 
-void Transform::setScale(const glm::vec3& scaleIn)
-{
-    scale = scaleIn;
+    vPos.x = std::max(otherTrans.vPos.x, (int32_t)pos.x);
+    vPos.y = std::max(otherTrans.vPos.y, (int32_t)pos.y);
+    vScale.x = std::min(otherVPosScale.x, posScale.x) - vPos.x;
+    vScale.y = std::min(otherVPosScale.y, posScale.y) - vPos.y;
+
+    // printf("View area: (%d %d)->(%d %d)\n",
+    // vPos.x,
+    // vPos.y,
+    // vScale.x,
+    // vScale.y);
 }
 } // namespace msgui

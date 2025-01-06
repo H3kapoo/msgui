@@ -13,7 +13,7 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
 {
     knob_ = std::make_shared<ScrollBarKnob>();
     // temporary hardcoded sizes
-    knob_->getTransform().setScale({20, 20, 1});
+    knob_->getTransform().scale = {20, 20, 1};
     append(knob_);
 }
 

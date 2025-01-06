@@ -78,6 +78,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
     (*it)->state_ = nullptr;
     (*it)->isParented_ = false;
     (*it)->parent_.reset();
+    (*it)->parentRaw_ = nullptr;
 
     // Transfer ownership out of the vector and erase remaining iterator
     std::shared_ptr<AbstractNode> returned = std::move(*it);
@@ -134,6 +135,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
     (*it)->state_ = nullptr;
     (*it)->isParented_ = false;
     (*it)->parent_.reset();
+    (*it)->parentRaw_ = nullptr;
 
     // Transfer ownership out of the vector and erase remaining iterator
     std::shared_ptr<AbstractNode> returned = std::move(*it);
@@ -207,6 +209,12 @@ Mesh& AbstractNode::getMesh()
 std::weak_ptr<AbstractNode> AbstractNode::getParent()
 {
     return parent_;
+}
+
+AbstractNode* AbstractNode::getParentRaw()
+{
+    // To be used ONLY by critical paths
+    return parentRaw_;
 }
 
 const Transform& AbstractNode::getTransform() const

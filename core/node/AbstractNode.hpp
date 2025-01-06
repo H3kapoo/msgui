@@ -63,6 +63,8 @@ public:
 private: // friend
     friend WindowFrame;
 
+    AbstractNode* getParentRaw();
+
     virtual void onMouseButtonNotify();
     virtual void onMouseHoverNotify();
     virtual void onMouseDragNotify();
@@ -80,6 +82,7 @@ protected:
     bool isParented_{false};
     NodeType nodeType_{NodeType::COMMON};
     std::weak_ptr<AbstractNode> parent_;
+    AbstractNode* parentRaw_{nullptr}; 
     std::vector<std::shared_ptr<AbstractNode>> children_;
 
     Logger log_;

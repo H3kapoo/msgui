@@ -12,8 +12,8 @@ Box::Box(const std::string& name)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basic.glsl"), name, NodeType::BOX)
 {
     log_ = Logger("Box(" + name +")");
-    transform_.setScale({100, 100, 1});
-    transform_.setPos({100, 100, 2});
+    transform_.scale = {100, 100, 1};
+    transform_.pos = {100, 100, 2};
 
     setupReloadables();
 }
