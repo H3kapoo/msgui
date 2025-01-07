@@ -143,7 +143,7 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pPos, const glm
 
     // log_.debugLn("overflow x:%d", currentScale.x - (int32_t)pScale.x);
     // log_.debugLn("overflow y:%d", currentScale.y - (int32_t)pScale.y);
-    return {currentScale.x - pScale.x, currentScale.y - pScale.y};
+    return {currentScale.x - (pScale.x + pPos.x), currentScale.y - (pScale.y + pPos.y)};
 }
 
 SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)

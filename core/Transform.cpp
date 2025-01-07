@@ -22,11 +22,5 @@ void Transform::computeViewableArea(const Transform& otherTrans)
     vPos.y = std::max(otherTrans.vPos.y, (int32_t)pos.y);
     vScale.x = std::min(otherVPosScale.x, posScale.x) - vPos.x;
     vScale.y = std::min(otherVPosScale.y, posScale.y) - vPos.y;
-
-    // printf("View area: (%d %d)->(%d %d)\n",
-    // vPos.x,
-    // vPos.y,
-    // vScale.x,
-    // vScale.y);
 }
 } // namespace msgui

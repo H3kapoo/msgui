@@ -191,6 +191,18 @@ void AbstractNode::printTree(uint32_t currentDepth)
     }
 }
 
+void AbstractNode::setShader(Shader* shader)
+{
+    // Used for runtime shader reassign
+    if (shader->getShaderId() == 0)
+    {
+        log_.warnLn("Shader reassign failed. Keeping old shader id. New reassignment needed.");
+        return;
+    }
+
+    shader_ = shader;
+}
+
 Transform& AbstractNode::getTransform()
 {
     return transform_;

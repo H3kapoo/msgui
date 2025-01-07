@@ -5,7 +5,6 @@
 
 namespace msgui
 {
-// ---- Static init ---- //
 uint32_t Shader::boundShaderId_ = 0;
 
 Shader::Shader(const uint32_t shaderId, const std::string& shaderName)
@@ -15,6 +14,7 @@ Shader::Shader(const uint32_t shaderId, const std::string& shaderName)
 
 Shader& Shader::operator=(Shader&& other)
 {
+    // Used for hot reloading code
     shaderId_ = other.shaderId_;
     other.shaderId_ = 0;
     // log_.info("Moved assign");
@@ -40,7 +40,6 @@ void Shader::unbind() const
     glUseProgram(0);
 }
 
-// ---- Setters ---- //
 void Shader::setTexture1D(const std::string& name, const TextureUnitId texUnit, const uint32_t texId) const
 {
     setTexture(name, texUnit, texId, GL_TEXTURE_1D);
@@ -81,6 +80,30 @@ void Shader::setInt(const std::string& name, const int32_t value) const
     glUniform1i(loc, value);
 }
 
+void Shader::setVec2i(const std::string& name, const glm::ivec2& value) const
+{
+    bind();
+
+    int32_t loc = glGetUniformLocation(shaderId_, name.c_str());
+    if (loc == -1)
+    {
+        return handleNotFoundLocation(name);
+    }
+    glUniform2i(loc, value.x, value.y);
+}
+
+void Shader::setVec2f(const std::string& name, const glm::vec2& value) const
+{
+    bind();
+
+    int32_t loc = glGetUniformLocation(shaderId_, name.c_str());
+    if (loc == -1)
+    {
+        return handleNotFoundLocation(name);
+    }
+    glUniform2f(loc, value.x, value.y);
+}
+
 void Shader::setVec3f(const std::string& name, const glm::vec3& value) const
 {
     bind();
@@ -118,13 +141,11 @@ void Shader::setMat4f(const std::string& name, const glm::mat4& value) const
     glUniformMatrix4fv(loc, 1, transposeMatrix, glm::value_ptr(value));
 }
 
-// ---- Getters ---- //
 uint32_t Shader::getShaderId() const
 {
     return shaderId_;
 }
 
-// ---- Setters Private ---- //
 void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, const uint32_t texId,
     const TextureTargetType type) const
 {
@@ -146,7 +167,6 @@ void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, co
     glBindTexture(type, texId);
 }
 
-// ---- Normal Private ---- //
 inline void Shader::handleNotFoundLocation(const std::string& name) const
 {
     log_.errorLn("Uniform \"%s\" not found", name.c_str());

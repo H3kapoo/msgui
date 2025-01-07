@@ -6,7 +6,7 @@ namespace msgui
 {
 struct Layout
 {
-    enum class Orientation
+    enum class Orientation // TODO: rename to 'Type' as we need to support Grid also
     {
         HORIZONTAL,
         VERTICAL

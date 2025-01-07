@@ -82,8 +82,14 @@ void Box::updateOverflow(const glm::ivec2& overflow)
 void Box::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setVec4f("uColor", props.color);
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
+    shader_->setVec4f("uColor", props.color);
+
+    // quick hack
+    if (getName() == "theBox")
+    {
+        shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    }
 }
 
 void Box::onMouseButtonNotify()

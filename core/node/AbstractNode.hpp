@@ -47,6 +47,8 @@ public:
     virtual void setShaderAttributes() = 0;
     virtual void* getProps() = 0;
 
+    void setShader(Shader* shader);
+
     Transform& getTransform();
     Shader& getShader();
     Mesh& getMesh();

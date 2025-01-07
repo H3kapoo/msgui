@@ -6,7 +6,6 @@
 
 namespace msgui
 {
-// ---- Static Init ---- //
 Logger ShaderLoader::log_ = {"ShaderLoader(null)"};
 std::unordered_map<std::string, Shader*> ShaderLoader::shaderPathToObject_ = {};
 
@@ -21,7 +20,6 @@ ShaderLoader::~ShaderLoader()
     log_.infoLn("Unloaded all shader programs!");
 }
 
-// ---- Statics ---- //
 Shader* ShaderLoader::load(const std::string& shaderPath)
 {
     if (shaderPathToObject_.count(shaderPath))
@@ -40,7 +38,7 @@ Shader* ShaderLoader::load(const std::string& shaderPath)
     }
     else
     {
-        log_.error("Load failed! Zero program will be loaded.");
+        log_.errorLn("Load failed! Zero program will be loaded.");
     }
 
     return shaderPathToObject_.at(shaderPath);
@@ -52,29 +50,28 @@ void ShaderLoader::reload(const std::string& shaderPath)
 
     if (!shaderPathToObject_.count(shaderPath))
     {
-        log_.warn("Cannot reload not loaded shader!");
+        log_.warnLn("Cannot reload not loaded shader!");
         return;
     }
 
-
+    // TODO: Previous shader needs to be deleted, consumes memory.
     if (uint32_t shaderId = get().loadInternal(shaderPath); shaderId != 0)
     {
         *shaderPathToObject_[shaderPath] = Shader(get().loadInternal(shaderPath), shaderPath);
-        log_.infoLn("Reloaded!");
+        log_.infoLn("Reloaded %d!",  shaderPathToObject_[shaderPath]->getShaderId());
     }
     else
     {
-        log_.error("Reload failed! Keeping previous program.");
+        log_.errorLn("Reload failed! Keeping previous program.");
     }
 }
 
-// ---- Normal Private ---- //
 uint32_t ShaderLoader::loadInternal(const std::string& shaderPath)
 {
     std::ifstream shaderFile(shaderPath);
     if (!shaderFile)
     {
-        log_.error("Could not open shader file at %s\n", shaderPath.c_str());
+        log_.errorLn("Could not open shader file at %s", shaderPath.c_str());
         return 0;
     }
 
@@ -84,6 +81,11 @@ uint32_t ShaderLoader::loadInternal(const std::string& shaderPath)
     shaderFile.close();
 
     const size_t fragCutoff = content.find("/// frag ///\n"); /* WRN: LF ending handled only */
+    if (fragCutoff == std::string::npos)
+    {
+        log_.errorLn("Couldn't find FRAG start tag");
+        return 0;
+    }
 
     std::string vertData{content.begin(), content.begin() + fragCutoff};
     std::string fragData{content.begin() + fragCutoff, content.end()};
@@ -118,7 +120,7 @@ uint32_t ShaderLoader::linkShaders(int vertShaderId, int fragShaderId)
     if (!success)
     {
         glGetProgramInfoLog(shaderId, 512, nullptr, infoLog);
-        log_.error("Could not link program:\n\t%s\n", infoLog);
+        log_.errorLn("Could not link program:\n\t%s\n", infoLog);
         return 0;
     }
 
@@ -142,14 +144,13 @@ uint32_t ShaderLoader::compileShaderData(const std::string& data, const ShaderPa
     {
         glGetShaderInfoLog(shaderPart, 512, NULL, infoLog);
         std::string type = shaderType == GL_VERTEX_SHADER ? "VERTEX" : "FRAG";
-        log_.error("Compile failed for shader %s because:\n\t%s", type.c_str(), infoLog);
+        log_.errorLn("Compile failed for shader %s because:\n\t%s", type.c_str(), infoLog);
         return 0;
     }
 
     return shaderPart;
 }
 
-// ---- Statics Private ---- //
 ShaderLoader& ShaderLoader::get()
 {
     static ShaderLoader instance = ShaderLoader();
