@@ -44,17 +44,6 @@ void Box::updateOverflow(const glm::ivec2& overflow)
 {
     overflow_ = overflow;
 
-    // Update with the new overflow value
-    if (hScrollBar_)
-    {
-        state_->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
-    }
-
-    if (vScrollBar_)
-    {
-        state_->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
-    }
-
     // Handle horizontal OF
     if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflowX)
     {
@@ -76,6 +65,17 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     {
         remove(vScrollBar_->getId());
         vScrollBar_.reset();
+    }
+
+    // Update with the new overflow value
+    if (hScrollBar_)
+    {
+        state_->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
+    }
+
+    if (vScrollBar_)
+    {
+        state_->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
     }
 }
 

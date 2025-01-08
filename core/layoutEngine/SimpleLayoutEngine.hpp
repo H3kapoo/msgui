@@ -3,6 +3,7 @@
 #include "ILayoutEngine.hpp"
 #include "core/Logger.hpp"
 #include "core/node/AbstractNode.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
@@ -21,9 +22,9 @@ public:
     glm::ivec2 process(const AbstractNodePtr& parent) override;
 
 private:
-    void alignSelfHorizontal(const AbstractNodePVec& children, const uint32_t idxStart, const uint32_t idxEnd,
-        const int32_t maxY);
-    glm::ivec2 computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale, const AbstractNodePVec& children);
+    void resolveAlignSelf(const AbstractNodePVec& children, const uint32_t idxStart, const uint32_t idxEnd,
+        const int32_t max, const Layout::Type type);
+    glm::ivec2 computeOverflow(const glm::ivec2& pScale, const AbstractNodePVec& children);
     ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
 
 private:

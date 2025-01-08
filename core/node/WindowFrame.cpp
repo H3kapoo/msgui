@@ -112,8 +112,13 @@ bool WindowFrame::run()
         // If the layout got dirty again we need to simulate a new frame RUN request.
         if (frameState_->isLayoutDirty)
         {
-            // Window::requestEmptyEvent(); // Use in case of deadlock
-            run();
+            Window::requestEmptyEvent();
+            //TODO: Theoretically it's better to use run() here but it can get stuck in an infinite
+            // layout calculation loop if we mess pretty hard with the window size.
+            // Calling requestEmptyEvent is a bit slower because it needs to also render the frame but maybe
+            // in practice there's not a big penalty.
+            // See in the future if infinite looping can be mitigated.
+            // run();
         }
     }
 

@@ -15,11 +15,20 @@ struct Layout
 
     enum Align : uint8_t
     {
-        TOP    = 0,
-        LEFT   = 0,
-        BOTTOM = 1,
-        RIGHT  = 1,
-        CENTER = 2
+        // H/V Type specific
+        TOP,
+        LEFT,
+        BOTTOM,
+        RIGHT,
+        // All Type specific
+        CENTER,
+        // Grid Type specific
+        TOP_LEFT,
+        TOP_RIGHT,
+        CENTER_LEFT,
+        CENTER_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT
     };
 
     enum Spacing : uint8_t

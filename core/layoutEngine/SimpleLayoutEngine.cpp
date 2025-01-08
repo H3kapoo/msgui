@@ -7,6 +7,25 @@
 
 namespace msgui
 {
+#define IGNORE_GRID_ALIGN\
+    case Layout::TOP_LEFT:\
+    case Layout::TOP_RIGHT:\
+    case Layout::CENTER_LEFT:\
+    case Layout::CENTER_RIGHT:\
+    case Layout::BOTTOM_LEFT:\
+    case Layout::BOTTOM_RIGHT:\
+        break;\
+
+#define IGNORE_LR_ALIGN\
+    case Layout::LEFT:\
+    case Layout::RIGHT:\
+        break;\
+
+#define IGNORE_TB_ALIGN\
+    case Layout::TOP:\
+    case Layout::BOTTOM:\
+        break;\
+
 glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
@@ -34,12 +53,12 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     // Compute ZERO relative position of objects PASS
     int32_t startX = 0;
     int32_t startY = 0;
-    int32_t maxY{0};
     int32_t startIdx{0};
     int32_t endIdx{0};
     if (layout->type == Layout::Type::HORIZONTAL)
     {
         int32_t rollingX = startX;
+        int32_t maxY{0};
         for (auto& ch : children)
         {
             // Already calculated, skip
@@ -58,7 +77,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     rollingX = 0;
 
                     // Align Self (2nd zero positioning)
-                    alignSelfHorizontal(children, startIdx, endIdx, maxY);
+                    resolveAlignSelf(children, startIdx, endIdx, maxY, Layout::Type::HORIZONTAL);
 
                     maxY = 0;
                     startIdx = endIdx;
@@ -72,6 +91,9 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             pos.y = startY;
             startX += scale.x;
         }
+
+        // Align Self (2nd zero positioning)
+        resolveAlignSelf(children, startIdx, endIdx, maxY, Layout::Type::HORIZONTAL);
     }
     else if (layout->type == Layout::Type::VERTICAL)
     {
@@ -82,9 +104,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             // Already calculated, skip
             if (ch->getType() == AbstractNode::NodeType::SCROLL ||
                 ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-            {
-                continue;
-            }
+            { continue; }
 
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
@@ -95,23 +115,28 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     startX += maxX;
                     startY = 0;
                     rollingY = 0;
+
+                    // Align Self (2nd zero positioning)
+                    resolveAlignSelf(children, startIdx, endIdx, maxX, Layout::Type::VERTICAL);
+
                     maxX = 0;
+                    startIdx = endIdx;
                 }
                 rollingY += scale.y;
-                maxX = std::max(maxX, (int32_t)scale.x);
             }
-
+            maxX = std::max(maxX, (int32_t)scale.x);
+            endIdx++;
+            // 1st zero positioning
             pos.x = startX;
             pos.y = startY;
             startY += scale.y;
         }
+        // Align Self (2nd zero positioning)
+        resolveAlignSelf(children, startIdx, endIdx, maxX, Layout::Type::VERTICAL);
     }
 
-    // Align Self (2nd zero positioning)
-    alignSelfHorizontal(children, startIdx, endIdx, maxY);
-
     // Compute children overflow PASS
-    const glm::ivec2 computedOverflow = computeOverflow(pPos, pScale, children);
+    const glm::ivec2 computedOverflow = computeOverflow(pScale, children);
 
     // log_.debugLn("%s %d %d", parent->getCName(), bounds.x, bounds.y);
     // Apply SCROLLBAR offsets + any offseting from ZERO PASS
@@ -133,6 +158,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         {
             switch (layout->alignChildX)
             {
+                IGNORE_GRID_ALIGN
+                IGNORE_TB_ALIGN
                 case Layout::LEFT:
                     // Do nothing
                     break;
@@ -143,7 +170,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     pos.x += -computedOverflow.x;
                     break;
                 default:
-                    log_.warnLn("Unrecognized alignChildX value");
+                    log_.warnLn("Unrecognized alignChildX value: ENUM(%d)",
+                        static_cast<uint8_t>(layout->alignChildX));
             }
         }
 
@@ -151,6 +179,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         {
             switch (layout->alignChildY)
             {
+                IGNORE_GRID_ALIGN
+                IGNORE_LR_ALIGN
                 case Layout::TOP:
                     // Do nothing
                     break;
@@ -161,7 +191,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     pos.y += -computedOverflow.y;
                     break;
                 default:
-                    log_.warnLn("Unrecognized alignChildY value");
+                    log_.warnLn("Unrecognized alignChildY value: ENUM(%d)",
+                        static_cast<uint8_t>(layout->alignChildY));
             }
         }
     }
@@ -169,8 +200,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     return computedOverflow;
 }
 
-void SimpleLayoutEngine::alignSelfHorizontal(const AbstractNodePVec& children, const uint32_t idxStart,
-    const uint32_t idxEnd, const int32_t maxY)
+void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, const uint32_t idxStart,
+    const uint32_t idxEnd, const int32_t max, const Layout::Type type)
 {
     for (uint32_t i = idxStart; i < idxEnd; i++)
     {
@@ -183,48 +214,67 @@ void SimpleLayoutEngine::alignSelfHorizontal(const AbstractNodePVec& children, c
 
         auto& pos = children[i]->getTransform().pos;
         auto& scale = children[i]->getTransform().scale;
-        switch (chLayout->alignSelf)
+
+        if (type == Layout::Type::HORIZONTAL)
         {
-            case Layout::TOP:
-                // Do nothing
-                break;
-            case Layout::CENTER:
-                pos.y += (maxY - scale.y) * 0.5f;
-                break;
-            case Layout::BOTTOM:
-                break;
-            default:
-                log_.warnLn("Unrecognized alignSelf value");
+            switch (chLayout->alignSelf)
+            {
+                IGNORE_GRID_ALIGN
+                IGNORE_LR_ALIGN
+                case Layout::TOP:
+                    // Do nothing
+                    break;
+                case Layout::CENTER:
+                    pos.y += (max - scale.y) * 0.5f;
+                    break;
+                case Layout::BOTTOM:
+                    pos.y += max - scale.y;
+                    break;
+                default:
+                    log_.warnLn("Unrecognized horizontal alignSelf value: ENUM(%d)",
+                        static_cast<uint8_t>(chLayout->alignSelf));
+            }
+        }
+        else if (type == Layout::Type::VERTICAL)
+        {
+            switch (chLayout->alignSelf)
+            {
+                IGNORE_GRID_ALIGN
+                IGNORE_TB_ALIGN
+                case Layout::LEFT:
+                    // Do nothing
+                    break;
+                case Layout::CENTER:
+                    pos.x += (max - scale.x) * 0.5f;
+                    break;
+                case Layout::RIGHT:
+                    pos.x += max - scale.x;
+                    break;
+                default:
+                    log_.warnLn("Unrecognized vertical alignSelf value: ENUM(%d)",
+                        static_cast<uint8_t>(chLayout->alignSelf));
+            }
         }
     }
 }
 
-glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale,
-    const AbstractNodePVec& children)
+glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pScale, const AbstractNodePVec& children)
 {
     glm::ivec2 currentScale{0, 0};
-
     for (auto& ch : children)
     {
         // Shall not be taken into consideration for overflow
         if (ch->getType() == AbstractNode::NodeType::SCROLL ||
             ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        {
-            continue;
-        }
+        { continue; }
 
         const auto& scale = ch->getTransform().scale;
         const auto& pos = ch->getTransform().pos;
         currentScale.x = std::max(currentScale.x ,(int32_t)(pos.x + scale.x));
         currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
-        // currentScale.x = std::max(currentScale.x ,(int32_t)scale.x);
-        // currentScale.y = std::max(currentScale.y ,(int32_t)scale.y);
     }
 
-    // log_.debugLn("overflow x:%d", currentScale.x - (int32_t)pScale.x);
-    // log_.debugLn("overflow y:%d", currentScale.y - (int32_t)pScale.y);
     return {currentScale.x - pScale.x, currentScale.y - pScale.y};
-    // return {currentScale.x - (pScale.x + pPos.x), currentScale.y - (pScale.y + pPos.y)};
 }
 
 SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
@@ -257,10 +307,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     for (auto& ch : children)
     {   
         // Ignore non-Scrollbar elements
-        if (ch->getType() != AbstractNode::NodeType::SCROLL)
-        {
-            continue;
-        }
+        if (ch->getType() != AbstractNode::NodeType::SCROLL) { continue; }
 
         ScrollBar* sb = static_cast<ScrollBar*>(ch.get());
         if (!sb)
@@ -325,4 +372,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 
     return data;
 }
+#undef IGNORE_GRID_ALIGN
+#undef IGNORE_LR_ALIGN
+#undef IGNORE_TB_ALIGN
 } // namespace msgui

@@ -62,7 +62,7 @@ int main()
     frame->getRoot()->props.layout.allowOverflowY = true;
     // frame->getRoot()->props.layout.alignChildX = Layout::Align::CENTER;
     // frame->getRoot()->props.layout.alignChildY = Layout::Align::CENTER;
-    frame->getRoot()->props.layout.allowWrap = true;
+    // frame->getRoot()->props.layout.allowWrap = true;
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
@@ -92,10 +92,11 @@ int main()
         auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
         // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
         static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
-        static_cast<Box*>(node.get())->props.layout.alignSelf = Layout::Align::CENTER;
+        // static_cast<Box*>(node.get())->props.layout.alignSelf
+        //     = Layout::Align::BOTTOM;
 
         int32_t randomX = std::max(100.0f, Utils::random01() * 200);
-        int32_t randomY = std::max(100.0f, Utils::random01() * 200);
+        int32_t randomY = std::max(100.0f, Utils::random01() * 250);
         // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
         static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
 
