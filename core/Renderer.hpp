@@ -4,8 +4,6 @@
 
 #include "core/node/AbstractNode.hpp"
 
-#include <iostream>
-
 namespace msgui
 {
 class Renderer
@@ -22,6 +20,7 @@ public:
         node->setShaderAttributes();
         node->getShader().setMat4f("uProjMat", projMat);
 
+        // Window::setScissorTest(false);
         glScissor(
             t.vPos.x,
             // Height can be computed based on the projMat alone

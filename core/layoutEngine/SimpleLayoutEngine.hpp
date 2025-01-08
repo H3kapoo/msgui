@@ -21,6 +21,8 @@ public:
     glm::ivec2 process(const AbstractNodePtr& parent) override;
 
 private:
+    void alignSelfHorizontal(const AbstractNodePVec& children, const uint32_t idxStart, const uint32_t idxEnd,
+        const int32_t maxY);
     glm::ivec2 computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale, const AbstractNodePVec& children);
     ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
 

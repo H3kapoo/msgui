@@ -34,9 +34,13 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-    // frame->getRoot()->props.layout.alignX/Y = Layout::Align::TOP;
-    // frame->getRoot()->props.layout.alignX/Y = Layout::Align::CENTER;
-    // frame->getRoot()->props.layout.alignX/Y = Layout::Align::BOT;
+    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::TOP;
+    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::CENTER;
+    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::BOT;
+
+    // ch->props.layout.alignSelfX/Y = Layout::Align::TOP;
+    // ch->props.layout.alignSelfX/Y = Layout::Align::CENTER;
+    // ch->props.layout.alignSelfX/Y = Layout::Align::BOT;
 
     // frame->getRoot()->props.layout.margin = Layout::TBLR{10, 5, 10, 5};
     // frame->getRoot()->props.layout.padding = Layout::TBLR{10, 5, 10, 5};
@@ -48,46 +52,78 @@ int main()
     // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_NO_START_GAP;   // |*    *    *|
     // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;      // |  *  *  *  |
 
-    // frame->getRoot()->props.layout.allowOverflowX = true;
-    // frame->getRoot()->props.layout.allowOverflowY = true;
+    // frame->getRoot()->props.layout.type = Layout::Type::GRID;
+    // frame->getRoot()->props.layout.distribution = {1fr, 10px, 1fr};  // |   eq_space  |10px|  eq_space   |
+    // child->props.layout.gridStartX/Y = 0;
+    // child->props.layout.gridSpanX/Y = 1;
+
+    // frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
+    frame->getRoot()->props.layout.allowOverflowX = true;
+    frame->getRoot()->props.layout.allowOverflowY = true;
+    // frame->getRoot()->props.layout.alignChildX = Layout::Align::CENTER;
+    // frame->getRoot()->props.layout.alignChildY = Layout::Align::CENTER;
+    frame->getRoot()->props.layout.allowWrap = true;
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
     theBox->props.layout.allowOverflowX = true;
     theBox->props.layout.allowOverflowY = true;
-    theBox->getTransform().scale = {700, 400, 1};
-    theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
+    theBox->props.layout.type = Layout::Type::HORIZONTAL;
+    // theBox->props.layout.alignChildX = Layout::Align::RIGHT;
+    // theBox->props.layout.alignChildY = Layout::Align::BOTTOM;
+    theBox->getTransform().scale = {500, 400, 1};
+    // theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
     // theBox->getShader() = ShaderLoader::load("assets/shader/sdfTest.glsl");
 
     ButtonPtr preButton = std::make_shared<Button>("PreButton");
     preButton->getTransform().scale = {200, 50, 1};
     preButton->props.texture = "assets/textures/container.jpg";
+    preButton->props.layout.alignSelf = Layout::Align::CENTER;
+
+    ButtonPtr postButton = std::make_shared<Button>("PostButton");
+    postButton->getTransform().scale = {300, 200, 1};
+    postButton->props.texture = "assets/textures/container.jpg";
+    postButton->props.layout.alignSelf = Layout::Align::CENTER;
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 60'000; i++)
-    for (int32_t i = 0; i < 0; i++)
+    for (int32_t i = 0; i < 40; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
         // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
         static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
-        static_cast<Box*>(node.get())->getTransform().scale = {100, 600, 1};
+        static_cast<Box*>(node.get())->props.layout.alignSelf = Layout::Align::CENTER;
 
-        if (i == 9)
-        {
-            auto strangeBox = std::make_shared<Box>("StrangeBox");
-            strangeBox->props.color = Utils::randomRGB();
-            strangeBox->getTransform().scale = {200, 300, 1};
-            node->append(strangeBox);
-        }
+        int32_t randomX = std::max(100.0f, Utils::random01() * 200);
+        int32_t randomY = std::max(100.0f, Utils::random01() * 200);
+        // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
+        static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
+
+        // if (i == 2)
+        // {
+        //     static_cast<Box*>(node.get())->getTransform().scale = {100, 100, 1};
+        // }
+
+        // if (i == 9)
+        // {
+        //     auto strangeBox = std::make_shared<Box>("StrangeBox");
+        //     strangeBox->props.color = Utils::randomRGB();
+        //     strangeBox->getTransform().scale = {200, 300, 1};
+        //     node->append(strangeBox);
+        // }
     }
-    theBox->appendMany(nodes);
-    frame->getRoot()->append(preButton);
-    frame->getRoot()->append(theBox);
-    frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
-    {
-        ShaderLoader::reload("assets/shader/sdfTest.glsl");
-        // theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
-    });
+    // theBox->appendMany(nodes);
+    frame->getRoot()->appendMany(nodes);
+    // frame->getRoot()->append(preButton);
+    // frame->getRoot()->append(theBox);
+    // frame->getRoot()->append(postButton);
+
+    // mainLog.debugLn("Size of AR: %ld", sizeof(Layout));
+    // frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
+    // {
+    //     ShaderLoader::reload("assets/shader/sdfTest.glsl");
+    //     theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
+    // });
     // BoxPtr leftBox = std::make_shared<Box>("BoxLeft");
     // BoxPtr middleBox = std::make_shared<Box>("BoxMiddle");
     // ButtonPtr middleButton = std::make_shared<Button>("ButtonMiddle");

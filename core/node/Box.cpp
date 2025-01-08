@@ -86,10 +86,10 @@ void Box::setShaderAttributes()
     shader_->setVec4f("uColor", props.color);
 
     // quick hack
-    if (getName() == "theBox")
-    {
-        shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-    }
+    // if (getName() == "theBox")
+    // {
+    //     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    // }
 }
 
 void Box::onMouseButtonNotify()
@@ -114,14 +114,20 @@ void Box::setupReloadables()
         props.layout.allowOverflowY ? updateOverflow(overflow_) : updateOverflow({0, 0});
     };
 
-    props.layout.orientation.onReload = [this]()
+    props.layout.type.onReload = [this]()
     {
-        state_->isLayoutDirty = true;
+        state_ ? (state_->isLayoutDirty = true) : false;
     };
 
     props.layout.allowWrap.onReload = [this]()
     {
-        state_->isLayoutDirty = true;
+        state_ ? (state_->isLayoutDirty = true) : false;
     };
+
+    props.layout.alignSelf.onReload = [this]()
+    {
+        state_ ? (state_->isLayoutDirty = true) : false;
+    };
+
 }
 } // namespace msgui

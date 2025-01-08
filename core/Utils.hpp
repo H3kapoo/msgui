@@ -28,7 +28,7 @@ public:
         std::random_device rd;
         std::mt19937 generator(rd());
 
-        std::normal_distribution<> distance(0.0, 1.0);
+        std::uniform_real_distribution<> distance(0.0, 1.0);
         return distance(generator);
     }
 
@@ -87,7 +87,7 @@ public:
             value = _value;
 
             if (onReload) { onReload(); }
-            else { Logger().warnLn("AssignReloadable no funcion provided"); };
+            else { Logger("Utils").warnLn("AssignReloadable no funcion provided"); };
 
             return *this;
         }

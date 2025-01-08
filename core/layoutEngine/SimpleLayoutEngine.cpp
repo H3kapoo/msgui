@@ -20,6 +20,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         return {0, 0};
     }
 
+    // Compute SCROLLBARS position PASS
     ScrollBarsData scrollNodeData = processScrollbars(parent);
 
     // Useless to compute further if parent is a scroll node (knob computed already)
@@ -30,22 +31,21 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     pScale.x -= scrollNodeData.shrinkBy.x;
     pScale.y -= scrollNodeData.shrinkBy.y;
 
-    // log_.debugLn("%s offsets y:%d -- %f", parent->getCName(), sbOffsets.y, sbOffsetsF.y);
-
-    int32_t startX = pPos.x;
-    int32_t startY = pPos.y;
-    if (layout->orientation == Layout::Orientation::HORIZONTAL)
+    // Compute ZERO relative position of objects PASS
+    int32_t startX = 0;
+    int32_t startY = 0;
+    int32_t maxY{0};
+    int32_t startIdx{0};
+    int32_t endIdx{0};
+    if (layout->type == Layout::Type::HORIZONTAL)
     {
         int32_t rollingX = startX;
-        int32_t maxY{0};
         for (auto& ch : children)
         {
             // Already calculated, skip
             if (ch->getType() == AbstractNode::NodeType::SCROLL ||
                 ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-            {
-                continue;
-            }
+            { continue; }
 
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
@@ -56,18 +56,24 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     startX = 0;
                     startY += maxY;
                     rollingX = 0;
+
+                    // Align Self (2nd zero positioning)
+                    alignSelfHorizontal(children, startIdx, endIdx, maxY);
+
                     maxY = 0;
+                    startIdx = endIdx;
                 }
                 rollingX += scale.x;
-                maxY = std::max(maxY, (int32_t)scale.y);
             }
-
+            maxY = std::max(maxY, (int32_t)scale.y);
+            endIdx++;
+            // 1st zero positioning
             pos.x = startX;
             pos.y = startY;
             startX += scale.x;
         }
     }
-    else if (layout->orientation == Layout::Orientation::VERTICAL)
+    else if (layout->type == Layout::Type::VERTICAL)
     {
         int32_t rollingY = startY;
         int32_t maxX{0};
@@ -101,24 +107,96 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         }
     }
 
+    // Align Self (2nd zero positioning)
+    alignSelfHorizontal(children, startIdx, endIdx, maxY);
+
+    // Compute children overflow PASS
     const glm::ivec2 computedOverflow = computeOverflow(pPos, pScale, children);
 
-    // Apply SB offsets (move nodes into scrollbar offseted position)
-    // TODO: Maybe can be compressed somewhere else more efficiently?
+    // log_.debugLn("%s %d %d", parent->getCName(), bounds.x, bounds.y);
+    // Apply SCROLLBAR offsets + any offseting from ZERO PASS
     for (auto& ch : children)
     {
         // Already calculated, skip
         if (ch->getType() == AbstractNode::NodeType::SCROLL ||
             ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        {
-            continue;
-        }
+        { continue; }
 
         auto& pos = ch->getTransform().pos;
-        pos.x -= scrollNodeData.offsetPx.x;
-        pos.y -= scrollNodeData.offsetPx.y;
+        pos.x += -scrollNodeData.offsetPx.x + pPos.x;
+        pos.y += -scrollNodeData.offsetPx.y + pPos.y;
+
+        // AlignChild
+        // Negative overflow means we still have X amount of pixels until the parent is full on that axis
+        // We can leverage this to position elements top, left, right, bot, center.
+        if (computedOverflow.x < 0)
+        {
+            switch (layout->alignChildX)
+            {
+                case Layout::LEFT:
+                    // Do nothing
+                    break;
+                case Layout::CENTER:
+                    pos.x += -computedOverflow.x * 0.5f;
+                    break;
+                case Layout::RIGHT:
+                    pos.x += -computedOverflow.x;
+                    break;
+                default:
+                    log_.warnLn("Unrecognized alignChildX value");
+            }
+        }
+
+        if (computedOverflow.y < 0)
+        {
+            switch (layout->alignChildY)
+            {
+                case Layout::TOP:
+                    // Do nothing
+                    break;
+                case Layout::CENTER:
+                    pos.y += -computedOverflow.y * 0.5f;
+                    break;
+                case Layout::BOTTOM:
+                    pos.y += -computedOverflow.y;
+                    break;
+                default:
+                    log_.warnLn("Unrecognized alignChildY value");
+            }
+        }
     }
+
     return computedOverflow;
+}
+
+void SimpleLayoutEngine::alignSelfHorizontal(const AbstractNodePVec& children, const uint32_t idxStart,
+    const uint32_t idxEnd, const int32_t maxY)
+{
+    for (uint32_t i = idxStart; i < idxEnd; i++)
+    {
+        Layout* chLayout = static_cast<Layout*>(children[i]->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", children[i]->getCName());
+            return;
+        }
+
+        auto& pos = children[i]->getTransform().pos;
+        auto& scale = children[i]->getTransform().scale;
+        switch (chLayout->alignSelf)
+        {
+            case Layout::TOP:
+                // Do nothing
+                break;
+            case Layout::CENTER:
+                pos.y += (maxY - scale.y) * 0.5f;
+                break;
+            case Layout::BOTTOM:
+                break;
+            default:
+                log_.warnLn("Unrecognized alignSelf value");
+        }
+    }
 }
 
 glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pPos, const glm::ivec2& pScale,
@@ -139,11 +217,14 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pPos, const glm
         const auto& pos = ch->getTransform().pos;
         currentScale.x = std::max(currentScale.x ,(int32_t)(pos.x + scale.x));
         currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
+        // currentScale.x = std::max(currentScale.x ,(int32_t)scale.x);
+        // currentScale.y = std::max(currentScale.y ,(int32_t)scale.y);
     }
 
     // log_.debugLn("overflow x:%d", currentScale.x - (int32_t)pScale.x);
     // log_.debugLn("overflow y:%d", currentScale.y - (int32_t)pScale.y);
-    return {currentScale.x - (pScale.x + pPos.x), currentScale.y - (pScale.y + pPos.y)};
+    return {currentScale.x - pScale.x, currentScale.y - pScale.y};
+    // return {currentScale.x - (pScale.x + pPos.x), currentScale.y - (pScale.y + pPos.y)};
 }
 
 SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const AbstractNodePtr& parent)
@@ -169,7 +250,6 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 
     auto& pPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;
-
 
     // glm::vec2 sbSize = {20, pScale.y};
     const float hardcodedSize = 20;
