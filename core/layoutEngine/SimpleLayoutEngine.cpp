@@ -32,7 +32,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
     if (children.empty()) { return {0, 0}; }
 
-    Layout* layout = static_cast<Layout*>(parent->getProps());
+    const Layout* layout = static_cast<Layout*>(parent->getProps());
     if (!layout)
     {
         log_.errorLn("Whoops no layout %s", parent->getCName());
@@ -58,8 +58,15 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
         { continue; }
 
-        totalChildSize.x += ch->getTransform().scale.x;
-        totalChildSize.y += ch->getTransform().scale.y;
+        const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return {0, 0};
+        }
+
+        totalChildSize.x += ch->getTransform().scale.x + (chLayout->margin.value.left + chLayout->margin.value.right);
+        totalChildSize.y += ch->getTransform().scale.y + (chLayout->margin.value.top + chLayout->margin.value.bot);
     }
 
     // Compute ZERO relative position of objects PASS
@@ -99,7 +106,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                 ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
             { continue; }
 
-            Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            const Layout* chLayout = static_cast<Layout*>(ch->getProps());
             if (!chLayout)
             {
                 log_.errorLn("Whoops no layout %s", ch->getCName());
@@ -110,7 +117,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             auto& scale = ch->getTransform().scale;
             if (layout->allowWrap)
             {
-                if (rollingX + scale.x > pScale.x)
+                if (rollingX + scale.x + chLayout->margin.value.left + chLayout->margin.value.right > pScale.x)
                 {
                     startX = 0;
                     startY += maxY;
@@ -122,14 +129,14 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     maxY = 0;
                     startIdx = endIdx;
                 }
-                rollingX += scale.x;
+                rollingX += scale.x + chLayout->margin.value.left + chLayout->margin.value.right;
             }
-            maxY = std::max(maxY, scale.y);
+            maxY = std::max(maxY, scale.y + chLayout->margin.value.top + chLayout->margin.value.bot);
             endIdx++;
             // 1st zero positioning
-            pos.x = startX;
-            pos.y = startY;
-            startX += scale.x + spacing;
+            pos.x = startX + chLayout->margin.value.left;
+            pos.y = startY + chLayout->margin.value.top;
+            startX += scale.x + spacing + (chLayout->margin.value.left + chLayout->margin.value.right);
         }
 
         // Align Self (2nd zero positioning)
@@ -168,11 +175,18 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                 ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
             { continue; }
 
+            const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return {0, 0};
+            }
+
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
             if (layout->allowWrap)
             {
-                if (rollingY + scale.y > pScale.y)
+                if (rollingY + scale.y + chLayout->margin.value.top + chLayout->margin.value.bot > pScale.y)
                 {
                     startX += maxX;
                     startY = 0;
@@ -184,14 +198,14 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     maxX = 0;
                     startIdx = endIdx;
                 }
-                rollingY += scale.y;
+                rollingY += scale.y + chLayout->margin.value.top + chLayout->margin.value.bot;
             }
-            maxX = std::max(maxX, scale.x);
+            maxX = std::max(maxX, scale.x + chLayout->margin.value.left + chLayout->margin.value.right);
             endIdx++;
             // 1st zero positioning
-            pos.x = startX;
-            pos.y = startY;
-            startY += scale.y + spacing;
+            pos.x = startX + chLayout->margin.value.left;
+            pos.y = startY + chLayout->margin.value.top;
+            startY += scale.y + spacing + (chLayout->margin.value.top + chLayout->margin.value.bot);
         }
         // Align Self (2nd zero positioning)
         resolveAlignSelf(children, startIdx, endIdx, maxX, Layout::Type::VERTICAL);
@@ -266,7 +280,7 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
 {
     for (uint32_t i = idxStart; i < idxEnd; i++)
     {
-        Layout* chLayout = static_cast<Layout*>(children[i]->getProps());
+        const Layout* chLayout = static_cast<Layout*>(children[i]->getProps());
         if (!chLayout)
         {
             log_.errorLn("Whoops no layout %s", children[i]->getCName());
@@ -286,10 +300,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.y += (max - scale.y) * 0.5f;
+                    pos.y += (max - scale.y - chLayout->margin.value.bot) * 0.5f;
                     break;
                 case Layout::BOTTOM:
-                    pos.y += max - scale.y;
+                    pos.y += max - scale.y - chLayout->margin.value.bot;
                     break;
                 default:
                     log_.warnLn("Unrecognized horizontal alignSelf value: ENUM(%d)",
@@ -306,10 +320,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.x += (max - scale.x) * 0.5f;
+                    pos.x += (max - scale.x - chLayout->margin.value.right) * 0.5f;
                     break;
                 case Layout::RIGHT:
-                    pos.x += max - scale.x;
+                    pos.x += max - scale.x - chLayout->margin.value.right;
                     break;
                 default:
                     log_.warnLn("Unrecognized vertical alignSelf value: ENUM(%d)",
@@ -329,8 +343,19 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pScale, const A
             ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
         { continue; }
 
-        const auto& scale = ch->getTransform().scale;
-        const auto& pos = ch->getTransform().pos;
+        const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return {0, 0};
+        }
+
+        auto scale = ch->getTransform().scale;
+        auto pos = ch->getTransform().pos;
+        scale.x += chLayout->margin.value.right;
+        scale.y += chLayout->margin.value.bot;
+        // pos.x += chLayout->margin.value.left;
+        // pos.y += chLayout->margin.value.top;
         currentScale.x = std::max(currentScale.x ,(int32_t)(pos.x + scale.x));
         currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
     }

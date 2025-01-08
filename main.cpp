@@ -46,9 +46,10 @@ int main()
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
-    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
+    frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
+    frame->getRoot()->props.layout.allowWrap = true;
     // frame->getRoot()->props.layout.alignChildX
     //     = Layout::Align::RIGHT;
     // frame->getRoot()->props.layout.alignChildY
@@ -57,8 +58,8 @@ int main()
     // frame->getRoot()->props.layout.spacing
     //     = Layout::Spacing::EVEN_WITH_NO_START_GAP;
 
-    frame->getRoot()->props.layout.padding
-        = Layout::TBLR{10, 10, 10, 10};
+    // frame->getRoot()->props.layout.padding
+    //     = Layout::TBLR{10, 10, 10, 10};
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
@@ -91,15 +92,21 @@ int main()
         // static_cast<Box*>(node.get())->props.layout.margin
         //     = Layout::TBLR{10, 10, 10, 10};
 
-        int32_t randomX = std::max(50.0f, Utils::random01() * 250);
-        int32_t randomY = std::max(50.0f, Utils::random01() * 250);
+        static_cast<Box*>(node.get())->props.layout.alignSelf
+            = Layout::Align::TOP;
+
+        int32_t randomX = std::max(100.0f, Utils::random01() * 250);
+        int32_t randomY = std::max(100.0f, Utils::random01() * 250);
         // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
         static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
 
         // if (i == 2)
-        // {
-        //     static_cast<Box*>(node.get())->getTransform().scale = {100, 100, 1};
-        // }
+        {
+            // static_cast<Box*>(node.get())->getTransform().scale = {randomX, 400, 1};
+            static_cast<Box*>(node.get())->props.layout.margin
+                // = Layout::TBLR{10, 10, 10, 10};
+                = Layout::TBLR{10, 10, 10, 10};
+        }
 
         // if (i == 9)
         // {
