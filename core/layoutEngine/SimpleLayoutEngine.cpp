@@ -378,6 +378,11 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
         Box* castBox = static_cast<Box*>(parent.get());
+        if (castBox->isScrollBarActive(ScrollBar::Orientation::NONE))
+        {
+            return ScrollBarsData{};
+        }
+
         if (castBox->isScrollBarActive(ScrollBar::Orientation::ALL))
         {
             bothSbOn = true;

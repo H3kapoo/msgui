@@ -34,7 +34,6 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-
     // frame->getRoot()->props.layout.margin = Layout::TBLR{10, 5, 10, 5};
     // frame->getRoot()->props.layout.padding = Layout::TBLR{10, 5, 10, 5};
     // frame->getRoot()->props.layout.border = Layout::TBLR{10, 5, 10, 5};
@@ -46,7 +45,7 @@ int main()
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
-    frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
+    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
     frame->getRoot()->props.layout.allowWrap = true;
@@ -83,22 +82,33 @@ int main()
     postButton->props.layout.alignSelf = Layout::Align::CENTER;
 
     AbstractNodePVec nodes;
-    // for (int32_t i = 0; i < 60'000; i++)
+    // for (int32_t i = 0; i < 20'000; i++)
     for (int32_t i = 0; i < 4; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
         // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
-        static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
+        // static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
+        static_cast<Box*>(node.get())->props.color = Utils::hexToVec4("#ddaabbff");
         // static_cast<Box*>(node.get())->props.layout.margin
         //     = Layout::TBLR{10, 10, 10, 10};
 
         static_cast<Box*>(node.get())->props.layout.alignSelf
             = Layout::Align::TOP;
+        
+        node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
 
         int32_t randomX = std::max(100.0f, Utils::random01() * 250);
         int32_t randomY = std::max(100.0f, Utils::random01() * 250);
         // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
-        static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
+        static_cast<Box*>(node.get())->getTransform().scale
+            = {randomX, randomY, 1};
+
+
+        static_cast<Box*>(node.get())->listeners.setOnMouseButtonLeftClick([&]()
+        {
+            ShaderLoader::reload("assets/shader/sdfTest.glsl");
+            theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
+        });
 
         // if (i == 2)
         {

@@ -87,7 +87,7 @@ public:
             value = _value;
 
             if (onReload) { onReload(); }
-            else { Logger("Utils").warnLn("AssignReloadable no funcion provided"); };
+            else { Logger("Utils").warnLn("AssignReloadable no function provided"); };
 
             return *this;
         }

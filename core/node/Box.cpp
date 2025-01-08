@@ -32,7 +32,9 @@ bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
         case ScrollBar::Orientation::VERTICAL:
             return vScrollBar_ ? true : false;
         case ScrollBar::Orientation::ALL:
-            return (hScrollBar_ && vScrollBar_) ? true : false;
+            return (hScrollBar_ && vScrollBar_);
+        case ScrollBar::Orientation::NONE:
+            return (!hScrollBar_ && !vScrollBar_);
         default:
             log_.errorLn("Invalid orientation!");
     }
@@ -87,10 +89,11 @@ void Box::setShaderAttributes()
     shader_->setVec4f("uColor", props.color);
 
     // quick hack
-    // if (getName() == "theBox")
-    // {
-    //     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-    // }
+    // log_.debugLn("name %s", getCName());
+    if (getName().contains("Button_Id_"))
+    {
+        shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    }
 }
 
 void Box::onMouseButtonNotify()
@@ -130,5 +133,9 @@ void Box::setupReloadables()
         state_ ? (state_->isLayoutDirty = true) : false;
     };
 
+    props.layout.margin.onReload = [this]()
+    {
+        state_ ? (state_->isLayoutDirty = true) : false;
+    };
 }
 } // namespace msgui

@@ -19,7 +19,7 @@ void main()
 #version 330
 
 uniform vec4 uColor = vec4(0.3, 0.1, 0.4, 1.0);
-uniform vec2 uResolution = vec2(700, 400);
+uniform vec2 uResolution;// = vec2(700, 400);
 
 in vec2 fTex;
 
@@ -33,29 +33,26 @@ float roundedBoxSDF(vec2 uv, vec2 size, vec4 radii)
 
 void main()
 {
-    vec2 tex = fTex;
-    float aspect = uResolution.x / uResolution.y; 
-    vec2 correctedTex = vec2(tex.x * aspect, tex.y);
+    vec2 p = fTex;
+    float aspect = uResolution.x / uResolution.y;
+    p.x *= aspect;
+    p -= vec2(0.5*aspect, 0.5);
+    // p.x *= aspect;
+    // p.x *= uResolution.x;// * aspect;
+    // p.y *= uResolution.y;
 
-    vec2 p = correctedTex - vec2(0.5 * aspect, 0.5);
+    // vec2 center = vec2(0.5*aspect, 0.5);
+    vec2 center = vec2(0);
 
-    vec2 boxSize = vec2(0.5*aspect, 0.5);
+    vec2 boxSize = vec2(1*aspect, 1.0);
     vec4 cornerRadii = vec4(0.1);
 
-    float dist = roundedBoxSDF(p, boxSize, cornerRadii);
-    float sdfValue = step(0.01, dist); // Smooth edge
-    // float sdfValue = dist;
-    // if (sdfValue >= 1.0)
-    // {
-    //     discard;
-    // }
-    if (sdfValue > 0.5)
+    float dist = roundedBoxSDF(center - p, boxSize / 2.0, cornerRadii);
+    float sdfValue = step(0.001, dist); // Smooth edge
+    if (sdfValue >= 1)
     {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        discard;
     }
-    else
-    {
-        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    }
-    // gl_FragColor = vec4(vec3(sdfValue), 1.0);
+    gl_FragColor = vec4(vec3(sdfValue), 1.0);
+    // gl_FragColor = vec4(p.x, p.y, 0.0, 1.0);
 }

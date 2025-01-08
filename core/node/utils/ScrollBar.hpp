@@ -18,7 +18,8 @@ public:
     {
         HORIZONTAL,
         VERTICAL,
-        ALL
+        ALL,
+        NONE
     };
 
     struct Props
