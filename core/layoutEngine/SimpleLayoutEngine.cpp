@@ -47,8 +47,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
     auto& pPos = parent->getTransform().pos;
     glm::vec3 pScale = parent->getTransform().scale;
-    pScale.x -= scrollNodeData.shrinkBy.x;
-    pScale.y -= scrollNodeData.shrinkBy.y;
+    pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.value.left + layout->padding.value.right;
+    pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot;
 
     // Compute total scale of children
     glm::ivec2 totalChildSize{0, 0};
@@ -98,6 +98,13 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             if (ch->getType() == AbstractNode::NodeType::SCROLL ||
                 ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
             { continue; }
+
+            Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return {0, 0};
+            }
 
             auto& pos = ch->getTransform().pos;
             auto& scale = ch->getTransform().scale;
@@ -202,8 +209,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         { continue; }
 
         auto& pos = ch->getTransform().pos;
-        pos.x += -scrollNodeData.offsetPx.x + pPos.x;
-        pos.y += -scrollNodeData.offsetPx.y + pPos.y;
+        pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.value.left;
+        pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.value.top;
 
         // AlignChild
         // Negative overflow means we still have X amount of pixels until the parent is full on that axis
