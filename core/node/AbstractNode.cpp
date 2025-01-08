@@ -35,10 +35,7 @@ void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
     if (state_)
     {
         state_->isLayoutDirty = true;
-
-        // Ideally layout resorting should only happen on node addition. Node removal will not invalidate
-        // the relative positioning of the nodes.
-        state_->layoutNeedsSort = true;
+        state_->layoutStoreNeedsRecreate = true;
     }
 }
 
@@ -73,6 +70,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
 
     // Notify layout
     (*it)->state_->isLayoutDirty = true;
+    (*it)->state_->layoutStoreNeedsRecreate = true;
 
     // Reset to defaults
     (*it)->state_ = nullptr;

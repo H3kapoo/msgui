@@ -155,7 +155,7 @@ void WindowFrame::updateLayout()
 {
     // Must redo internal vector structure if something was added.
     // Removal preserves the node "depth"-ness so we don't need to redo it.
-    if (frameState_->layoutNeedsSort)
+    if (frameState_->layoutStoreNeedsRecreate)
     {
         resolveNodeRelations();
     }
@@ -209,7 +209,7 @@ void WindowFrame::resolveNodeRelations()
     }
 
     // Sort only if necessary to speed-up things
-    if (frameState_->layoutNeedsSort)
+    // if (frameState_->layoutNeedsSort)
     {
         // Sort nodes from high to low depth
         std::ranges::sort(allFrameChildNodes_,

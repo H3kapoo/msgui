@@ -34,13 +34,6 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::TOP;
-    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::CENTER;
-    // frame->getRoot()->props.layout.alignChildX/Y = Layout::Align::BOT;
-
-    // ch->props.layout.alignSelfX/Y = Layout::Align::TOP;
-    // ch->props.layout.alignSelfX/Y = Layout::Align::CENTER;
-    // ch->props.layout.alignSelfX/Y = Layout::Align::BOT;
 
     // frame->getRoot()->props.layout.margin = Layout::TBLR{10, 5, 10, 5};
     // frame->getRoot()->props.layout.padding = Layout::TBLR{10, 5, 10, 5};
@@ -48,33 +41,28 @@ int main()
     // frame->getRoot()->props.layout.borderRadius = Layout::TBLR{10, 5, 10, 5};
     // frame->getRoot()->props.layout.borderRadius = Layout::TBLR{10, 5, 10, 5};
 
-    // frame->getRoot()->props.layout.spacing = Layout::Spacing::TIGHT;                    // |***        |
-    // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_NO_START_GAP;   // |*    *    *|
-    // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;      // |  *  *  *  |
-
     // frame->getRoot()->props.layout.type = Layout::Type::GRID;
     // frame->getRoot()->props.layout.distribution = {1fr, 10px, 1fr};  // |   eq_space  |10px|  eq_space   |
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
-    // frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
+    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
     // frame->getRoot()->props.layout.alignChildX = Layout::Align::CENTER;
     // frame->getRoot()->props.layout.alignChildY = Layout::Align::CENTER;
     // frame->getRoot()->props.layout.allowWrap = true;
-    frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
+    // frame->getRoot()->props.layout.spacing
+    //     = Layout::Spacing::EVEN_WITH_NO_START_GAP;
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
     theBox->props.layout.allowOverflowX = true;
     theBox->props.layout.allowOverflowY = true;
-    theBox->props.layout.type = Layout::Type::HORIZONTAL;
+    // theBox->props.layout.type = Layout::Type::VERTICAL;
     // theBox->props.layout.alignChildX = Layout::Align::RIGHT;
     // theBox->props.layout.alignChildY = Layout::Align::BOTTOM;
     theBox->getTransform().scale = {500, 400, 1};
-    // theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
-    // theBox->getShader() = ShaderLoader::load("assets/shader/sdfTest.glsl");
 
     ButtonPtr preButton = std::make_shared<Button>("PreButton");
     preButton->getTransform().scale = {200, 50, 1};
@@ -94,13 +82,13 @@ int main()
         // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
         static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
         // static_cast<Box*>(node.get())->props.layout.alignSelf
-        //     = Layout::Align::BOTTOM;
+        //     = Layout::Align::CENTER;
 
-        int32_t randomX = std::max(100.0f, Utils::random01() * 350);
-        int32_t randomY = std::max(100.0f, Utils::random01() * 250);
+        int32_t randomX = std::max(50.0f, Utils::random01() * 350);
+        int32_t randomY = std::max(50.0f, Utils::random01() * 350);
         // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
-        // static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
-        static_cast<Box*>(node.get())->getTransform().scale = {200, 200, 1};
+        static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
+        // static_cast<Box*>(node.get())->getTransform().scale = {200, 200, 1};
 
         // if (i == 2)
         // {

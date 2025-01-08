@@ -23,6 +23,7 @@ struct FrameState
     AbstractNodePtr clickedNodePtr                  {NO_PTR};
     bool isLayoutDirty                              {true};
     bool layoutNeedsSort                            {true};
+    bool layoutStoreNeedsRecreate                   {true};
 };
 using FrameStatePtr = std::shared_ptr<FrameState>;
 } // msgui

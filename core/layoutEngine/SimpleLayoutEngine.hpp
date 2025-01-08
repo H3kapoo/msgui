@@ -7,6 +7,12 @@
 
 namespace msgui
 {
+/* Class responsible for positioning and scaling objects as user defined.
+    Known bugs:
+        - allowWrap + non-Tight spacing + small space so that scrollbar appears will
+            make elements go one on top another bit by bit. This is because we compute total
+            children scale instead of per-wrapped-row scale.
+*/
 class SimpleLayoutEngine : public ILayoutEngine
 {
 private:

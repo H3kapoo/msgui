@@ -51,33 +51,38 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     pScale.y -= scrollNodeData.shrinkBy.y;
 
     // Compute total scale of children
-    int32_t totalChildXSize{0};
+    glm::ivec2 totalChildSize{0, 0};
     for (auto& ch : children)
     {
         if (ch->getType() == AbstractNode::NodeType::SCROLL ||
             ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
         { continue; }
-        totalChildXSize += ch->getTransform().scale.x;
+
+        totalChildSize.x += ch->getTransform().scale.x;
+        totalChildSize.y += ch->getTransform().scale.y;
     }
 
     // Compute ZERO relative position of objects PASS
-    int32_t startX = 0;
-    int32_t startY = 0;
+    float startX{0};
+    float startY{0};
     int32_t startIdx{0};
     int32_t endIdx{0};
     if (layout->type == Layout::Type::HORIZONTAL)
     {
-        int32_t spacing{0};
+        // Dealing with layout Spacing
+        float spacing{0};
         switch (layout->spacing)
         {
             case Layout::TIGHT:
                 // Do nothing
                 break;
             case Layout::EVEN_WITH_NO_START_GAP:
-                spacing = (pScale.x - totalChildXSize) / (children.size() - 1);
+                spacing = (pScale.x - totalChildSize.x) / (children.size() - 1);
+                spacing = std::max(0.0f, spacing);
                 break;
             case Layout::EVEN_WITH_START_GAP:
-                spacing = (pScale.x - totalChildXSize) / (children.size());
+                spacing = (pScale.x - totalChildSize.x) / (children.size());
+                spacing = std::max(0.0f, spacing);
                 startX += spacing * 0.5f;
                 break;
             default:
@@ -85,8 +90,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     static_cast<uint8_t>(layout->spacing));
         }
 
-        int32_t rollingX = startX;
-        int32_t maxY{0};
+        float rollingX = startX;
+        float maxY{0};
         for (auto& ch : children)
         {
             // Already calculated, skip
@@ -112,7 +117,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                 }
                 rollingX += scale.x;
             }
-            maxY = std::max(maxY, (int32_t)scale.y);
+            maxY = std::max(maxY, scale.y);
             endIdx++;
             // 1st zero positioning
             pos.x = startX;
@@ -125,8 +130,30 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     }
     else if (layout->type == Layout::Type::VERTICAL)
     {
-        int32_t rollingY = startY;
-        int32_t maxX{0};
+        // Dealing with layout Spacing
+        float spacing{0};
+        switch (layout->spacing)
+        {
+            case Layout::TIGHT:
+                // Do nothing
+                break;
+            case Layout::EVEN_WITH_NO_START_GAP:
+                //TODO: Divide by zero in case we have just a child!
+                spacing = (pScale.y - totalChildSize.y) / (children.size() - 1);
+                spacing = std::max(0.0f, spacing);
+                break;
+            case Layout::EVEN_WITH_START_GAP:
+                spacing = (pScale.y - totalChildSize.y) / (children.size());
+                spacing = std::max(0.0f, spacing);
+                startY += spacing * 0.5f;
+                break;
+            default:
+                log_.warnLn("Unrecognized Spacing value: ENUM(%d)",
+                    static_cast<uint8_t>(layout->spacing));
+        }
+
+        float rollingY = startY;
+        float maxX{0};
         for (auto& ch : children)
         {
             // Already calculated, skip
@@ -152,12 +179,12 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                 }
                 rollingY += scale.y;
             }
-            maxX = std::max(maxX, (int32_t)scale.x);
+            maxX = std::max(maxX, scale.x);
             endIdx++;
             // 1st zero positioning
             pos.x = startX;
             pos.y = startY;
-            startY += scale.y;
+            startY += scale.y + spacing;
         }
         // Align Self (2nd zero positioning)
         resolveAlignSelf(children, startIdx, endIdx, maxX, Layout::Type::VERTICAL);

@@ -65,6 +65,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     {
         remove(vScrollBar_->getId());
         vScrollBar_.reset();
+        log_.debugLn("SB REMOVED");
     }
 
     // Update with the new overflow value
