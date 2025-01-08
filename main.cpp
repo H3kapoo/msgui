@@ -63,6 +63,7 @@ int main()
     // frame->getRoot()->props.layout.alignChildX = Layout::Align::CENTER;
     // frame->getRoot()->props.layout.alignChildY = Layout::Align::CENTER;
     // frame->getRoot()->props.layout.allowWrap = true;
+    frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
@@ -87,7 +88,7 @@ int main()
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 60'000; i++)
-    for (int32_t i = 0; i < 40; i++)
+    for (int32_t i = 0; i < 4; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
         // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
@@ -95,10 +96,11 @@ int main()
         // static_cast<Box*>(node.get())->props.layout.alignSelf
         //     = Layout::Align::BOTTOM;
 
-        int32_t randomX = std::max(100.0f, Utils::random01() * 200);
+        int32_t randomX = std::max(100.0f, Utils::random01() * 350);
         int32_t randomY = std::max(100.0f, Utils::random01() * 250);
         // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
-        static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
+        // static_cast<Box*>(node.get())->getTransform().scale = {randomX, randomY, 1};
+        static_cast<Box*>(node.get())->getTransform().scale = {200, 200, 1};
 
         // if (i == 2)
         // {

@@ -50,6 +50,16 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     pScale.x -= scrollNodeData.shrinkBy.x;
     pScale.y -= scrollNodeData.shrinkBy.y;
 
+    // Compute total scale of children
+    int32_t totalChildXSize{0};
+    for (auto& ch : children)
+    {
+        if (ch->getType() == AbstractNode::NodeType::SCROLL ||
+            ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
+        { continue; }
+        totalChildXSize += ch->getTransform().scale.x;
+    }
+
     // Compute ZERO relative position of objects PASS
     int32_t startX = 0;
     int32_t startY = 0;
@@ -57,6 +67,24 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     int32_t endIdx{0};
     if (layout->type == Layout::Type::HORIZONTAL)
     {
+        int32_t spacing{0};
+        switch (layout->spacing)
+        {
+            case Layout::TIGHT:
+                // Do nothing
+                break;
+            case Layout::EVEN_WITH_NO_START_GAP:
+                spacing = (pScale.x - totalChildXSize) / (children.size() - 1);
+                break;
+            case Layout::EVEN_WITH_START_GAP:
+                spacing = (pScale.x - totalChildXSize) / (children.size());
+                startX += spacing * 0.5f;
+                break;
+            default:
+                log_.warnLn("Unrecognized Spacing value: ENUM(%d)",
+                    static_cast<uint8_t>(layout->spacing));
+        }
+
         int32_t rollingX = startX;
         int32_t maxY{0};
         for (auto& ch : children)
@@ -89,7 +117,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             // 1st zero positioning
             pos.x = startX;
             pos.y = startY;
-            startX += scale.x;
+            startX += scale.x + spacing;
         }
 
         // Align Self (2nd zero positioning)
@@ -138,8 +166,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     // Compute children overflow PASS
     const glm::ivec2 computedOverflow = computeOverflow(pScale, children);
 
-    // log_.debugLn("%s %d %d", parent->getCName(), bounds.x, bounds.y);
-    // Apply SCROLLBAR offsets + any offseting from ZERO PASS
+    // Apply SCROLLBAR offsets + any group offseting from ZERO PASS
     for (auto& ch : children)
     {
         // Already calculated, skip
