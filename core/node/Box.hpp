@@ -1,8 +1,10 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "core/Listeners.hpp"
+#include "core/Shader.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 #include "core/node/utils/LayoutData.hpp"
@@ -22,9 +24,9 @@ public:
 public:
     Box(const std::string& name);
 
-
     void* getProps() override;
     bool isScrollBarActive(const ScrollBar::Orientation orientation);
+    void setUserDefinedShaderAttribs(const std::function<void(Box*, Shader*)>& attribCb);
 
 private: // friend
     friend WindowFrame;
@@ -40,9 +42,11 @@ public:
     Props props;
 
 private:
-    glm::ivec2 overflow_{0, 0}; // temporary here
+    glm::ivec2 overflow_{0, 0};
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
+
+    std::function<void(Box*, Shader*)> attribCb_{nullptr};
 };
 using BoxPtr = std::shared_ptr<Box>;
 } // namespace msgui

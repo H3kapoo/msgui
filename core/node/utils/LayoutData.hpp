@@ -50,6 +50,11 @@ struct Layout
         float bot{0};
         float left{0};
         float right{0};
+
+        operator glm::vec4() const
+        {
+            return glm::vec4{top, bot, left, right};
+        }
     };
 
     // In case AR values end up eating too much memory, maybe we could default to setting some

@@ -19,13 +19,15 @@ void main()
 #version 330
 
 uniform vec4 uColor = vec4(0.3, 0.1, 0.4, 1.0);
-uniform vec2 uResolution;// = vec2(700, 400);
+uniform vec4 uBorderSize = vec4(0);
+uniform vec4 uBorderRadii = vec4(0);
+uniform vec2 uResolution;
 
 in vec2 fTex;
 
 float roundedBoxSDF(vec2 uv, vec2 size, vec4 radii)
 {
-    // radii: x TL y TR z BR w BL
+    // radii: x TL y TR z BR w BL  | TR x
     vec2 absPos = abs(uv) - size;
     float radius = uv.x > 0 ? (uv.y > 0 ? radii.z : radii.y) : (uv.y > 0 ? radii.w : radii.x);
     return length(max(absPos + radius, 0.0)) - radius;
@@ -34,25 +36,39 @@ float roundedBoxSDF(vec2 uv, vec2 size, vec4 radii)
 void main()
 {
     vec2 p = fTex;
-    float aspect = uResolution.x / uResolution.y;
-    p.x *= aspect;
-    p -= vec2(0.5*aspect, 0.5);
-    // p.x *= aspect;
-    // p.x *= uResolution.x;// * aspect;
-    // p.y *= uResolution.y;
+    p.x *= uResolution.x;
+    p.y *= uResolution.y;
+    p -= vec2(uResolution.x / 2.0, uResolution.y / 2.0);
 
-    // vec2 center = vec2(0.5*aspect, 0.5);
-    vec2 center = vec2(0);
+    vec2 boxSize = vec2(uResolution.x, uResolution.y);
+    vec2 boxSize2 = vec2(uResolution.x, uResolution.y);
 
-    vec2 boxSize = vec2(1*aspect, 1.0);
-    vec4 cornerRadii = vec4(0.1);
+    // vec2 newCenter = vec2(uBorderSize.z, uBorderSize.x);
+    // boxSize2 -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
 
-    float dist = roundedBoxSDF(center - p, boxSize / 2.0, cornerRadii);
-    float sdfValue = step(0.001, dist); // Smooth edge
-    if (sdfValue >= 1)
-    {
-        discard;
-    }
-    gl_FragColor = vec4(vec3(sdfValue), 1.0);
-    // gl_FragColor = vec4(p.x, p.y, 0.0, 1.0);
+    // float top = 10;
+    // float bot = 30;
+    // float left = 10;
+    // float right = 50;
+    vec2 newCenter = vec2(
+        (uBorderSize.z + uBorderSize.w) * 0.5 - uBorderSize.w,
+        (uBorderSize.x + uBorderSize.y) * 0.5 - uBorderSize.y);
+    boxSize2 -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
+
+    // vec4 cornerRadii = vec4(30.0, 30.0, 30.0, 30.0);
+    // vec4 cornerRadii2 = vec4(15.0, 15.0, 15.0, 15.0);
+    vec4 cornerRadii2 = vec4(0); // Unused for now
+
+    float dist1 = roundedBoxSDF(p, boxSize / 2.0, uBorderRadii);
+    float dist2 = roundedBoxSDF(newCenter - p, boxSize2 / 2.0, cornerRadii2);
+    float sdfValue = step(0.001, dist1);
+    float sdfValue2 = step(0.001, dist2);
+    float sdfValue3 = sdfValue2 - sdfValue;
+
+    if (sdfValue >= 1) { discard; }
+    vec4 uColor2 = vec4(0.0, 1.0, 0.0, 1.0);
+
+    vec4 finalColor = mix(uColor, vec4(0.0), sdfValue2);
+    finalColor += mix(vec4(0.0), uColor2, sdfValue3);
+    gl_FragColor = vec4(finalColor.xyz, 1.0);
 }

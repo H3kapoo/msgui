@@ -42,6 +42,11 @@ bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
     return false;
 }
 
+void Box::setUserDefinedShaderAttribs(const std::function<void(Box*, Shader*)>& attribCb)
+{
+    attribCb_ = attribCb;
+}
+
 void Box::updateOverflow(const glm::ivec2& overflow)
 {
     overflow_ = overflow;
@@ -88,12 +93,7 @@ void Box::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
 
-    // quick hack
-    // log_.debugLn("name %s", getCName());
-    if (getName().contains("Button_Id_"))
-    {
-        shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-    }
+    if (attribCb_) { attribCb_(this, shader_); }
 }
 
 void Box::onMouseButtonNotify()
@@ -134,6 +134,11 @@ void Box::setupReloadables()
     };
 
     props.layout.margin.onReload = [this]()
+    {
+        state_ ? (state_->isLayoutDirty = true) : false;
+    };
+
+    props.layout.border.onReload = [this]()
     {
         state_ ? (state_->isLayoutDirty = true) : false;
     };

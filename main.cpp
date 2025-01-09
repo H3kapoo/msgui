@@ -86,25 +86,29 @@ int main()
     for (int32_t i = 0; i < 4; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
-        // static_cast<Box*>(node.get())->props.texture = "assets/textures/container.jpg";
-        // static_cast<Box*>(node.get())->props.color = Utils::randomRGB();
-        static_cast<Box*>(node.get())->props.color = Utils::hexToVec4("#ddaabbff");
-        // static_cast<Box*>(node.get())->props.layout.margin
-        //     = Layout::TBLR{10, 10, 10, 10};
-
-        static_cast<Box*>(node.get())->props.layout.alignSelf
+        Box* bx = static_cast<Box*>(node.get());
+        bx->props.color = Utils::hexToVec4("#ddaabbff");
+        bx->props.layout.alignSelf
             = Layout::Align::TOP;
-        
         node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
 
-        int32_t randomX = std::max(100.0f, Utils::random01() * 250);
-        int32_t randomY = std::max(100.0f, Utils::random01() * 250);
-        // mainLog.debugLn("randomX %d randomY %d", randomX, randomY);
-        static_cast<Box*>(node.get())->getTransform().scale
-            = {randomX, randomY, 1};
+        int32_t randomX = std::max(150.0f, Utils::random01() * 350);
+        int32_t randomY = std::max(150.0f, Utils::random01() * 350);
 
+        bx->getTransform().scale = {randomX, randomY, 1};
+        // bx->getTransform().scale = {300, 100, 1};
+        bx->props.color = Utils::randomRGB();
+        bx->props.layout.border = Layout::TBLR{20, 10, 5, 0};
+        bx->props.layout.borderRadius = Layout::TBLR{20, 10, 5, 0};
 
-        static_cast<Box*>(node.get())->listeners.setOnMouseButtonLeftClick([&]()
+        bx->setUserDefinedShaderAttribs([](Box* box, Shader* shader)
+        {
+            shader->setVec4f("uBorderSize", box->props.layout.border.value);
+            shader->setVec4f("uBorderRadii", box->props.layout.borderRadius.value);
+            shader->setVec2f("uResolution", glm::vec2{box->getTransform().scale.x, box->getTransform().scale.y});
+        });
+
+        bx->listeners.setOnMouseButtonLeftClick([&]()
         {
             ShaderLoader::reload("assets/shader/sdfTest.glsl");
             theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
@@ -112,8 +116,8 @@ int main()
 
         // if (i == 2)
         {
-            // static_cast<Box*>(node.get())->getTransform().scale = {randomX, 400, 1};
-            static_cast<Box*>(node.get())->props.layout.margin
+            // bx->getTransform().scale = {randomX, 400, 1};
+            bx->props.layout.margin
                 // = Layout::TBLR{10, 10, 10, 10};
                 = Layout::TBLR{10, 10, 10, 10};
         }
