@@ -47,8 +47,10 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
     auto& pPos = parent->getTransform().pos;
     glm::vec3 pScale = parent->getTransform().scale;
-    pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.value.left + layout->padding.value.right;
-    pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot;
+    pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.value.left + layout->padding.value.right
+        + layout->border.value.left + layout->border.value.right;
+    pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot
+        + layout->border.value.bot + layout->border.value.bot;
 
     // Compute total scale of children
     glm::ivec2 totalChildSize{0, 0};
@@ -223,8 +225,8 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         { continue; }
 
         auto& pos = ch->getTransform().pos;
-        pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.value.left;
-        pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.value.top;
+        pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.value.left + layout->border.value.left;
+        pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.value.top + layout->border.value.top;
 
         // AlignChild
         // Negative overflow means we still have X amount of pixels until the parent is full on that axis
@@ -371,6 +373,13 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         return ScrollBarsData{};
     }
 
+    const Layout* layout = static_cast<Layout*>(parent->getProps());
+    if (!layout)
+    {
+        log_.errorLn("Whoops no layout %s", parent->getCName());
+        return ScrollBarsData{};
+    }
+
     // Return by how much should the parent "shrink" to fit scrollbars
     ScrollBarsData data;
 
@@ -412,10 +421,11 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         if (sb->getOrientation() == ScrollBar::Orientation::VERTICAL)
         {
             // Scrollbar positioning
-            pos.x = pPos.x + pScale.x - hardcodedSize;
-            pos.y = pPos.y;
+            pos.x = pPos.x + pScale.x - hardcodedSize - layout->border.value.right;
+            pos.y = pPos.y + layout->border.value.top;
             scale.x = hardcodedSize;
-            scale.y = pScale.y - (bothSbOn ? hardcodedSize : 0);
+            scale.y = pScale.y - (bothSbOn ? hardcodedSize : 0)
+             - (layout->border.value.top + layout->border.value.bot);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
@@ -437,10 +447,11 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
         {
             // Scrollbar positioning
-            pos.y = pPos.y + pScale.y - hardcodedSize;
-            pos.x = pPos.x;
+            pos.y = pPos.y + pScale.y - hardcodedSize - layout->border.value.bot;
+            pos.x = pPos.x + layout->border.value.left;
             scale.y = hardcodedSize;
-            scale.x = pScale.x - (bothSbOn ? hardcodedSize : 0);
+            scale.x = pScale.x - (bothSbOn ? hardcodedSize : 0)
+                - (layout->border.value.left + layout->border.value.right);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists

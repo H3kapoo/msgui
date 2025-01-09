@@ -48,14 +48,15 @@ int main()
     frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
-    frame->getRoot()->props.layout.allowWrap = true;
+    // frame->getRoot()->props.layout.allowWrap = true;
+    // frame->getRoot()->props.layout.border = Layout::TBLR{20, 20, 20, 20};
     // frame->getRoot()->props.layout.alignChildX
     //     = Layout::Align::RIGHT;
     // frame->getRoot()->props.layout.alignChildY
     //     = Layout::Align::BOTTOM;
     // frame->getRoot()->props.layout.allowWrap = true;
     // frame->getRoot()->props.layout.spacing
-    //     = Layout::Spacing::EVEN_WITH_NO_START_GAP;
+    //     = Layout::Spacing::EVEN_WITH_START_GAP;
 
     // frame->getRoot()->props.layout.padding
     //     = Layout::TBLR{10, 10, 10, 10};
@@ -64,8 +65,10 @@ int main()
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
     theBox->props.layout.allowOverflowX = true;
     theBox->props.layout.allowOverflowY = true;
-    theBox->props.layout.padding
-        = Layout::TBLR{10, 10, 10, 10};
+    // theBox->props.layout.padding
+    //     = Layout::TBLR{10, 10, 10, 10};
+    theBox->props.layout.border = Layout::TBLR{40, 10, 20, 30};
+    // theBox->props.layout.borderRadius = Layout::TBLR{10, 10, 10, 10};
     // theBox->props.layout.type = Layout::Type::VERTICAL;
     // theBox->props.layout.alignChildX = Layout::Align::RIGHT;
     // theBox->props.layout.alignChildY = Layout::Align::BOTTOM;
@@ -83,44 +86,42 @@ int main()
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 20'000; i++)
-    for (int32_t i = 0; i < 4; i++)
+    for (int32_t i = 0; i < 5; i++)
     {
-        auto& node = nodes.emplace_back(std::make_shared<Box>("Button_Id_" + std::to_string(i)));
-        Box* bx = static_cast<Box*>(node.get());
-        bx->props.color = Utils::hexToVec4("#ddaabbff");
+        auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
+        Button* bx = static_cast<Button*>(node.get());
+        // bx->props.color = Utils::hexToVec4("#ddaabbff");
+        bx->props.texture = "assets/textures/container.jpg";
         bx->props.layout.alignSelf
             = Layout::Align::TOP;
-        node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
+        // node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
 
         int32_t randomX = std::max(150.0f, Utils::random01() * 350);
-        int32_t randomY = std::max(150.0f, Utils::random01() * 350);
+        int32_t randomY = std::max(150.0f, Utils::random01() * 750);
 
         bx->getTransform().scale = {randomX, randomY, 1};
-        // bx->getTransform().scale = {300, 100, 1};
+        // bx->getTransform().scale = {300, 600, 1};
         bx->props.color = Utils::randomRGB();
-        bx->props.layout.border = Layout::TBLR{20, 10, 5, 0};
-        bx->props.layout.borderRadius = Layout::TBLR{20, 10, 5, 0};
+        // bx->props.layout.border = Layout::TBLR{20, 10, 5, 0};
+        // bx->props.layout.borderRadius = Layout::TBLR{20, 10, 5, 0};
 
-        bx->setUserDefinedShaderAttribs([](Box* box, Shader* shader)
-        {
-            shader->setVec4f("uBorderSize", box->props.layout.border.value);
-            shader->setVec4f("uBorderRadii", box->props.layout.borderRadius.value);
-            shader->setVec2f("uResolution", glm::vec2{box->getTransform().scale.x, box->getTransform().scale.y});
-        });
+        // bx->setUserDefinedShaderAttribs([](Box* box, Shader* shader)
+        // {
+        //     shader->setVec4f("uBorderSize", box->props.layout.border.value);
+        //     shader->setVec4f("uBorderRadii", box->props.layout.borderRadius.value);
+        //     shader->setVec2f("uResolution", glm::vec2{box->getTransform().scale.x, box->getTransform().scale.y});
+        // });
 
-        bx->listeners.setOnMouseButtonLeftClick([&]()
-        {
-            ShaderLoader::reload("assets/shader/sdfTest.glsl");
-            theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
-        });
+        // bx->listeners.setOnMouseButtonLeftClick([&]()
+        // {
+        //     ShaderLoader::reload("assets/shader/sdfTest.glsl");
+        //     theBox->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
+        // });
 
         // if (i == 2)
-        {
             // bx->getTransform().scale = {randomX, 400, 1};
-            bx->props.layout.margin
-                // = Layout::TBLR{10, 10, 10, 10};
-                = Layout::TBLR{10, 10, 10, 10};
-        }
+            // bx->props.layout.margin
+            //     = Layout::TBLR{10, 10, 10, 10};
 
         // if (i == 9)
         // {
@@ -130,10 +131,10 @@ int main()
         //     node->append(strangeBox);
         // }
     }
-    // theBox->appendMany(nodes);
-    frame->getRoot()->appendMany(nodes);
+    theBox->appendMany(nodes);
+    // frame->getRoot()->appendMany(nodes);
     // frame->getRoot()->append(preButton);
-    // frame->getRoot()->append(theBox);
+    frame->getRoot()->append(theBox);
     // frame->getRoot()->append(postButton);
 
     // mainLog.debugLn("Size of AR: %ld", sizeof(Layout));

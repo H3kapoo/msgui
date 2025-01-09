@@ -40,27 +40,18 @@ void main()
     p.y *= uResolution.y;
     p -= vec2(uResolution.x / 2.0, uResolution.y / 2.0);
 
-    vec2 boxSize = vec2(uResolution.x, uResolution.y);
-    vec2 boxSize2 = vec2(uResolution.x, uResolution.y);
+    vec2 borderSize = vec2(uResolution.x, uResolution.y);
+    vec2 contentSize = vec2(uResolution.x, uResolution.y);
 
-    // vec2 newCenter = vec2(uBorderSize.z, uBorderSize.x);
-    // boxSize2 -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
-
-    // float top = 10;
-    // float bot = 30;
-    // float left = 10;
-    // float right = 50;
     vec2 newCenter = vec2(
         (uBorderSize.z + uBorderSize.w) * 0.5 - uBorderSize.w,
         (uBorderSize.x + uBorderSize.y) * 0.5 - uBorderSize.y);
-    boxSize2 -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
+    contentSize -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
 
-    // vec4 cornerRadii = vec4(30.0, 30.0, 30.0, 30.0);
-    // vec4 cornerRadii2 = vec4(15.0, 15.0, 15.0, 15.0);
     vec4 cornerRadii2 = vec4(0); // Unused for now
 
-    float dist1 = roundedBoxSDF(p, boxSize / 2.0, uBorderRadii);
-    float dist2 = roundedBoxSDF(newCenter - p, boxSize2 / 2.0, cornerRadii2);
+    float dist1 = roundedBoxSDF(p, borderSize / 2.0, uBorderRadii);
+    float dist2 = roundedBoxSDF(newCenter - p, contentSize / 2.0, cornerRadii2);
     float sdfValue = step(0.001, dist1);
     float sdfValue2 = step(0.001, dist2);
     float sdfValue3 = sdfValue2 - sdfValue;

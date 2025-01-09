@@ -58,8 +58,10 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.pos = {0, 0, 1};
     frameBox_->transform_.scale = {width, height, 1};
-    frameBox_->transform_.vPos = {0, 0};
-    frameBox_->transform_.vScale = {width, height};
+    frameBox_->transform_.vPos = {frameBox_->props.layout.border.value.left, frameBox_->props.layout.border.value.top};
+    frameBox_->transform_.vScale = {
+        width - frameBox_->props.layout.border.value.left - frameBox_->props.layout.border.value.left,
+        height - frameBox_->props.layout.border.value.top - frameBox_->props.layout.border.value.bot};
     frameBox_->state_ = frameState_;
 }
 
@@ -172,9 +174,16 @@ void WindowFrame::updateLayout()
 
         // After updating the node layout, we need to update the viewable area of the node. Raw parent is used
         // for better performance (compared to locking each time).
+        // TODO: This shall be moved into layout process().
         if (auto p = node->getParentRaw())
         {
-            node->transform_.computeViewableArea(p->transform_);
+            const Layout* pLayout = static_cast<Layout*>(p->getProps());
+            if (!pLayout)
+            {
+                log_.errorLn("Whoops no layout %s", p->getCName());
+                return;
+            }
+            node->transform_.computeViewableArea(p->transform_, pLayout->border);
         }
     }
 }

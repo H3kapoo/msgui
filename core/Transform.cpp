@@ -13,13 +13,17 @@ glm::mat4& Transform::computeModelMatrix()
     return modelMatrix;
 }
 
-void Transform::computeViewableArea(const Transform& otherTrans)
+void Transform::computeViewableArea(const Transform& otherTrans, const Layout::TBLR& otherBorder)
 {
-    const glm::ivec2 posScale = pos + scale;
-    const glm::ivec2 otherVPosScale = otherTrans.vPos + otherTrans.vScale;
+    // Available viewing space shinks with parent's border
+    const glm::vec2 posScale = pos + scale;
+    const glm::ivec2 newVscale = otherTrans.vScale
+        - glm::ivec2{otherBorder.left + otherBorder.right, otherBorder.top + otherBorder.bot};
+    const glm::ivec2 newVPos = otherTrans.vPos + glm::ivec2{otherBorder.left, otherBorder.top};
+    const glm::vec2 otherVPosScale = newVPos + newVscale;
 
-    vPos.x = std::max(otherTrans.vPos.x, (int32_t)pos.x);
-    vPos.y = std::max(otherTrans.vPos.y, (int32_t)pos.y);
+    vPos.x = std::max(newVPos.x, (int32_t)pos.x);
+    vPos.y = std::max(newVPos.y, (int32_t)pos.y);
     vScale.x = std::min(otherVPosScale.x, posScale.x) - vPos.x;
     vScale.y = std::min(otherVPosScale.y, posScale.y) - vPos.y;
 }

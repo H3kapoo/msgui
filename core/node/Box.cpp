@@ -9,7 +9,7 @@
 namespace msgui
 {
 Box::Box(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basic.glsl"), name, NodeType::BOX)
+    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"), name, NodeType::BOX)
 {
     log_ = Logger("Box(" + name +")");
     transform_.scale = {100, 100, 1};
@@ -92,8 +92,10 @@ void Box::setShaderAttributes()
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
-
-    if (attribCb_) { attribCb_(this, shader_); }
+    shader_->setVec4f("uBorderSize", props.layout.border.value);
+    shader_->setVec4f("uBorderRadii", props.layout.borderRadius.value);
+    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    // if (attribCb_) { attribCb_(this, shader_); }
 }
 
 void Box::onMouseButtonNotify()

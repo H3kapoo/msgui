@@ -2,13 +2,15 @@
 
 #include <glm/glm.hpp>
 
+#include "core/node/utils/LayoutData.hpp"
+
 namespace msgui
 {
 struct Transform
 {
 public:
     glm::mat4& computeModelMatrix();
-    void computeViewableArea(const Transform& otherTrans);
+    void computeViewableArea(const Transform& otherTrans, const Layout::TBLR& otherBorder);
 
 public:
     glm::vec3 pos{0, 0, 1};
