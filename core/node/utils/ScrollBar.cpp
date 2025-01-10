@@ -12,8 +12,23 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
     , orientation_(orientation)
 {
     knob_ = std::make_shared<ScrollBarKnob>();
-    // temporary hardcoded sizes
-    knob_->getTransform().scale = {20, 20, 1};
+
+    // Note: Current limitation is that H and V scrollbars will always have the same size.
+    // Cannot do independent size based on orientation yet.
+    props.sbSize.onReload = [this, orientation]()
+    {
+        if (orientation == Orientation::HORIZONTAL)
+        {
+            transform_.scale.y = props.sbSize.value;
+        }
+        else if (orientation == Orientation::VERTICAL)
+        {
+            transform_.scale.x = props.sbSize.value;
+        }
+    };
+
+    props.sbSize.onReload();
+
     append(knob_);
 }
 
@@ -66,17 +81,17 @@ void ScrollBar::onMouseButtonNotify()
 {
     if (!ignoreMouseState_ && state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT]) { return; }
 
-    static constexpr int32_t knobHalf = 10;
+    static glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
 
     if (orientation_ == Orientation::VERTICAL)
     {
         knobOffset_ = Utils::remap(state_->mouseY,
-            transform_.pos.y + knobHalf, transform_.pos.y + transform_.scale.y - knobHalf, 0.0f, 1.0f);
+            transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
     else if (orientation_ == Orientation::HORIZONTAL)
     {
         knobOffset_ = Utils::remap(state_->mouseX,
-            transform_.pos.x + knobHalf, transform_.pos.x + transform_.scale.x - knobHalf, 0.0f, 1.0f);
+            transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
 
     state_->isLayoutDirty = true;
@@ -87,7 +102,6 @@ void ScrollBar::onMouseHoverNotify()
 
 void ScrollBar::onMouseDragNotify()
 {
-    // log_.infoLn("Im getting dragged %d %d", state_->mouseX, state_->mouseY);
     ignoreMouseState_ = true;
     onMouseButtonNotify();
     ignoreMouseState_ = false;

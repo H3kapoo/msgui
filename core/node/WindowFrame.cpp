@@ -246,11 +246,17 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
         // TODO: We shall not use absolute node values but the computed "viewable node area"
         // after node scissoring with it's parent. Otherwise we can click the child node that's
         // visually outside of it's parent.
-        glm::vec3& nodePos = node->transform_.pos;
-        glm::vec3& nodeScale = node->transform_.scale;
+        glm::ivec2& nodePos = node->transform_.vPos;
+        glm::ivec2& nodeScale = node->transform_.vScale;
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
+            bool clickedIsAlsoHovered{false};
+            if (frameState_->clickedNodePtr == frameState_->hoveredNodePtr)
+            {
+                clickedIsAlsoHovered = true;
+            }
+
             // If we got here by pressing the mouse button, this is the new selected node.
             if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
@@ -262,7 +268,19 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 frameState_->clickedNodePtr = NO_PTR;
             }
 
-            node->onMouseButtonNotify();
+            // Notify about LMB release ONLY IF we the initially clicked node is still the hovered one
+            if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+            {
+                if (clickedIsAlsoHovered)
+                {
+                    node->onMouseButtonNotify();
+                }
+            }
+            // Otherwise don't care, call on notify
+            else
+            {
+                node->onMouseButtonNotify();
+            }
             break; // event was consumed
         }
     }
@@ -273,27 +291,29 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->mouseX = x;
     frameState_->mouseY = y;
 
-    // Having a selectedNodeId && currently holding down left click means we want to drag only.
-    if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
-    {
-        frameState_->clickedNodePtr->onMouseDragNotify();
-        return;
-    }
-
     // Resolve hovered item
+    frameState_->hoveredNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
         // TODO: We shall not use absolute node values but the computed "viewable node area"
         // after node scissoring with it's parent. Otherwise we can click the child node that's
         // visually outside of it's parent.
-        glm::vec3& nodePos = node->transform_.pos;
-        glm::vec3& nodeScale = node->transform_.scale;
+        glm::ivec2& nodePos = node->transform_.vPos;
+        glm::ivec2& nodeScale = node->transform_.vScale;
         if ((x >= nodePos.x && x <= nodePos.x + nodeScale.x) &&
             (y >= nodePos.y && y <= nodePos.y + nodeScale.y))
         {
+            frameState_->hoveredNodePtr = node;
             node->onMouseHoverNotify();
             break; // event was consumed
         }
+    }
+
+    // Having a selectedNodeId && currently holding down left click means we want to drag only.
+    if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
+    {
+        frameState_->clickedNodePtr->onMouseDragNotify();
+        return;
     }
 }
 } // namespace msgui

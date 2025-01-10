@@ -16,6 +16,7 @@ public:
     {
         Layout layout; // Do not change position
         glm::vec4 color{Utils::hexToVec4("#000000ff")};
+        glm::vec4 borderColor{Utils::hexToVec4("#ff0000ff")};
     };
 
 public:

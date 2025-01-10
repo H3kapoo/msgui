@@ -4,7 +4,6 @@
 
 namespace msgui
 {
-// ---- Event Callback Setters ---- //
 void Listeners::setOnMouseButton(const MouseButtonCallback& callback)
 {
     mouseButtonCallback_ = callback;
@@ -15,7 +14,6 @@ void Listeners::setOnMouseButtonLeftClick(const MouseButtonSimpleCallback& callb
     mouseButtonSimpleCallback_ = callback;
 }
 
-// ---- Event Callers ---- //
 void Listeners::callOnMouseButton(int32_t btn, int32_t action, int32_t x, int32_t y)
 {
     if (mouseButtonCallback_)

@@ -21,6 +21,7 @@ struct FrameState
     int32_t mouseX                                  {NO_VALUE};
     int32_t mouseY                                  {NO_VALUE};
     AbstractNodePtr clickedNodePtr                  {NO_PTR};
+    AbstractNodePtr hoveredNodePtr                  {NO_PTR};
     bool isLayoutDirty                              {true};
     bool layoutNeedsSort                            {true};
     bool layoutStoreNeedsRecreate                   {true};

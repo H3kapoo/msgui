@@ -50,7 +50,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.value.left + layout->padding.value.right
         + layout->border.value.left + layout->border.value.right;
     pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot
-        + layout->border.value.bot + layout->border.value.bot;
+        + layout->border.value.bot + layout->border.value.top;
 
     // Compute total scale of children
     glm::ivec2 totalChildSize{0, 0};
@@ -356,8 +356,6 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pScale, const A
         auto pos = ch->getTransform().pos;
         scale.x += chLayout->margin.value.right;
         scale.y += chLayout->margin.value.bot;
-        // pos.x += chLayout->margin.value.left;
-        // pos.y += chLayout->margin.value.top;
         currentScale.x = std::max(currentScale.x ,(int32_t)(pos.x + scale.x));
         currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
     }
@@ -401,8 +399,6 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     auto& pPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;
 
-    // glm::vec2 sbSize = {20, pScale.y};
-    const float hardcodedSize = 20;
     // Dealing with scrollbars, if any
     for (auto& ch : children)
     {   
@@ -421,53 +417,52 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         if (sb->getOrientation() == ScrollBar::Orientation::VERTICAL)
         {
             // Scrollbar positioning
-            pos.x = pPos.x + pScale.x - hardcodedSize - layout->border.value.right;
+            pos.x = pPos.x + pScale.x - scale.x - layout->border.value.right;
             pos.y = pPos.y + layout->border.value.top;
-            scale.x = hardcodedSize;
-            scale.y = pScale.y - (bothSbOn ? hardcodedSize : 0)
+            scale.y = pScale.y - (bothSbOn ? scale.x : 0)
              - (layout->border.value.top + layout->border.value.bot);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
-            float sbOffset = sb->getKnobOffset();
-            auto& kPos = knob->getTransform().pos;
             auto& kScale = knob->getTransform().scale;
+            auto& kPos = knob->getTransform().pos;
+            float sbOffset = sb->getKnobOffset();
 
             float newY = Utils::remap(sbOffset,
-                0.0f, 1.0f, pos.y + hardcodedSize / 2, pos.y + scale.y - hardcodedSize / 2);
-            kScale.x = hardcodedSize;
-            kScale.y = hardcodedSize;
+                0.0f, 1.0f, pos.y + kScale.y / 2, pos.y + scale.y - kScale.y / 2);
             kPos.x = pos.x;
-            kPos.y = newY - hardcodedSize / 2;
+            kPos.y = newY - kScale.y / 2;
+            kScale.x = scale.x;
+            kScale.y = 60;
 
             // Horizontal available space needs to decrease & current offset in px
-            data.shrinkBy.x = hardcodedSize;
+            data.shrinkBy.x = scale.x;
             data.offsetPx.y = sb->geOverflowOffset();
         }
         else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
         {
             // Scrollbar positioning
-            pos.y = pPos.y + pScale.y - hardcodedSize - layout->border.value.bot;
+            pos.y = pPos.y + pScale.y - scale.y - layout->border.value.bot;
             pos.x = pPos.x + layout->border.value.left;
-            scale.y = hardcodedSize;
-            scale.x = pScale.x - (bothSbOn ? hardcodedSize : 0)
+            // scale.y = kScale.y;
+            scale.x = pScale.x - (bothSbOn ? scale.y : 0)
                 - (layout->border.value.left + layout->border.value.right);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
-            auto& kPos = knob->getTransform().pos;
             auto& kScale = knob->getTransform().scale;
+            auto& kPos = knob->getTransform().pos;
             float sbOffset = sb->getKnobOffset();
 
             float newX = Utils::remap(sbOffset,
-                0.0f, 1.0f, pos.x + hardcodedSize / 2, pos.x + scale.x - hardcodedSize / 2);
-            kScale.y = hardcodedSize;
-            kScale.x = hardcodedSize;
+                0.0f, 1.0f, pos.x + kScale.x / 2, pos.x + scale.x - kScale.x / 2);
             kPos.y = pos.y;
-            kPos.x = newX - hardcodedSize / 2;
+            kPos.x = newX - kScale.x / 2;
+            kScale.x = 60;
+            kScale.y = scale.y;
 
             // Vertical available space needs to decrease & current offset in px
-            data.shrinkBy.y = hardcodedSize;
+            data.shrinkBy.y = scale.y;
             data.offsetPx.x = sb->geOverflowOffset();
         }
     }

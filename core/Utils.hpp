@@ -75,12 +75,17 @@ public:
     template <typename T>
     struct AssignReloadable
     {
+        // Cannot copy or create from another AR.
+        AssignReloadable(const AssignReloadable& _value) = delete;
+        AssignReloadable& operator=(const AssignReloadable& _value) = delete;
+
         AssignReloadable()
         {}
 
         AssignReloadable(const T& _value)
             : value{_value}
         {}
+
 
         AssignReloadable& operator=(const T& _value)
         {

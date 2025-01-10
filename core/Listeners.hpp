@@ -14,11 +14,9 @@ using MouseButtonSimpleCallback = std::function<void()>;
 public:
     Listeners() = default;
 
-    // Event Callback Setters
     void setOnMouseButton(const MouseButtonCallback& callback);
     void setOnMouseButtonLeftClick(const MouseButtonSimpleCallback& callback);
 
-    // Event Callers
     void callOnMouseButton(int32_t btn, int32_t action, int32_t x, int32_t y);
 
 private:

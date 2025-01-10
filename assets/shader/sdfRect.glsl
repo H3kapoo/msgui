@@ -19,6 +19,7 @@ void main()
 #version 330
 
 uniform vec4 uColor = vec4(0.3, 0.1, 0.4, 1.0);
+uniform vec4 uBorderColor = vec4(0.0, 0.0, 1.0, 1.0);
 uniform vec4 uBorderSize = vec4(0);
 uniform vec4 uBorderRadii = vec4(0);
 uniform vec2 uResolution;
@@ -60,6 +61,6 @@ void main()
     vec4 uColor2 = vec4(0.0, 1.0, 0.0, 1.0);
 
     vec4 finalColor = mix(uColor, vec4(0.0), sdfValue2);
-    finalColor += mix(vec4(0.0), uColor2, sdfValue3);
+    finalColor += mix(vec4(0.0), uBorderColor, sdfValue3);
     gl_FragColor = vec4(finalColor.xyz, 1.0);
 }

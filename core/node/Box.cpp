@@ -42,11 +42,6 @@ bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
     return false;
 }
 
-void Box::setUserDefinedShaderAttribs(const std::function<void(Box*, Shader*)>& attribCb)
-{
-    attribCb_ = attribCb;
-}
-
 void Box::updateOverflow(const glm::ivec2& overflow)
 {
     overflow_ = overflow;
@@ -92,10 +87,10 @@ void Box::setShaderAttributes()
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
+    shader_->setVec4f("uBorderColor", props.borderColor);
     shader_->setVec4f("uBorderSize", props.layout.border.value);
     shader_->setVec4f("uBorderRadii", props.layout.borderRadius.value);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-    // if (attribCb_) { attribCb_(this, shader_); }
 }
 
 void Box::onMouseButtonNotify()
@@ -143,6 +138,15 @@ void Box::setupReloadables()
     props.layout.border.onReload = [this]()
     {
         state_ ? (state_->isLayoutDirty = true) : false;
+    };
+
+    props.sbSize.onReload = [this]()
+    {
+        state_ ? (state_->isLayoutDirty = true) : false;
+
+        if (hScrollBar_) { hScrollBar_->props.sbSize = props.sbSize.value; }
+
+        if (vScrollBar_) { vScrollBar_->props.sbSize = props.sbSize.value; }
     };
 }
 } // namespace msgui

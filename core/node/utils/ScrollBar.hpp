@@ -26,6 +26,7 @@ public:
     {
         Layout layout; // Do not change position
         glm::vec4 color{Utils::hexToVec4("#ffffffff")};
+        AR<int32_t> sbSize{20};
     };
 
 public:
