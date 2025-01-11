@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Utils.hpp"
+#include <cstdint>
 
 namespace msgui
 {
@@ -38,6 +39,18 @@ struct Layout
         EVEN_WITH_START_GAP
     };
 
+    enum ScaleType : uint8_t
+    {
+        ABS,
+        REL
+    };
+
+    struct ScaleTypeXY
+    {
+        ScaleType x;
+        ScaleType y;
+    };
+
     //TopBottomLeftRight
     struct TBLR
     {
@@ -65,18 +78,20 @@ struct Layout
     // In case AR values end up eating too much memory, maybe we could default to setting some
     // internal var to: needsLayoutUpdate=true triggered by the user.
     // But AR is so convenient..
-    AR<bool>    allowOverflowX{false};
-    AR<bool>    allowOverflowY{false};
-    AR<bool>    allowWrap     {false};
-    AR<Type>    type          {Type::HORIZONTAL};
-    AR<TBLR>    margin        {TBLR{0}};
-    AR<TBLR>    padding       {TBLR{0}};
-    AR<TBLR>    border        {TBLR{0}};
-    AR<TBLR>    borderRadius  {TBLR{0}};
-    AR<Align>   alignSelf     {Align::TOP};
-    AR<Align>   alignChildX   {Align::LEFT};
-    AR<Align>   alignChildY   {Align::TOP};
-    AR<Spacing> spacing       {Spacing::TIGHT};
+    AR<bool>        allowOverflowX{false};
+    AR<bool>        allowOverflowY{false};
+    AR<bool>        allowWrap     {false};
+    AR<Type>        type          {Type::HORIZONTAL};
+    AR<TBLR>        margin        {TBLR{0}};
+    AR<TBLR>        padding       {TBLR{0}};
+    AR<TBLR>        border        {TBLR{0}};
+    AR<TBLR>        borderRadius  {TBLR{0}};
+    AR<Align>       alignSelf     {Align::TOP};
+    AR<Align>       alignChildX   {Align::LEFT};
+    AR<Align>       alignChildY   {Align::TOP};
+    AR<Spacing>     spacing       {Spacing::TIGHT};
+    AR<ScaleTypeXY> scaleType     {{ScaleType::ABS, ScaleType::ABS}};
+    AR<glm::vec2>   scale     {{30, 30}};
 };
 
 } // namespace msgui

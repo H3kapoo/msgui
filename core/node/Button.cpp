@@ -44,6 +44,14 @@ void Button::onMouseButtonNotify()
 
 void Button::setupReloadables()
 {
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+
+    props.layout.alignSelf.onReload = updateCb;
+    props.layout.margin.onReload = updateCb;
+    props.layout.border.onReload = updateCb;
+    props.layout.scaleType.onReload = updateCb;
+    props.layout.scale.onReload = updateCb;
+
     props.texture.onReload = [this]()
     {
         btnTex_ = TextureLoader::loadTexture(props.texture.value);

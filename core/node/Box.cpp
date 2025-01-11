@@ -124,6 +124,8 @@ void Box::setupReloadables()
     props.layout.alignSelf.onReload = updateCb;
     props.layout.margin.onReload = updateCb;
     props.layout.border.onReload = updateCb;
+    props.layout.scaleType.onReload = updateCb;
+    props.layout.scale.onReload = updateCb;
 
     props.scrollBarSize.onReload = [this, updateCb]()
     {

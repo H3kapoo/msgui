@@ -28,7 +28,7 @@ namespace msgui
     case Layout::BOTTOM:\
         break;\
 
-glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
+glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
 
@@ -38,13 +38,6 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     if (!layout)
     {
         log_.errorLn("Whoops no layout %s", parent->getCName());
-        return {0, 0};
-    }
-
-    // Compute sliders; no overflow is gonna be generated
-    if (parent->getType() == AbstractNode::NodeType::SLIDER)
-    {
-        processSlider(parent);
         return {0, 0};
     }
 
@@ -61,8 +54,18 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot
         + layout->border.value.bot + layout->border.value.top;
 
+    // Compute node scale (if needed)
+    computeNodeScale(pScale, children);
+
+    // Compute sliders; no overflow is gonna be generated
+    if (parent->getType() == AbstractNode::NodeType::SLIDER)
+    {
+        processSlider(parent);
+        return {0, 0};
+    }
+
     // Compute total scale of children
-    glm::ivec2 totalChildSize{0, 0};
+    glm::vec2 totalChildSize{0, 0};
     for (auto& ch : children)
     {
         if (ch->getType() == AbstractNode::NodeType::SCROLL ||
@@ -223,7 +226,7 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     }
 
     // Compute children overflow PASS
-    const glm::ivec2 computedOverflow = computeOverflow(pScale, children);
+    const glm::vec2 computedOverflow = computeOverflow(pScale, children);
 
     // Apply SCROLLBAR offsets + any group offseting from ZERO PASS
     for (auto& ch : children)
@@ -286,6 +289,50 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     return computedOverflow;
 }
 
+void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const AbstractNodePVec& children)
+{
+    for (auto& ch : children)
+    {
+        // Shall not be taken into consideration as these are calculated differently
+        if (ch->getType() == AbstractNode::NodeType::SCROLL ||
+            ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
+        { continue; }
+
+        const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return;
+        }
+
+        if (chLayout->scaleType.value.x == Layout::ScaleType::REL)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.x = pScale.x * chLayout->scale.value.x;
+            scale.x -= chLayout->margin.value.left + chLayout->margin.value.right;
+        }
+
+        if (chLayout->scaleType.value.y == Layout::ScaleType::REL)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.y = pScale.y * chLayout->scale.value.y;
+            scale.y -= chLayout->margin.value.top + chLayout->margin.value.bot;
+        }
+
+        if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.x = chLayout->scale.value.x;
+        }
+
+        if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.y = chLayout->scale.value.y;
+        }
+    }
+}
+
 void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, const uint32_t idxStart,
     const uint32_t idxEnd, const int32_t max, const Layout::Type type)
 {
@@ -344,9 +391,9 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
     }
 }
 
-glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pScale, const AbstractNodePVec& children)
+glm::vec2 SimpleLayoutEngine::computeOverflow(const glm::vec2& pScale, const AbstractNodePVec& children)
 {
-    glm::ivec2 currentScale{0, 0};
+    glm::vec2 currentScale{0, 0};
     for (auto& ch : children)
     {
         // Shall not be taken into consideration for overflow
@@ -365,8 +412,8 @@ glm::ivec2 SimpleLayoutEngine::computeOverflow(const glm::ivec2& pScale, const A
         auto pos = ch->getTransform().pos;
         scale.x += chLayout->margin.value.right;
         scale.y += chLayout->margin.value.bot;
-        currentScale.x = std::max(currentScale.x ,(int32_t)(pos.x + scale.x));
-        currentScale.y = std::max(currentScale.y ,(int32_t)(pos.y + scale.y));
+        currentScale.x = std::max(currentScale.x, pos.x + scale.x);
+        currentScale.y = std::max(currentScale.y, pos.y + scale.y);
     }
 
     return {currentScale.x - pScale.x, currentScale.y - pScale.y};

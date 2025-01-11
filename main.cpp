@@ -32,6 +32,10 @@ int main()
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
+    // child->props.layout.scaleType.x/y = {Layout::ScaleType::ABSOLUTE/RELATIVE};
+    // child->props.layout.scale = {100, 0.5f};
+    // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
+
     frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
@@ -62,25 +66,28 @@ int main()
     preButton->props.texture = "assets/textures/container.jpg";
     preButton->props.layout.alignSelf = Layout::Align::CENTER;
 
-    SliderPtr slider = std::make_shared<Slider>("SliderPost");
-    slider->props.orientType = Layout::Type::VERTICAL;
-    // slider->getTransform().scale = {300, 50, 1};
-    slider->getTransform().scale = {30, 300, 1};
-    slider->props.color = Utils::hexToVec4("#eeffaaff");
-    slider->props.layout.borderRadius = Layout::TBLR{5};
-    slider->getKnobRef()->props.layout.borderRadius = Layout::TBLR{5};
-    slider->getKnobRef()->getTransform().scale = {30, 30, 1};
-    slider->props.slideFrom = 0;
-    slider->props.slideTo = 1;
-    // slider->props.slideValue = 30;
-    slider->listeners.setOnSlideValueChanged([&mainLog, &preButton](float newValue)
-    {
-        preButton->props.color.g = newValue;
-    });
+    // SliderPtr slider = std::make_shared<Slider>("SliderPost");
+    // slider->props.orientType = Layout::Type::VERTICAL;
+    // slider->getTransform().scale = {30, 300, 1};
+    // slider->props.color = Utils::hexToVec4("#eeffaaff");
+    // slider->props.layout.borderRadius = Layout::TBLR{5};
+    // slider->getKnobRef()->props.layout.borderRadius = Layout::TBLR{5};
+    // slider->getKnobRef()->getTransform().scale = {30, 30, 1};
+    // slider->props.slideFrom = 0;
+    // slider->props.slideTo = 1;
+    // // slider->props.slideValue = 30;
+    // slider->listeners.setOnSlideValueChanged([&mainLog, &preButton](float newValue)
+    // {
+    //     preButton->props.color.g = newValue;
+    // });
+
+    frame->getRoot()->props.layout.padding = Layout::TBLR{5};
+    frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
 
     AbstractNodePVec nodes;
+    int32_t objCnt = 3;
     // for (int32_t i = 0; i < 20'000; i++)
-    for (int32_t i = 0; i < 4; i++)
+    for (int32_t i = 0; i < objCnt; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         Button* bx = static_cast<Button*>(node.get());
@@ -93,33 +100,20 @@ int main()
         int32_t randomX = std::max(150.0f, Utils::random01() * 350);
         int32_t randomY = std::max(150.0f, Utils::random01() * 250);
 
-        bx->getTransform().scale = {randomX, randomY, 1};
-        // bx->getTransform().scale = {100, 100, 1};
-        // bx->props.color = Utils::randomRGB();
-
-        // if (i == 3)
-        // {
-        //     auto nn = std::make_shared<Box>("Box_Id_" + std::to_string(i));
-        //     auto nnb = std::make_shared<Button>("Btn_Id_" + std::to_string(i));
-        //     nn->getTransform().scale = {200, 200, 1};
-        //     nn->props.color = Utils::hexToVec4("#ddaabbff");
-        //     nn->props.layout.allowOverflowX = true;
-        //     nn->props.layout.allowOverflowY = true;
-        //     // nn->props.layout.border = Layout::TBLR{10, 10, 10, 10};
-        //     nn->props.layout.borderRadius = Layout::TBLR{10, 10, 10, 10};
-        //     nn->props.borderColor = Utils::hexToVec4("#00ff00ff");
-        //     nodes.emplace_back(nn);
-
-        //     nnb->getTransform().scale = {300, 200, 1};
-        //     nnb->props.texture = "assets/textures/wall.jpg";
-        //     nn->append(nnb);
-        // }
+        // bx->getTransform().scale = {randomX, randomY, 1};
+        // bx->props.layout.scaleType = {Layout::ScaleType::ABS, Layout::ScaleType::ABS};
+        bx->props.layout.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::REL};
+        // bx->props.layout.scale = {200, 0.5f};
+        // bx->props.layout.scale = {200, 200};
+        bx->props.layout.scale = {1.0f / objCnt, 200};
+        bx->props.layout.scale = {1.0f / objCnt, 1.0f};
+        bx->props.layout.margin = Layout::TBLR{5};
     }
     // theBox->appendMany(nodes);
     frame->getRoot()->appendMany(nodes);
-    frame->getRoot()->append(preButton);
+    // frame->getRoot()->append(preButton);
     // frame->getRoot()->append(theBox);
-    frame->getRoot()->append(slider);
+    // frame->getRoot()->append(slider);
 
     // app.setPollMode(Application::PollMode::CONTINUOUS);
     app.setPollMode(Application::PollMode::ON_EVENT);
