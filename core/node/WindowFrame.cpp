@@ -240,12 +240,6 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     int32_t mY = frameState_->mouseY;
     for (const auto& node : allFrameChildNodes_)
     {
-        // Ignore clicks on SCROLL_KNOB. SCROLL_KNOB is NOT draggable directly.
-        if (node->getType() == AbstractNode::NodeType::SCROLL_KNOB) { continue; }
-
-        // TODO: We shall not use absolute node values but the computed "viewable node area"
-        // after node scissoring with it's parent. Otherwise we can click the child node that's
-        // visually outside of it's parent.
         glm::ivec2& nodePos = node->transform_.vPos;
         glm::ivec2& nodeScale = node->transform_.vScale;
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
@@ -295,9 +289,6 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->hoveredNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
-        // TODO: We shall not use absolute node values but the computed "viewable node area"
-        // after node scissoring with it's parent. Otherwise we can click the child node that's
-        // visually outside of it's parent.
         glm::ivec2& nodePos = node->transform_.vPos;
         glm::ivec2& nodeScale = node->transform_.vScale;
         if ((x >= nodePos.x && x <= nodePos.x + nodeScale.x) &&

@@ -29,15 +29,22 @@ int main()
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
-    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
+    frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
+    frame->getRoot()->props.layout.border = Layout::TBLR{40, 10, 20, 50};
+    frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
+    frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
+    {
+        mainLog.debugLn("clicked to 40");
+        frame->getRoot()->props.sbSize = 40;
+    });
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
     theBox->props.color = Utils::hexToVec4("#ffbbffff");
     theBox->props.layout.allowOverflowX = true;
     theBox->props.layout.allowOverflowY = true;
-    theBox->props.layout.type = Layout::Type::HORIZONTAL;
+    theBox->props.layout.type = Layout::Type::VERTICAL;
     theBox->props.layout.border = Layout::TBLR{40, 10, 20, 50};
     theBox->props.borderColor = Utils::hexToVec4("#aabb11ff");
     theBox->getTransform().scale = {500, 400, 1};
@@ -59,7 +66,7 @@ int main()
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 20'000; i++)
-    for (int32_t i = 0; i < 7; i++)
+    for (int32_t i = 0; i < 4; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         Button* bx = static_cast<Button*>(node.get());
@@ -70,7 +77,7 @@ int main()
         // node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
 
         int32_t randomX = std::max(150.0f, Utils::random01() * 350);
-        int32_t randomY = std::max(150.0f, Utils::random01() * 350);
+        int32_t randomY = std::max(150.0f, Utils::random01() * 250);
 
         bx->getTransform().scale = {randomX, randomY, 1};
         // bx->getTransform().scale = {100, 100, 1};
@@ -94,11 +101,11 @@ int main()
         //     nn->append(nnb);
         // }
     }
-    theBox->appendMany(nodes);
-    // frame->getRoot()->appendMany(nodes);
-    // frame->getRoot()->append(preButton);
-    frame->getRoot()->append(theBox);
-    // frame->getRoot()->append(postButton);
+    // theBox->appendMany(nodes);
+    frame->getRoot()->appendMany(nodes);
+    frame->getRoot()->append(preButton);
+    // frame->getRoot()->append(theBox);
+    frame->getRoot()->append(postButton);
 
     // app.setPollMode(Application::PollMode::CONTINUOUS);
     app.setPollMode(Application::PollMode::ON_EVENT);

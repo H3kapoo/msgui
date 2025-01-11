@@ -50,6 +50,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflowX)
     {
         hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Orientation::HORIZONTAL);
+        hScrollBar_->props.sbSize = props.sbSize.value;
         append(hScrollBar_);
     }
     else if ((overflow.x <= 0 || !props.layout.allowOverflowX) && hScrollBar_)
@@ -61,6 +62,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     else if (overflow.y > 0 && !vScrollBar_ && props.layout.allowOverflowY)
     {
         vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Orientation::VERTICAL);
+        vScrollBar_->props.sbSize = props.sbSize.value;
         append(vScrollBar_);
     }
     else if ((overflow.y <= 0 || !props.layout.allowOverflowY) && vScrollBar_)

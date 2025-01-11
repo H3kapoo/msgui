@@ -428,12 +428,15 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             auto& kPos = knob->getTransform().pos;
             float sbOffset = sb->getKnobOffset();
 
+            int32_t sbOverflowSize = sb->getOverflowSize();
+            kScale.x = scale.x;
+            kScale.y = scale.y - sbOverflowSize;
+            kScale.y = std::max(scale.x, kScale.y);
+
             float newY = Utils::remap(sbOffset,
                 0.0f, 1.0f, pos.y + kScale.y / 2, pos.y + scale.y - kScale.y / 2);
             kPos.x = pos.x;
             kPos.y = newY - kScale.y / 2;
-            kScale.x = scale.x;
-            kScale.y = 60;
 
             // Horizontal available space needs to decrease & current offset in px
             data.shrinkBy.x = scale.x;
@@ -444,7 +447,6 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             // Scrollbar positioning
             pos.y = pPos.y + pScale.y - scale.y - layout->border.value.bot;
             pos.x = pPos.x + layout->border.value.left;
-            // scale.y = kScale.y;
             scale.x = pScale.x - (bothSbOn ? scale.y : 0)
                 - (layout->border.value.left + layout->border.value.right);
 
@@ -454,12 +456,15 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             auto& kPos = knob->getTransform().pos;
             float sbOffset = sb->getKnobOffset();
 
+            int32_t sbOverflowSize = sb->getOverflowSize();
+            kScale.x = scale.x - sbOverflowSize;
+            kScale.x = std::max(scale.y, kScale.x);
+            kScale.y = scale.y;
+
             float newX = Utils::remap(sbOffset,
                 0.0f, 1.0f, pos.x + kScale.x / 2, pos.x + scale.x - kScale.x / 2);
             kPos.y = pos.y;
             kPos.x = newX - kScale.x / 2;
-            kScale.x = 60;
-            kScale.y = scale.y;
 
             // Vertical available space needs to decrease & current offset in px
             data.shrinkBy.y = scale.y;

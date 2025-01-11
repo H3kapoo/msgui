@@ -65,6 +65,11 @@ int32_t ScrollBar::geOverflowOffset()
     return offset == 0 && knobOffset_ > 0 ? 1 : offset;
 }
 
+int32_t ScrollBar::getOverflowSize()
+{
+    return overflowSize_;
+}
+
 ScrollBar::Orientation ScrollBar::getOrientation()
 {
     return orientation_;
@@ -77,23 +82,40 @@ void ScrollBar::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 
-void ScrollBar::onMouseButtonNotify()
+void ScrollBar::updateKnobOffset()
 {
-    if (!ignoreMouseState_ && state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT]) { return; }
-
-    static glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
-
+    glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
     if (orientation_ == Orientation::VERTICAL)
     {
-        knobOffset_ = Utils::remap(state_->mouseY,
+        knobOffset_ = Utils::remap(state_->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
     else if (orientation_ == Orientation::HORIZONTAL)
     {
-        knobOffset_ = Utils::remap(state_->mouseX,
+        // log_.debugLn("diff is %d", diff);
+        knobOffset_ = Utils::remap(state_->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
+}
 
+void ScrollBar::onMouseButtonNotify()
+{
+    // log_.debugLn("clicked");
+    glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
+    glm::vec2 kPos = knob_->getTransform().pos;
+
+    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    {
+        // Compute distance offset to the knob center for more natural knob dragging behavior.
+        mouseDistFromKnobCenter_.x = state_->mouseX - (kPos.x + knobHalf.x);
+        mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
+            ? 0 : mouseDistFromKnobCenter_.x;
+        mouseDistFromKnobCenter_.y = state_->mouseY - (kPos.y + knobHalf.y);
+        mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
+            ? 0 : mouseDistFromKnobCenter_.y;
+    }
+
+    updateKnobOffset();
     state_->isLayoutDirty = true;
 }
 
@@ -102,8 +124,7 @@ void ScrollBar::onMouseHoverNotify()
 
 void ScrollBar::onMouseDragNotify()
 {
-    ignoreMouseState_ = true;
-    onMouseButtonNotify();
-    ignoreMouseState_ = false;
+    updateKnobOffset();
+    state_->isLayoutDirty = true;
 }
 } // namespace msgui

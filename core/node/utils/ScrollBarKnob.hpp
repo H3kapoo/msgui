@@ -26,6 +26,9 @@ public:
 
 private:
     void setShaderAttributes() override;
+    void onMouseButtonNotify() override;
+    void onMouseHoverNotify() override;
+    void onMouseDragNotify() override;
 
 public:
     Props props;

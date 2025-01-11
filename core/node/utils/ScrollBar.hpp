@@ -38,10 +38,15 @@ public:
 
     float getKnobOffset();
     int32_t geOverflowOffset();
+    int32_t getOverflowSize();
     Orientation getOrientation();
 
 private:
+    void updateKnobOffset();
+
     void setShaderAttributes() override;
+
+    friend ScrollBarKnob;
     void onMouseButtonNotify() override;
     void onMouseHoverNotify() override;
     void onMouseDragNotify() override;
@@ -51,9 +56,9 @@ public:
 
 private:
     Logger log_;
-    bool ignoreMouseState_{false};
     float knobOffset_{0};
     int32_t overflowSize_{0};
+    glm::ivec2 mouseDistFromKnobCenter_{0};
     Orientation orientation_{Orientation::VERTICAL};
     ScrollBarKnobPtr knob_{nullptr};
 };

@@ -2,7 +2,9 @@
 
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
+#include "core/node/AbstractNode.hpp"
 #include "core/node/utils/LayoutData.hpp"
+#include "core/node/utils/ScrollBar.hpp"
 
 namespace msgui
 {
@@ -31,5 +33,31 @@ void ScrollBarKnob::setShaderAttributes()
 
     // shader_->setVec4f("uColor", props.color);
     // shader_->setMat4f("uModelMat", transform_.modelMatrix);
+}
+
+void ScrollBarKnob::onMouseButtonNotify()
+{
+    // Pass-through to parent
+    AbstractNodePtr sbParent = parent_.lock();
+    if (!sbParent) { return; }
+
+    ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
+    if (!sbParentRaw) { return; }
+
+    sbParentRaw->onMouseButtonNotify();
+}
+
+void ScrollBarKnob::onMouseHoverNotify() {}
+
+void ScrollBarKnob::onMouseDragNotify()
+{
+    // Pass-through to parent
+    AbstractNodePtr sbParent = parent_.lock();
+    if (!sbParent) { return; }
+
+    ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
+    if (!sbParentRaw) { return; }
+
+    sbParentRaw->onMouseDragNotify();
 }
 } // msgui
