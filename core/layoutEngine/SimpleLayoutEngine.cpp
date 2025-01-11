@@ -2,8 +2,10 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/Slider.hpp"
 #include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/ScrollBar.hpp"
+#include "core/node/utils/SliderKnob.hpp"
 
 namespace msgui
 {
@@ -36,6 +38,13 @@ glm::ivec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     if (!layout)
     {
         log_.errorLn("Whoops no layout %s", parent->getCName());
+        return {0, 0};
+    }
+
+    // Compute sliders; no overflow is gonna be generated
+    if (parent->getType() == AbstractNode::NodeType::SLIDER)
+    {
+        processSlider(parent);
         return {0, 0};
     }
 
@@ -474,6 +483,49 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 
     return data;
 }
+
+void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
+{
+    // Assuming parent node is Slider node, it will always have a SliderKnob child.
+    const Slider* sliderRawPtr = static_cast<Slider*>(parent.get());
+    SliderKnob* knobRawPtr = static_cast<SliderKnob*>(parent->getChildren()[0].get());
+
+    if (!sliderRawPtr || !knobRawPtr)
+    {
+        log_.errorLn("Couldn't cast to Slider or SliderKnob for %s", parent->getCName());
+        return;
+    }
+
+    const Layout* layout = static_cast<Layout*>(parent->getProps());
+    if (!layout)
+    {
+        log_.errorLn("Whoops no layout %s", parent->getCName());
+        return;
+    }
+
+    auto& pPos = sliderRawPtr->getTransform().pos;
+    auto& pScale = sliderRawPtr->getTransform().scale;
+    auto& kPos = knobRawPtr->getTransform().pos;
+    auto& kScale = knobRawPtr->getTransform().scale;
+
+    // Knob positioning
+    float sliderOffset = sliderRawPtr->getOffsetPerc();
+    if (sliderRawPtr->props.orientation == Slider::Orientation::HORIZONTAL)
+    {
+        float newX = Utils::remap(sliderOffset,
+            0.0f, 1.0f, pPos.x + kScale.x / 2, pPos.x + pScale.x - kScale.x / 2);
+        kPos.y = pPos.y;
+        kPos.x = newX - kScale.x / 2;
+    }
+    else if (sliderRawPtr->props.orientation == Slider::Orientation::VERTICAL)
+    {
+        float newY = Utils::remap(sliderOffset,
+            0.0f, 1.0f, pPos.y + kScale.y / 2, pPos.y + pScale.y - kScale.y / 2);
+        kPos.x = pPos.x;
+        kPos.y = newY - kScale.y / 2;
+    }
+}
+
 #undef IGNORE_GRID_ALIGN
 #undef IGNORE_LR_ALIGN
 #undef IGNORE_TB_ALIGN

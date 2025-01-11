@@ -2,16 +2,19 @@
 
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
 ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orientation)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/basic.glsl"),
+    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
         name, NodeType::SCROLL)
     , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
 {
     knob_ = std::make_shared<ScrollBarKnob>();
+    props.layout.borderRadius = Layout::TBLR{8};
+    props.color = Utils::hexToVec4("#eeffccff");
 
     // Note: Current limitation is that H and V scrollbars will always have the same size.
     // Cannot do independent size based on orientation yet.
@@ -78,8 +81,12 @@ ScrollBar::Orientation ScrollBar::getOrientation()
 void ScrollBar::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setVec4f("uColor", props.color);
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
+    shader_->setVec4f("uColor", props.color);
+    // shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uBorderSize", props.layout.border.value);
+    shader_->setVec4f("uBorderRadii", props.layout.borderRadius.value);
+    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void ScrollBar::updateKnobOffset()
@@ -100,7 +107,6 @@ void ScrollBar::updateKnobOffset()
 
 void ScrollBar::onMouseButtonNotify()
 {
-    // log_.debugLn("clicked");
     glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
     glm::vec2 kPos = knob_->getTransform().pos;
 

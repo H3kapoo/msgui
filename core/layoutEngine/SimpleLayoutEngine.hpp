@@ -32,6 +32,7 @@ private:
         const int32_t max, const Layout::Type type);
     glm::ivec2 computeOverflow(const glm::ivec2& pScale, const AbstractNodePVec& children);
     ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
+    void processSlider(const AbstractNodePtr& parent);
 
 private:
     Logger log_{"SimpleLayoutEngine"};

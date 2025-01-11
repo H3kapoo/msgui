@@ -1,27 +1,27 @@
-#include "ScrollBarKnob.hpp"
+#include "SliderKnob.hpp"
 
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/LayoutData.hpp"
-#include "core/node/utils/ScrollBar.hpp"
+#include "core/node/Slider.hpp"
 
 namespace msgui
 {
-ScrollBarKnob::ScrollBarKnob()
+SliderKnob::SliderKnob(const std::string& name)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        "ScrollBarKnob", NodeType::SCROLL_KNOB)
+        name, NodeType::COMMON)
 {
-    props.layout.border = Layout::TBLR{4};
-    props.layout.borderRadius = Layout::TBLR{8};
+    // props.layout.border = Layout::TBLR{4};
+    // props.layout.borderRadius = Layout::TBLR{8};
 }
 
-void* ScrollBarKnob::getProps()
+void* SliderKnob::getProps()
 {
     return &props;
 }
 
-void ScrollBarKnob::setShaderAttributes()
+void SliderKnob::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
@@ -32,27 +32,27 @@ void ScrollBarKnob::setShaderAttributes()
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void ScrollBarKnob::onMouseButtonNotify()
+void SliderKnob::onMouseButtonNotify()
 {
     // Pass-through to parent
     AbstractNodePtr sbParent = parent_.lock();
     if (!sbParent) { return; }
 
-    ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
+    Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
     sbParentRaw->onMouseButtonNotify();
 }
 
-void ScrollBarKnob::onMouseHoverNotify() {}
+void SliderKnob::onMouseHoverNotify() {}
 
-void ScrollBarKnob::onMouseDragNotify()
+void SliderKnob::onMouseDragNotify()
 {
     // Pass-through to parent
     AbstractNodePtr sbParent = parent_.lock();
     if (!sbParent) { return; }
 
-    ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
+    Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
     sbParentRaw->onMouseDragNotify();

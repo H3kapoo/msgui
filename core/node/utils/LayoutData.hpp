@@ -46,15 +46,20 @@ struct Layout
         // Maybe use "-1" as a way to say keep current value?
         // = TBLR{-1, 40, -1, -1} // change Bot & leave the rest alone?
         // This way we only use one AR, not 4.
-        float top{0};
-        float bot{0};
-        float left{0};
-        float right{0};
+
+        TBLR(float val) : top(val), bot(val), left(val), right(val) {}
+        TBLR(float top_, float bot_, float left_, float right_)
+            : top(top_), bot(bot_), left(left_), right(right_) {}
 
         operator glm::vec4() const
         {
             return glm::vec4{top, bot, left, right};
         }
+
+        float top{0};
+        float bot{0};
+        float left{0};
+        float right{0};
     };
 
     // In case AR values end up eating too much memory, maybe we could default to setting some

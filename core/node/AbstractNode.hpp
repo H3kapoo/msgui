@@ -23,6 +23,7 @@ public:
         COMMON,
         BOX,
         BUTTON,
+        SLIDER,
         SCROLL,
         SCROLL_KNOB
     };

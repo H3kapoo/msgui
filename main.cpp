@@ -4,6 +4,7 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/Button.hpp"
+#include "core/node/Slider.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
 
@@ -29,7 +30,7 @@ int main()
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
 
-    frame->getRoot()->props.layout.type = Layout::Type::VERTICAL;
+    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
     frame->getRoot()->props.layout.allowOverflowX = true;
     frame->getRoot()->props.layout.allowOverflowY = true;
     frame->getRoot()->props.layout.border = Layout::TBLR{40, 10, 20, 50};
@@ -46,7 +47,7 @@ int main()
     theBox->props.layout.allowOverflowY = true;
     theBox->props.layout.type = Layout::Type::VERTICAL;
     theBox->props.layout.border = Layout::TBLR{40, 10, 20, 50};
-    theBox->props.borderColor = Utils::hexToVec4("#aabb11ff");
+    theBox->props.borderColor = Utils::hexToVec4("#aaff11ff");
     theBox->getTransform().scale = {500, 400, 1};
     theBox->listeners.setOnMouseButtonLeftClick([&]()
     {
@@ -59,14 +60,20 @@ int main()
     preButton->props.texture = "assets/textures/container.jpg";
     preButton->props.layout.alignSelf = Layout::Align::CENTER;
 
-    ButtonPtr postButton = std::make_shared<Button>("PostButton");
-    postButton->getTransform().scale = {300, 200, 1};
-    postButton->props.texture = "assets/textures/container.jpg";
-    postButton->props.layout.alignSelf = Layout::Align::CENTER;
+    SliderPtr slider = std::make_shared<Slider>("SliderPost");
+    slider->props.orientation = Slider::Orientation::VERTICAL;
+    // slider->getTransform().scale = {300, 50, 1};
+    slider->getTransform().scale = {50, 300, 1};
+    slider->props.color = Utils::hexToVec4("#eeffaaff");
+    slider->props.slideFrom = 0;
+    slider->props.slideTo = 100;
+    slider->props.slideValue = 30;
+    mainLog.debugLn("value set %f", slider->props.slideValue.value);
+    // slider->props.layout.alignSelf = Layout::Align::CENTER;
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 20'000; i++)
-    for (int32_t i = 0; i < 4; i++)
+    for (int32_t i = 0; i < 2; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         Button* bx = static_cast<Button*>(node.get());
@@ -105,7 +112,7 @@ int main()
     frame->getRoot()->appendMany(nodes);
     frame->getRoot()->append(preButton);
     // frame->getRoot()->append(theBox);
-    frame->getRoot()->append(postButton);
+    frame->getRoot()->append(slider);
 
     // app.setPollMode(Application::PollMode::CONTINUOUS);
     app.setPollMode(Application::PollMode::ON_EVENT);
