@@ -220,17 +220,13 @@ void WindowFrame::resolveNodeRelations()
         }
     }
 
-    // Sort only if necessary to speed-up things
-    // if (frameState_->layoutNeedsSort)
-    {
-        // Sort nodes from high to low depth
-        std::ranges::sort(allFrameChildNodes_,
-            [](const AbstractNodePtr a, const AbstractNodePtr b)
-            {
-                return a->getTransform().pos.z > b->getTransform().pos.z;
-            });
-        frameState_->layoutNeedsSort = false;
-    }
+    // Sort nodes from high to low depth
+    std::ranges::sort(allFrameChildNodes_,
+        [](const AbstractNodePtr a, const AbstractNodePtr b)
+        {
+            return a->getTransform().pos.z > b->getTransform().pos.z;
+        });
+    frameState_->layoutNeedsSort = false;
 }
 
 void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action)
@@ -262,6 +258,8 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             // Otherwise we need to clear whatever we deduced to be pressed before
             else
             {
+                // Notify the last clicked of the LMB release before clearing it
+                frameState_->clickedNodePtr->onMouseButtonNotify();
                 frameState_->clickedNodePtr = NO_PTR;
             }
 

@@ -17,6 +17,7 @@ public:
     {
         Layout layout; // Do not change position
         glm::vec4 color{1.0f};
+        glm::vec4 borderColor{1.0f};
         AR<std::string> texture;
     };
 

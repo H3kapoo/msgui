@@ -81,8 +81,9 @@ int main()
     //     preButton->props.color.g = newValue;
     // });
 
-    frame->getRoot()->props.layout.padding = Layout::TBLR{5};
-    frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
+    // frame->getRoot()->props.layout.alignChildY = Layout::Align::CENTER;
+    // frame->getRoot()->props.layout.padding = Layout::TBLR{5};
+    // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
 
     AbstractNodePVec nodes;
     int32_t objCnt = 3;
@@ -92,7 +93,7 @@ int main()
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         Button* bx = static_cast<Button*>(node.get());
         // bx->props.color = Utils::hexToVec4("#ddaabbff");
-        bx->props.texture = "assets/textures/container.jpg";
+        // bx->props.texture = "assets/textures/container.jpg";
         bx->props.layout.alignSelf
             = Layout::Align::TOP;
         // node->setShader(ShaderLoader::load("assets/shader/sdfTest.glsl"));
@@ -101,12 +102,12 @@ int main()
         int32_t randomY = std::max(150.0f, Utils::random01() * 250);
 
         // bx->getTransform().scale = {randomX, randomY, 1};
-        // bx->props.layout.scaleType = {Layout::ScaleType::ABS, Layout::ScaleType::ABS};
-        bx->props.layout.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::REL};
+        bx->props.layout.scaleType = {Layout::ScaleType::ABS, Layout::ScaleType::ABS};
+        // bx->props.layout.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::REL};
         // bx->props.layout.scale = {200, 0.5f};
-        // bx->props.layout.scale = {200, 200};
-        bx->props.layout.scale = {1.0f / objCnt, 200};
-        bx->props.layout.scale = {1.0f / objCnt, 1.0f};
+        bx->props.layout.scale = {200, 50};
+        // bx->props.layout.scale = {1.0f / objCnt, 200};
+        // bx->props.layout.scale = {1.0f / objCnt, 0.5f};
         bx->props.layout.margin = Layout::TBLR{5};
     }
     // theBox->appendMany(nodes);
