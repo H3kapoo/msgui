@@ -1,10 +1,8 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 
 #include "core/Listeners.hpp"
-#include "core/Shader.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 #include "core/node/utils/LayoutData.hpp"
@@ -20,7 +18,7 @@ public:
         Layout layout; // Do not change position
         glm::vec4 color{1.0f};
         glm::vec4 borderColor{1.0f};
-        AR<int32_t> sbSize{20};
+        AR<int32_t> scrollBarSize{20};
     };
 
 public:

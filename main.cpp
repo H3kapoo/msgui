@@ -7,6 +7,8 @@
 #include "core/node/Slider.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
+#include <chrono>
+#include <thread>
 
 using namespace msgui;
 
@@ -38,7 +40,7 @@ int main()
     frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
     {
         mainLog.debugLn("clicked to 40");
-        frame->getRoot()->props.sbSize = 40;
+        frame->getRoot()->props.scrollBarSize = 40;
     });
 
     BoxPtr theBox = std::make_shared<Box>("theBox");
@@ -52,7 +54,7 @@ int main()
     theBox->listeners.setOnMouseButtonLeftClick([&]()
     {
         mainLog.debugLn("clicked to 40");
-        theBox->props.sbSize = 40;
+        theBox->props.scrollBarSize = 40;
     });
 
     ButtonPtr preButton = std::make_shared<Button>("PreButton");
@@ -61,19 +63,24 @@ int main()
     preButton->props.layout.alignSelf = Layout::Align::CENTER;
 
     SliderPtr slider = std::make_shared<Slider>("SliderPost");
-    slider->props.orientation = Slider::Orientation::VERTICAL;
+    slider->props.orientType = Layout::Type::VERTICAL;
     // slider->getTransform().scale = {300, 50, 1};
-    slider->getTransform().scale = {50, 300, 1};
+    slider->getTransform().scale = {30, 300, 1};
     slider->props.color = Utils::hexToVec4("#eeffaaff");
+    slider->props.layout.borderRadius = Layout::TBLR{5};
+    slider->getKnobRef()->props.layout.borderRadius = Layout::TBLR{5};
+    slider->getKnobRef()->getTransform().scale = {30, 30, 1};
     slider->props.slideFrom = 0;
-    slider->props.slideTo = 100;
-    slider->props.slideValue = 30;
-    mainLog.debugLn("value set %f", slider->props.slideValue.value);
-    // slider->props.layout.alignSelf = Layout::Align::CENTER;
+    slider->props.slideTo = 1;
+    // slider->props.slideValue = 30;
+    slider->listeners.setOnSlideValueChanged([&mainLog, &preButton](float newValue)
+    {
+        preButton->props.color.g = newValue;
+    });
 
     AbstractNodePVec nodes;
     // for (int32_t i = 0; i < 20'000; i++)
-    for (int32_t i = 0; i < 2; i++)
+    for (int32_t i = 0; i < 4; i++)
     {
         auto& node = nodes.emplace_back(std::make_shared<Button>("Button_Id_" + std::to_string(i)));
         Button* bx = static_cast<Button*>(node.get());
@@ -88,7 +95,7 @@ int main()
 
         bx->getTransform().scale = {randomX, randomY, 1};
         // bx->getTransform().scale = {100, 100, 1};
-        bx->props.color = Utils::randomRGB();
+        // bx->props.color = Utils::randomRGB();
 
         // if (i == 3)
         // {
@@ -118,6 +125,5 @@ int main()
     app.setPollMode(Application::PollMode::ON_EVENT);
     app.setVSync(Application::Toggle::ON);
     app.run();
-
     return 0;
 }

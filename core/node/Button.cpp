@@ -24,6 +24,7 @@ void Button::setShaderAttributes()
     {
         shader_->setTexture2D("uTexture", GL_TEXTURE0, btnTex_->getId());
     }
+    shader_->setVec4f("uColor", props.color);
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
 }
 

@@ -1,11 +1,18 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 
 #include <GLFW/glfw3.h>
 
 namespace msgui
 {
+#define MAKE_LAYOUT_DIRTY if (state_) { state_->isLayoutDirty = true; };
+#define REQUEST_NEW_FRAME if (state_) { state_->requestNewFrameFunc(); };
+#define MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME\
+    MAKE_LAYOUT_DIRTY\
+    REQUEST_NEW_FRAME\
+
 // Cannot include AbstractNode.hpp due to imminent gl/glfw conflicts
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
@@ -22,6 +29,7 @@ struct FrameState
     int32_t mouseY                                  {NO_VALUE};
     AbstractNodePtr clickedNodePtr                  {NO_PTR};
     AbstractNodePtr hoveredNodePtr                  {NO_PTR};
+    std::function<void()> requestNewFrameFunc       {nullptr};
     bool isLayoutDirty                              {true};
     bool layoutNeedsSort                            {true};
     bool layoutStoreNeedsRecreate                   {true};

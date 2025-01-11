@@ -3,6 +3,7 @@
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
 #include "core/node/AbstractNode.hpp"
+#include "core/node/FrameState.hpp"
 #include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/SliderKnob.hpp"
 
@@ -12,19 +13,22 @@ Slider::Slider(const std::string& name)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
         name, NodeType::SLIDER)
 {
-    // props.layout.border = Layout::TBLR{4};
-    // props.layout.borderRadius = Layout::TBLR{8};
-    setupReloadables();
-
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->props.color = Utils::hexToVec4("#ee0000ff");
     knobNode_->getTransform().scale = glm::vec3(50, 50, 1);
     append(knobNode_);
+
+    setupReloadables();
 }
 
 void* Slider::getProps()
 {
     return &props;
+}
+
+SliderKnobPtr Slider::getKnobRef()
+{
+    return knobNode_;
 }
 
 float Slider::getOffsetPerc() const
@@ -46,19 +50,19 @@ void Slider::setShaderAttributes()
 void Slider::updateSliderValue()
 {
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
-    if (props.orientation == Orientation::VERTICAL)
+    if (props.orientType == Layout::Type::VERTICAL)
     {
         knobOffsetPerc_ = Utils::remap(state_->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
-    else if (props.orientation == Orientation::HORIZONTAL)
+    else if (props.orientType == Layout::Type::HORIZONTAL)
     {
         knobOffsetPerc_ = Utils::remap(state_->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
 
     props.slideValue.value = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
-    log_.debugLn("value %f", props.slideValue.value);
+    listeners.callOnSlide(props.slideValue.value);
 }
 
 void Slider::onMouseButtonNotify()
@@ -74,10 +78,10 @@ void Slider::onMouseButtonNotify()
         mouseDistFromKnobCenter_.y = state_->mouseY - (kPos.y + knobHalf.y);
         mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
             ? 0 : mouseDistFromKnobCenter_.y;
-    }
 
-    updateSliderValue();
-    state_->isLayoutDirty = true;
+        updateSliderValue();
+        MAKE_LAYOUT_DIRTY
+    }
 }
 
 void Slider::onMouseHoverNotify()
@@ -86,28 +90,31 @@ void Slider::onMouseHoverNotify()
 void Slider::onMouseDragNotify()
 {
     updateSliderValue();
-    state_->isLayoutDirty = true;
+    MAKE_LAYOUT_DIRTY
 }
 
 void Slider::setupReloadables()
 {
+    props.orientType.onReload = [this]()
+    {
+        std::swap(transform_.scale.x, transform_.scale.y);
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    };
+
     props.slideValue.onReload = [this]()
     {
         knobOffsetPerc_ = Utils::remap(props.slideValue.value, props.slideFrom, props.slideTo, 0.0f, 1.0f);
-        state_->isLayoutDirty = true;
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };
 
-    props.slideFrom.onReload = [this]()
+    auto updateSlideValue = [this]()
     {
         props.slideValue.value = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
-        state_->isLayoutDirty = true;
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };
 
-    props.slideTo.onReload = [this]()
-    {
-        props.slideValue.value = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
-        state_->isLayoutDirty = true;
-    };
+    props.slideFrom.onReload = updateSlideValue;
+    props.slideTo.onReload = updateSlideValue;
 }
 
 } // msgui

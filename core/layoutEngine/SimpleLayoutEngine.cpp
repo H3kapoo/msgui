@@ -510,14 +510,14 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 
     // Knob positioning
     float sliderOffset = sliderRawPtr->getOffsetPerc();
-    if (sliderRawPtr->props.orientation == Slider::Orientation::HORIZONTAL)
+    if (sliderRawPtr->props.orientType == Layout::Type::HORIZONTAL)
     {
         float newX = Utils::remap(sliderOffset,
             0.0f, 1.0f, pPos.x + kScale.x / 2, pPos.x + pScale.x - kScale.x / 2);
         kPos.y = pPos.y;
         kPos.x = newX - kScale.x / 2;
     }
-    else if (sliderRawPtr->props.orientation == Slider::Orientation::VERTICAL)
+    else if (sliderRawPtr->props.orientType == Layout::Type::VERTICAL)
     {
         float newY = Utils::remap(sliderOffset,
             0.0f, 1.0f, pPos.y + kScale.y / 2, pPos.y + pScale.y - kScale.y / 2);

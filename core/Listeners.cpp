@@ -4,9 +4,23 @@
 
 namespace msgui
 {
+
+void Listeners::setOnSlideValueChanged(const SlideValueChangedCallback& callback)
+{
+    slideValueChangedCallback_ = callback;
+}
+
 void Listeners::setOnMouseButton(const MouseButtonCallback& callback)
 {
     mouseButtonCallback_ = callback;
+}
+
+void Listeners::callOnSlide(float value)
+{
+    if (slideValueChangedCallback_)
+    {
+        slideValueChangedCallback_(value);
+    }
 }
 
 void Listeners::setOnMouseButtonLeftClick(const MouseButtonSimpleCallback& callback)

@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "core/Listeners.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/Utils.hpp"
 #include "core/node/utils/LayoutData.hpp"
@@ -24,7 +25,7 @@ public:
         Layout layout; // Do not change position
         glm::vec4 color{Utils::hexToVec4("#000000ff")};
         glm::vec4 borderColor{Utils::hexToVec4("#ff0000ff")};
-        Orientation orientation{Orientation::HORIZONTAL};
+        AR<Layout::Type> orientType{Layout::Type::HORIZONTAL};
         AR<float> slideFrom{0};
         AR<float> slideTo{0};
         AR<float> slideValue{0};
@@ -36,6 +37,7 @@ public:
 
     void* getProps() override;
 
+    SliderKnobPtr getKnobRef();
     float getOffsetPerc() const;
 
 private:
@@ -52,6 +54,7 @@ private:
 
 public:
     Props props;
+    Listeners listeners;
 
 private:
     Logger log_{"Slider"};

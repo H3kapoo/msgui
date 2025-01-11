@@ -1,5 +1,6 @@
 #include "WindowFrame.hpp"
 
+#include <X11/X.h>
 #include <algorithm>
 #include <memory>
 #include <ranges>
@@ -54,6 +55,8 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
         std::bind(
             &WindowFrame::resolveOnMouseMoveFromInput,
             this, std::placeholders::_1, std::placeholders::_2));
+
+    frameState_->requestNewFrameFunc = Window::requestEmptyEvent;
 
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.pos = {0, 0, 1};

@@ -3,6 +3,7 @@
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
 #include "core/node/AbstractNode.hpp"
+#include "core/node/FrameState.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 #include <GLFW/glfw3.h>
 
@@ -50,7 +51,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflowX)
     {
         hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Orientation::HORIZONTAL);
-        hScrollBar_->props.sbSize = props.sbSize.value;
+        hScrollBar_->props.sbSize = props.scrollBarSize.value;
         append(hScrollBar_);
     }
     else if ((overflow.x <= 0 || !props.layout.allowOverflowX) && hScrollBar_)
@@ -62,7 +63,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     else if (overflow.y > 0 && !vScrollBar_ && props.layout.allowOverflowY)
     {
         vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Orientation::VERTICAL);
-        vScrollBar_->props.sbSize = props.sbSize.value;
+        vScrollBar_->props.sbSize = props.scrollBarSize.value;
         append(vScrollBar_);
     }
     else if ((overflow.y <= 0 || !props.layout.allowOverflowY) && vScrollBar_)
@@ -116,38 +117,19 @@ void Box::setupReloadables()
         props.layout.allowOverflowY ? updateOverflow(overflow_) : updateOverflow({0, 0});
     };
 
-    props.layout.type.onReload = [this]()
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+
+    props.layout.type.onReload = updateCb;
+    props.layout.allowWrap.onReload = updateCb;
+    props.layout.alignSelf.onReload = updateCb;
+    props.layout.margin.onReload = updateCb;
+    props.layout.border.onReload = updateCb;
+
+    props.scrollBarSize.onReload = [this, updateCb]()
     {
-        state_ ? (state_->isLayoutDirty = true) : false;
-    };
-
-    props.layout.allowWrap.onReload = [this]()
-    {
-        state_ ? (state_->isLayoutDirty = true) : false;
-    };
-
-    props.layout.alignSelf.onReload = [this]()
-    {
-        state_ ? (state_->isLayoutDirty = true) : false;
-    };
-
-    props.layout.margin.onReload = [this]()
-    {
-        state_ ? (state_->isLayoutDirty = true) : false;
-    };
-
-    props.layout.border.onReload = [this]()
-    {
-        state_ ? (state_->isLayoutDirty = true) : false;
-    };
-
-    props.sbSize.onReload = [this]()
-    {
-        state_ ? (state_->isLayoutDirty = true) : false;
-
-        if (hScrollBar_) { hScrollBar_->props.sbSize = props.sbSize.value; }
-
-        if (vScrollBar_) { vScrollBar_->props.sbSize = props.sbSize.value; }
+        if (hScrollBar_) { hScrollBar_->props.sbSize = props.scrollBarSize.value; }
+        if (vScrollBar_) { vScrollBar_->props.sbSize = props.scrollBarSize.value; }
+        updateCb();
     };
 }
 } // namespace msgui

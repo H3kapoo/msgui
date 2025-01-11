@@ -9,12 +9,10 @@ uniform mat4 uModelMat;
 uniform mat4 uProjMat;
 
 out vec2 fragUV;
-out vec3 fragCol;
 
 void main()
 {
     fragUV = vTex;
-    fragCol = vCol;
     gl_Position = uProjMat * uModelMat * vec4(vPos.xyz, 1.0);
 }
 
@@ -22,15 +20,12 @@ void main()
 #version 330 core
 
 uniform sampler2D uTexture;
-uniform vec4 uColor;
+uniform vec4 uColor = vec4(1.0f);
 
 in vec2 fragUV;
-in vec3 fragCol;
 
 void main()
 {
-    vec4 color = texture(uTexture, fragUV);
-    // gl_FragColor = uColor;
+    vec4 color = texture(uTexture, fragUV) * uColor;
     gl_FragColor = color;
-    // gl_FragColor = vec4(color, 1.0);
 }
