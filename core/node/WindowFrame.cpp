@@ -283,6 +283,8 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
 
 void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
 {
+    frameState_->lastMouseX = frameState_->mouseX;
+    frameState_->lastMouseY = frameState_->mouseY;
     frameState_->mouseX = x;
     frameState_->mouseY = y;
 

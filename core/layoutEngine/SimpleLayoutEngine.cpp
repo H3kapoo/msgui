@@ -3,9 +3,11 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/Slider.hpp"
+#include "core/node/utils/BoxDividerSep.hpp"
 #include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 #include "core/node/utils/SliderKnob.hpp"
+#include <cmath>
 
 namespace msgui
 {
@@ -53,9 +55,42 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         + layout->border.value.left + layout->border.value.right;
     pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot
         + layout->border.value.bot + layout->border.value.top;
+    
+    // TEMPORARY HERE:
+    // Compute box divider shit
+    if (parent->getType() == AbstractNode::NodeType::BOX_DIVIDER)
+    {
+        glm::vec3 totalAbsChildSize{0};
+        for (auto& ch : children)
+        {
+            if (ch->getType() == AbstractNode::NodeType::SCROLL ||
+                ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
+            { continue; }
 
-    // Compute node scale (if needed)
-    computeNodeScale(pScale, children);
+            const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return {0, 0};
+            }
+
+            if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+            {
+                totalAbsChildSize.x += chLayout->scale.value.x;
+            }
+
+            if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+            {
+                totalAbsChildSize.y += chLayout->scale.value.y;
+            }
+        }
+        processBoxDivider(pScale - totalAbsChildSize, children);
+    }
+    else
+    {
+        // Compute node scale (if needed)
+        computeNodeScale(pScale, children);
+    }
 
     // Compute sliders; no overflow is gonna be generated
     if (parent->getType() == AbstractNode::NodeType::SLIDER)
@@ -570,6 +605,123 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
             0.0f, 1.0f, pPos.y + kScale.y / 2, pPos.y + pScale.y - kScale.y / 2);
         kPos.x = pPos.x;
         kPos.y = newY - kScale.y / 2;
+    }
+}
+
+void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
+{
+    // for (auto& ch : children)
+    // {
+    //     if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+    //     Layout* chLayout = static_cast<Layout*>(ch->getProps());
+    //     if (!chLayout)
+    //     {
+    //         log_.errorLn("Whoops no layout %s", ch->getCName());
+    //         return;
+    //     }
+
+    //     // 0     x     1
+    //     // 0   300   1280
+    //     if (chLayout->scale.value.x > 1.0f)
+    //     {
+    //         float scaleX = Utils::remap(chLayout->scale.value.x, 0, 1270, 0.0f, 1.0f);
+    //         chLayout->scale.value.x = scaleX;
+    //     }
+    // }
+
+    // see if there's any MIN not satisfied
+    float runningMinOverflowX{0};
+    for (auto& ch : children)
+    {
+        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+        Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return;
+        }
+
+        if (chLayout->minScale.value.x - chLayout->scale.value.x > 0)
+        {
+            runningMinOverflowX += chLayout->minScale.value.x - chLayout->scale.value.x;
+        }
+        chLayout->scale.value.x = std::max(chLayout->scale.value.x, chLayout->minScale.value.x);
+    }
+    // log_.debugLn("runningX: %f", runningMinOverflowX);
+
+    // there are MINs not satisfied; try to spread the overflow to the rest of the nodes
+    // who can take it
+    for (auto& ch : children)
+    {
+        if (runningMinOverflowX > 0)
+        {
+            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+            Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return;
+            }
+
+            float distToMin = chLayout->scale.value.x - chLayout->minScale.value.x;
+            if (distToMin > 0)
+            {
+                if (runningMinOverflowX - distToMin > 0)
+                {
+                    chLayout->scale.value.x -= distToMin;
+                    runningMinOverflowX -= distToMin;
+                }
+                else
+                {
+                    chLayout->scale.value.x -= runningMinOverflowX;
+                    runningMinOverflowX = 0;
+                }
+            }
+        }
+    }
+    // log_.debugLn("runningX: %f", runningX);
+
+    // if there's still something in runningX it means the mins cannot be satisfied with current layout;
+    // error out, notify user, idk
+    for (auto& ch : children)
+    {
+        Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return;
+        }
+
+        if (chLayout->scaleType.value.x == Layout::ScaleType::REL)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.x = pScale.x * chLayout->scale.value.x;
+            scale.x -= chLayout->margin.value.left + chLayout->margin.value.right;
+            log_.debugLn("x %f %s", chLayout->scale.value.x, ch->getCName());
+        }
+
+        if (chLayout->scaleType.value.y == Layout::ScaleType::REL)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.y = pScale.y * chLayout->scale.value.y;
+            scale.y -= chLayout->margin.value.top + chLayout->margin.value.bot;
+        }
+
+        if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.x = chLayout->scale.value.x;
+            log_.debugLn("x %f %s", scale.x, ch->getCName());
+        }
+
+        if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+        {
+            auto& scale = ch->getTransform().scale;
+            scale.y = chLayout->scale.value.y;
+        }
     }
 }
 

@@ -34,6 +34,8 @@ private: // friend
 private:
     void setShaderAttributes() override;
     void onMouseButtonNotify() override;
+    void onMouseDragNotify() override;
+
     void setupReloadables();
 
 public:
@@ -41,6 +43,9 @@ public:
     Props props;
 
 private:
+    // temp
+    int32_t lastX{0};
+
     glm::ivec2 overflow_{0, 0};
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};

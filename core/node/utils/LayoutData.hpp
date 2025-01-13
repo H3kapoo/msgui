@@ -78,6 +78,7 @@ struct Layout
     // In case AR values end up eating too much memory, maybe we could default to setting some
     // internal var to: needsLayoutUpdate=true triggered by the user.
     // But AR is so convenient..
+    // TODO: Replace with getters, no more AR, too much hassle
     AR<bool>        allowOverflowX{false};
     AR<bool>        allowOverflowY{false};
     AR<bool>        allowWrap     {false};
@@ -91,7 +92,10 @@ struct Layout
     AR<Align>       alignChildY   {Align::TOP};
     AR<Spacing>     spacing       {Spacing::TIGHT};
     AR<ScaleTypeXY> scaleType     {{ScaleType::ABS, ScaleType::ABS}};
-    AR<glm::vec2>   scale     {{30, 30}};
+    AR<glm::vec2>   scale         {{0, 0}};
+    AR<glm::vec2>   minScale      {{0, 0}};
+    AR<glm::vec2>   maxScale      {{10'000, 10'000}};
+    glm::vec2       tempScale     {0, 0};
 };
 
 } // namespace msgui

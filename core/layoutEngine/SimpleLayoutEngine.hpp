@@ -34,6 +34,7 @@ private:
     glm::vec2 computeOverflow(const glm::vec2& pScale, const AbstractNodePVec& children);
     ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
     void processSlider(const AbstractNodePtr& parent);
+    void processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children);
 
 private:
     Logger log_{"SimpleLayoutEngine"};

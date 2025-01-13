@@ -13,11 +13,12 @@ Button::Button(const std::string& name)
 {
     log_ = ("Button(" + name + ")");
 
+    setupReloadables();
+
     props.color = Utils::hexToVec4("#bbbbbbff");
     props.borderColor = Utils::hexToVec4("#55bbbbff");
     // props.layout.border = Layout::TBLR{5, 2, 5, 2};
     props.layout.border = Layout::TBLR{2, 5, 2, 5};
-    setupReloadables();
 }
 
 void Button::setShaderAttributes()

@@ -48,9 +48,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         node/WindowFrame.cpp
         node/Box.cpp
         node/Slider.cpp
+        node/BoxDivider.cpp
         node/utils/SliderKnob.cpp
         node/utils/ScrollBar.cpp
         node/utils/ScrollBarKnob.cpp
+        node/utils/BoxDividerSep.cpp
         layoutEngine/SimpleLayoutEngine.cpp
         Application.cpp
     )
