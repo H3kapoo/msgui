@@ -4,6 +4,7 @@
 #include "core/ShaderLoader.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/FrameState.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
 #include <iterator>
 
@@ -24,7 +25,7 @@ BoxDivider::BoxDivider(const std::string& name)
 }
 
 void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
-{   
+{
     // Minimum of 2 containers needed
     // Order is BOX SEP BOX SEP BOX.. always ending with a box.
     int32_t size = boxes.size();
@@ -32,6 +33,9 @@ void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
     {
         auto thisBoxIt = std::next(boxes.begin(), i);
         AbstractNode::append(*thisBoxIt);
+
+        (*thisBoxIt)->props.layout
+            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL});
 
         if (i == 0 || i != size - 1)
         {
@@ -49,6 +53,7 @@ void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
             AbstractNode::append(sep);
         }
     }
+    props.layout._onTypeChange();
 }
 
 void BoxDivider::setShaderAttributes()
@@ -62,10 +67,7 @@ void BoxDivider::setShaderAttributes()
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void* BoxDivider::getProps()
-{
-    return (void*)&props;
-}
+void* BoxDivider::getProps() { return (void*)&props; }
 
 void BoxDivider::onMouseButtonNotify()
 {
@@ -79,6 +81,20 @@ void BoxDivider::onMouseButtonNotify()
 
 void BoxDivider::setupReloadables()
 {
+    props.layout._onTypeChange = [this]()
+    {
+        for (auto& ch : getChildren())
+        {
+            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
+            {
+                auto sep = static_cast<BoxDividerSep*>(ch.get());
+                sep->props.layout.setType(props.layout.type);
+            }
+        }
+
+        MAKE_LAYOUT_DIRTY
+    };
+
     auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
     props.layout._onAlignSelfChange = updateCb;

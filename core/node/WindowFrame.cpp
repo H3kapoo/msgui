@@ -266,7 +266,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             else
             {
                 // Notify the last clicked of the LMB release before clearing it
-                frameState_->clickedNodePtr->onMouseButtonNotify();
+                // frameState_->clickedNodePtr->onMouseButtonNotify();
                 frameState_->clickedNodePtr = NO_PTR;
             }
 

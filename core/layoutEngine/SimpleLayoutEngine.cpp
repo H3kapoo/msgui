@@ -611,7 +611,7 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
 {
     // see if there's any MIN not satisfied
-    float runningMinOverflowX{0};
+    glm::vec2 runningMinOverflow{0, 0};
     for (auto& ch : children)
     {
         if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
@@ -623,14 +623,19 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             return;
         }
 
-        float newMin = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
-        // log_.debugLn("newMin: %f", newMin);
-
-        if (newMin - chLayout->scale.x > 0)
+        float newMinX = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
+        if (newMinX - chLayout->scale.x > 0)
         {
-            runningMinOverflowX += newMin - chLayout->scale.x;
+            runningMinOverflow.x += newMinX - chLayout->scale.x;
         }
-        chLayout->scale.x = std::max(chLayout->scale.x, newMin);
+        chLayout->scale.x = std::max(chLayout->scale.x, newMinX);
+
+        float newMinY = Utils::remap(chLayout->minScale.y, 0, pScale.y, 0.0f, 1.0f);
+        if (newMinY - chLayout->scale.y > 0)
+        {
+            runningMinOverflow.y += newMinY - chLayout->scale.y;
+        }
+        chLayout->scale.y = std::max(chLayout->scale.y, newMinY);
     }
     // log_.debugLn("runningX: %f", runningMinOverflowX);
 
@@ -638,30 +643,48 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
     // // who can take it
     for (auto& ch : children)
     {
-        if (runningMinOverflowX > 0.01f)
+        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+        Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
         {
-            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return;
+        }
 
-            Layout* chLayout = static_cast<Layout*>(ch->getProps());
-            if (!chLayout)
+        if (runningMinOverflow.x > 0.01f)
+        {
+            float newMinX = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
+            float distToMinX = chLayout->scale.x - newMinX;
+            if (distToMinX > 0)
             {
-                log_.errorLn("Whoops no layout %s", ch->getCName());
-                return;
-            }
-
-            float newMin = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
-            float distToMin = chLayout->scale.x - newMin;
-            if (distToMin > 0)
-            {
-                if (runningMinOverflowX - distToMin > 0)
+                if (runningMinOverflow.x - distToMinX > 0)
                 {
-                    chLayout->scale.x -= distToMin;
-                    runningMinOverflowX -= distToMin;
+                    chLayout->scale.x -= distToMinX;
+                    runningMinOverflow.x -= distToMinX;
                 }
                 else
                 {
-                    chLayout->scale.x -= runningMinOverflowX;
-                    runningMinOverflowX = 0;
+                    chLayout->scale.x -= runningMinOverflow.x;
+                    runningMinOverflow.x = 0;
+                }
+            }
+        }
+
+        if (runningMinOverflow.y > 0.01f)
+        {
+            float newMinY = Utils::remap(chLayout->minScale.y, 0, pScale.y, 0.0f, 1.0f);
+            float distToMinY = chLayout->scale.y - newMinY;
+            if (distToMinY > 0)
+            {
+                if (runningMinOverflow.y - distToMinY > 0)
+                {
+                    chLayout->scale.y -= distToMinY;
+                    runningMinOverflow.y -= distToMinY;
+                }
+                else
+                {
+                    chLayout->scale.y -= runningMinOverflow.y;
+                    runningMinOverflow.y = 0;
                 }
             }
         }
@@ -682,24 +705,36 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             auto left = static_cast<Box*>(sep->firstBox_.get());
             auto right = static_cast<Box*>(sep->secondBox_.get());
 
-            float newL = left->props.layout.tempScale.x / pScale.x;
-            float newR = right->props.layout.tempScale.x / pScale.x;
-
-            if (newL + left->props.layout.scale.x >= left->props.layout.minScale.x/pScale.x &&
-                newR + right->props.layout.scale.x >= right->props.layout.minScale.x/pScale.x)
+            if (sep->props.layout.type == Layout::Type::HORIZONTAL)
             {
-                // if (right->getName() == "Box3")
-                // {
-                // log_.debugLn("%s %f %f", right->getCName(), newL + left->props.layout.scale.value.x, newR + right->props.layout.scale.value.x);
+                float newL = left->props.layout.tempScale.x / pScale.x;
+                float newR = right->props.layout.tempScale.x / pScale.x;
 
-                // }
-                left->props.layout.scale.x += newL;
-                right->props.layout.scale.x += newR;
-                // log_.debugLn("pe aici");
+                if (newL + left->props.layout.scale.x >= left->props.layout.minScale.x/pScale.x &&
+                    newR + right->props.layout.scale.x >= right->props.layout.minScale.x/pScale.x)
+                {
+                    left->props.layout.scale.x += newL;
+                    right->props.layout.scale.x += newR;
+                }
+
+                left->props.layout.tempScale.x = 0;
+                right->props.layout.tempScale.x = 0;
             }
+            else if (sep->props.layout.type == Layout::Type::VERTICAL)
+            {
+                float newT = left->props.layout.tempScale.y / pScale.y;
+                float newB = right->props.layout.tempScale.y / pScale.y;
 
-            left->props.layout.tempScale.x = 0;
-            right->props.layout.tempScale.x = 0;
+                if (newT + left->props.layout.scale.y >= left->props.layout.minScale.y / pScale.y &&
+                    newB + right->props.layout.scale.y >= right->props.layout.minScale.y / pScale.y)
+                {
+                    left->props.layout.scale.y += newT;
+                    right->props.layout.scale.y += newB;
+                }
+
+                left->props.layout.tempScale.y = 0;
+                right->props.layout.tempScale.y = 0;
+            }
         }
     }
 
