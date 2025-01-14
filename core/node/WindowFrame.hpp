@@ -25,6 +25,7 @@ static constexpr uint32_t SCROLL_LAYER_START = 250;
 public:
     WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
         const bool isPrimary = false);
+    ~WindowFrame();
 
     void saveBufferToFile(const std::string& filePath, const int32_t quality = 100) const;
 

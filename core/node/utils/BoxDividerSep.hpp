@@ -31,10 +31,10 @@ private:
     void setupReloadables();
 
     // BoxDividerSeps shall not have user added children
-    void append();
-    void appendMany();
-    void remove();
-    void removeMany();
+    // void append();
+    // void appendMany();
+    // void remove();
+    // void removeMany();
 
 public:
     Listeners listeners;

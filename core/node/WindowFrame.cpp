@@ -68,6 +68,13 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     frameBox_->state_ = frameState_;
 }
 
+WindowFrame::~WindowFrame()
+{
+    log_.infoLn("Cleaning up frameState..");
+    frameState_->clickedNodePtr = NO_PTR;
+    frameState_->hoveredNodePtr = NO_PTR;
+}
+
 void WindowFrame::saveBufferToFile(const std::string& filePath, const int32_t quality) const
 {
     if (filePath.empty())

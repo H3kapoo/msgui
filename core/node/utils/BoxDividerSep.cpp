@@ -42,20 +42,13 @@ void BoxDividerSep::onMouseButtonNotify() {}
 
 void BoxDividerSep::onMouseDragNotify()
 {
-    // if (state_->mouseX > transform_.pos.x + transform_.scale.x ||
-    // state_->mouseX < transform_.pos.x)
-    // {
-    //     return;
-    // }
-
-    //Note: this func will be called more times than processLayout()
-    // so thats why doing the proportional calculations there appeared
-    // "slow" changing. 
-    float diff = (state_->mouseX - state_->lastMouseX);
+    float diff = state_->mouseX - state_->lastMouseX;
 
     Layout* left = static_cast<Layout*>(firstBox_->getProps());
     Layout* right = static_cast<Layout*>(secondBox_->getProps());
 
+    // Temp is used here as we don't want to modify the original scale supplied by the user
+    // Maybe there's a better way to do it..later.
     left->tempScale.x += diff;
     right->tempScale.x -= diff;
     activeNow_ = true;

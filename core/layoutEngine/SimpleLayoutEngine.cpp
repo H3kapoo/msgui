@@ -610,10 +610,6 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 
 void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
 {
-    // blocks are all REL
-    // min/max are all in ABS
-    // subtract SEP spaces from parent scale => pScale
-    //
     // see if there's any MIN not satisfied
     float runningMinOverflowX{0};
     for (auto& ch : children)

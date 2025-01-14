@@ -5,6 +5,7 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
+#include <iterator>
 
 namespace msgui
 {
@@ -22,24 +23,30 @@ BoxDivider::BoxDivider(const std::string& name)
     // props.layout.border = Layout::TBLR{2, 5, 2, 5};
 }
 
-void BoxDivider::append(const BoxPtr& box)
-{
-    AbstractNode::append(box);
-}
-
-void BoxDivider::appendMany(const std::initializer_list<BoxPtr>& boxes)
+void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
 {   
-    std::vector<BoxPtr> v{boxes}; // to be redone
-    int32_t end = v.size();
-    for (int32_t i = 0; i < end; i++)
+    // Minimum of 2 containers needed
+    // Order is BOX SEP BOX SEP BOX.. always ending with a box.
+    int32_t size = boxes.size();
+    for (int32_t i = 0; i < size; i++)
     {
-        AbstractNode::append(v[i]);
+        auto thisBoxIt = std::next(boxes.begin(), i);
+        AbstractNode::append(*thisBoxIt);
 
-        if (i == 0 || i != end-1)
+        if (i == 0 || i != size - 1)
         {
-            AbstractNode::append(
-                std::make_shared<BoxDividerSep>("BoxDividerSep" + std::to_string(i),
-                    v[i], v[i+1]));
+            auto nextBoxIt = std::next(boxes.begin(), i + 1);
+
+            // Each separator holds ref to current and next box in order to modify their relative
+            // scale accoding to mouse movement from user.
+            // Unfortunatelly we cannot parent them directly to Sep node as we need ref to both current
+            // and previous node for each sep.. and current node can be the prev of the next sep.
+            // We cannot parent nodes to 2 nodes.
+            BoxDividerSepPtr sep = std::make_shared<BoxDividerSep>(
+                "BoxDividerSep" + std::to_string(i),
+                *thisBoxIt,
+                *nextBoxIt);
+            AbstractNode::append(sep);
         }
     }
 }

@@ -79,7 +79,7 @@ int main()
     // box3 0.33 min 0.2 0 overflow
     // box1->props.layout.minScale.value.x = 0.4f;
     box1->props.layout.minScale.value.x = 200;
-    box2->props.layout.minScale.value.x = 200;
+    box2->props.layout.minScale.value.x = 50;
     box3->props.layout.minScale.value.x = 200;
     // box1->props.layout.minScale.value.x = 200;
     // box1->props.layout.minScale.value.x = 200;
@@ -96,7 +96,7 @@ int main()
     // box2->props.layout.scale = {1.0f / 2.0f, 1.0f};
     // box1->props.layout.scale = {1.0f / 2.0f, 1.0f};
     // box2->props.layout.scale = {1.0f / 2.0f, 1.0f};
-    divider->appendMany({box1, box2, box3});
+    divider->appendBoxContainers({box1, box2, box3});
     // divider->appendMany({box1, box2});
     // divider->appendMany({box1, boxMid, box2});
     // divider->appendMany({box1, boxMid, box2, boxMid2, box3});
