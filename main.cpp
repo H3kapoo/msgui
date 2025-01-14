@@ -37,17 +37,17 @@ int main()
     // child->props.layout.scale = {100, 0.5f};
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
 
-    frame->getRoot()->props.layout.type = Layout::Type::HORIZONTAL;
-    frame->getRoot()->props.layout.allowOverflowX = true;
-    frame->getRoot()->props.layout.allowOverflowY = true;
-    // frame->getRoot()->props.layout.allowWrap = true;
-    // frame->getRoot()->props.layout.border = Layout::TBLR{40, 10, 20, 50};
+
+    frame->getRoot()->props.layout
+        .setType(Layout::Type::HORIZONTAL)
+        .setAllowOverflow({true, true})
+        .setAllowWrap(true);
     frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
-    frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
-    {
-        mainLog.debugLn("clicked to 40");
-        frame->getRoot()->props.scrollBarSize = 40;
-    });
+    // frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
+    // {
+    //     mainLog.debugLn("clicked to 40");
+    //     frame->getRoot()->props.scrollBarSize = 40;
+    // });
 
     BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
     divider->props.color = Utils::hexToVec4("#a7b430ff");
@@ -74,13 +74,22 @@ int main()
     box2->props.layout.scale = {1.0f / 3.0f, 1.0f};
     box3->props.layout.scale = {1.0f / 3.0f, 1.0f};
 
+    frame->getRoot()->appendMany({box1, box2, box3});
+
+    // box1->listeners.setOnMouseButtonLeftClick([&]()
+    // {
+    //     mainLog.debugLn("clicked to 40");
+    //     frame->getRoot()->props.layout.setType(Layout::Type::VERTICAL);
+    // });
+
+    // box3->props.layout.setType(Layout::Type::HORIZONTAL);
     // box1 0.33 min 0.1
     // box2 0.33 min 0.5 ( 0.17 overflow )
     // box3 0.33 min 0.2 0 overflow
     // box1->props.layout.minScale.value.x = 0.4f;
-    box1->props.layout.minScale.value.x = 200;
-    box2->props.layout.minScale.value.x = 50;
-    box3->props.layout.minScale.value.x = 200;
+    // box1->props.layout.minScale.value.x = 200;
+    // box2->props.layout.minScale.value.x = 50;
+    // box3->props.layout.minScale.value.x = 200;
     // box1->props.layout.minScale.value.x = 200;
     // box1->props.layout.minScale.value.x = 200;
     // box2->props.layout.minScale.value.x = 0;
@@ -96,7 +105,7 @@ int main()
     // box2->props.layout.scale = {1.0f / 2.0f, 1.0f};
     // box1->props.layout.scale = {1.0f / 2.0f, 1.0f};
     // box2->props.layout.scale = {1.0f / 2.0f, 1.0f};
-    divider->appendBoxContainers({box1, box2, box3});
+    // divider->appendBoxContainers({box1, box2, box3});
     // divider->appendMany({box1, box2});
     // divider->appendMany({box1, boxMid, box2});
     // divider->appendMany({box1, boxMid, box2, boxMid2, box3});
@@ -143,7 +152,7 @@ int main()
     // theBox->appendMany(nodes);
     // frame->getRoot()->appendMany(nodes);
     // frame->getRoot()->append(preButton);
-    frame->getRoot()->append(divider);
+    // frame->getRoot()->append(divider);
     // frame->getRoot()->append(slider);
 
     frame->getRoot()->printTree();

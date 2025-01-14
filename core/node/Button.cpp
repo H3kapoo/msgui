@@ -35,8 +35,8 @@ void Button::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border.value);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius.value);
+    shader_->setVec4f("uBorderSize", props.layout.border);
+    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
@@ -71,11 +71,11 @@ void Button::setupReloadables()
 {
     auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
-    props.layout.alignSelf.onReload = updateCb;
-    props.layout.margin.onReload = updateCb;
-    props.layout.border.onReload = updateCb;
-    props.layout.scaleType.onReload = updateCb;
-    props.layout.scale.onReload = updateCb;
+    props.layout._onAlignSelfChange = updateCb;
+    props.layout._onMarginChange = updateCb;
+    props.layout._onBorderChange = updateCb;
+    props.layout._onScaleTypeChange = updateCb;
+    props.layout._onScaleChange = updateCb;
 
     props.texture.onReload = [this]()
     {

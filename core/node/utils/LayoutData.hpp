@@ -2,6 +2,7 @@
 
 #include "core/Utils.hpp"
 #include <cstdint>
+#include <functional>
 
 namespace msgui
 {
@@ -51,6 +52,18 @@ struct Layout
         ScaleType y;
     };
 
+    struct AlignXY
+    {
+        Align x{Align::LEFT};
+        Align y{Align::TOP};
+    };
+
+    struct AllowXY
+    {
+        bool x{false};
+        bool y{false};
+    };
+
     //TopBottomLeftRight
     struct TBLR
     {
@@ -75,26 +88,52 @@ struct Layout
         float right{0};
     };
 
-    // In case AR values end up eating too much memory, maybe we could default to setting some
-    // internal var to: needsLayoutUpdate=true triggered by the user.
-    // But AR is so convenient..
+    Layout& setType(const Type valueIn);
+    Layout& setAllowWrap(const bool valueIn);
+    Layout& setAllowOverflow(const AllowXY valueIn);
+    Layout& setMargin(const TBLR valueIn);
+    Layout& setPadding(const TBLR valueIn);
+    Layout& setBorder(const TBLR valueIn);
+    Layout& setBorderRadius(const TBLR valueIn);
+    Layout& setAlignSelf(const Align valueIn);
+    Layout& setAlignChild(const AlignXY valueIn);
+    Layout& setSpacing(const Spacing valueIn);
+    Layout& setScaleType(const ScaleTypeXY valueIn);
+    Layout& setScale(const glm::vec2 valueIn);
+    Layout& setMinScale(const glm::vec2 valueIn);
+    Layout& setMaxScale(const glm::vec2 valueIn);
+
     // TODO: Replace with getters, no more AR, too much hassle
-    AR<bool>        allowOverflowX{false};
-    AR<bool>        allowOverflowY{false};
-    AR<bool>        allowWrap     {false};
-    AR<Type>        type          {Type::HORIZONTAL};
-    AR<TBLR>        margin        {TBLR{0}};
-    AR<TBLR>        padding       {TBLR{0}};
-    AR<TBLR>        border        {TBLR{0}};
-    AR<TBLR>        borderRadius  {TBLR{0}};
-    AR<Align>       alignSelf     {Align::TOP};
-    AR<Align>       alignChildX   {Align::LEFT};
-    AR<Align>       alignChildY   {Align::TOP};
-    AR<Spacing>     spacing       {Spacing::TIGHT};
-    AR<ScaleTypeXY> scaleType     {{ScaleType::ABS, ScaleType::ABS}};
-    AR<glm::vec2>   scale         {{0, 0}};
-    AR<glm::vec2>   minScale      {{0, 0}};
-    AR<glm::vec2>   maxScale      {{10'000, 10'000}};
+    AllowXY allowOverflow {false};
+    bool allowWrap        {false};
+    Type type             {Type::HORIZONTAL};
+    TBLR margin           {TBLR{0}};
+    TBLR padding          {TBLR{0}};
+    TBLR border           {TBLR{0}};
+    TBLR borderRadius     {TBLR{0}};
+    Align alignSelf       {Align::TOP};
+    AlignXY alignChild    {Align::LEFT, Align::TOP};
+    Spacing spacing       {Spacing::TIGHT};
+    ScaleTypeXY scaleType {ScaleType::ABS, ScaleType::ABS};
+    glm::vec2 scale       {0, 0};
+    glm::vec2 minScale    {0, 0};
+    glm::vec2 maxScale    {10'000, 10'000};
+
+    std::function<void()> _onAllowOverflowChange {[](){}};
+    std::function<void()> _onAllowWrapChange {[](){}};
+    std::function<void()> _onTypeChange {[](){}};
+    std::function<void()> _onMarginChange {[](){}};
+    std::function<void()> _onPaddingChange {[](){}};
+    std::function<void()> _onBorderChange {[](){}};
+    std::function<void()> _onBorderRadiusChange {[](){}};
+    std::function<void()> _onAlignSelfChange {[](){}};
+    std::function<void()> _onAlignChildChange {[](){}};
+    std::function<void()> _onSpacingChange {[](){}};
+    std::function<void()> _onScaleTypeChange {[](){}};
+    std::function<void()> _onScaleChange {[](){}};
+    std::function<void()> _onMinScaleChange {[](){}};
+    std::function<void()> _onMaxScaleChange {[](){}};
+
     glm::vec2       tempScale     {0, 0};
 };
 

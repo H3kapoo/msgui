@@ -48,25 +48,25 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     overflow_ = overflow;
 
     // Handle horizontal OF
-    if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflowX)
+    if (overflow.x > 0 && !hScrollBar_ && props.layout.allowOverflow.x)
     {
         hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Orientation::HORIZONTAL);
         hScrollBar_->props.sbSize = props.scrollBarSize.value;
         append(hScrollBar_);
     }
-    else if ((overflow.x <= 0 || !props.layout.allowOverflowX) && hScrollBar_)
+    else if ((overflow.x <= 0 || !props.layout.allowOverflow.x) && hScrollBar_)
     {
         remove(hScrollBar_->getId());
         hScrollBar_.reset();
     }
     // Handle vertical OF
-    else if (overflow.y > 0 && !vScrollBar_ && props.layout.allowOverflowY)
+    else if (overflow.y > 0 && !vScrollBar_ && props.layout.allowOverflow.y)
     {
         vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Orientation::VERTICAL);
         vScrollBar_->props.sbSize = props.scrollBarSize.value;
         append(vScrollBar_);
     }
-    else if ((overflow.y <= 0 || !props.layout.allowOverflowY) && vScrollBar_)
+    else if ((overflow.y <= 0 || !props.layout.allowOverflow.y) && vScrollBar_)
     {
         remove(vScrollBar_->getId());
         vScrollBar_.reset();
@@ -90,8 +90,8 @@ void Box::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border.value);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius.value);
+    shader_->setVec4f("uBorderSize", props.layout.border);
+    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
@@ -121,25 +121,21 @@ void Box::onMouseDragNotify()
 
 void Box::setupReloadables()
 {
-    props.layout.allowOverflowX.onReload = [this]()
+    props.layout._onAllowOverflowChange = [this]()
     {
-        props.layout.allowOverflowX ? updateOverflow(overflow_) : updateOverflow({0, 0});
-    };
-
-    props.layout.allowOverflowY.onReload = [this]()
-    {
-        props.layout.allowOverflowY ? updateOverflow(overflow_) : updateOverflow({0, 0});
+        props.layout.allowOverflow.x ? updateOverflow(overflow_) : updateOverflow({0, 0});
+        props.layout.allowOverflow.y ? updateOverflow(overflow_) : updateOverflow({0, 0});
     };
 
     auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
-    props.layout.type.onReload = updateCb;
-    props.layout.allowWrap.onReload = updateCb;
-    props.layout.alignSelf.onReload = updateCb;
-    props.layout.margin.onReload = updateCb;
-    props.layout.border.onReload = updateCb;
-    props.layout.scaleType.onReload = updateCb;
-    props.layout.scale.onReload = updateCb;
+    props.layout._onTypeChange = updateCb;
+    props.layout._onAllowWrapChange = updateCb;
+    props.layout._onAlignSelfChange = updateCb;
+    props.layout._onMarginChange = updateCb;
+    props.layout._onBorderChange = updateCb;
+    props.layout._onScaleTypeChange = updateCb;
+    props.layout._onScaleChange = updateCb;
 
     props.scrollBarSize.onReload = [this, updateCb]()
     {

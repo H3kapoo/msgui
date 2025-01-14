@@ -61,10 +61,10 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.pos = {0, 0, 1};
     frameBox_->transform_.scale = {width, height, 1};
-    frameBox_->transform_.vPos = {frameBox_->props.layout.border.value.left, frameBox_->props.layout.border.value.top};
+    frameBox_->transform_.vPos = {frameBox_->props.layout.border.left, frameBox_->props.layout.border.top};
     frameBox_->transform_.vScale = {
-        width - frameBox_->props.layout.border.value.left - frameBox_->props.layout.border.value.left,
-        height - frameBox_->props.layout.border.value.top - frameBox_->props.layout.border.value.bot};
+        width - frameBox_->props.layout.border.left - frameBox_->props.layout.border.left,
+        height - frameBox_->props.layout.border.top - frameBox_->props.layout.border.bot};
     frameBox_->state_ = frameState_;
 }
 

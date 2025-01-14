@@ -51,10 +51,10 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 
     auto& pPos = parent->getTransform().pos;
     glm::vec3 pScale = parent->getTransform().scale;
-    pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.value.left + layout->padding.value.right
-        + layout->border.value.left + layout->border.value.right;
-    pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.value.top + layout->padding.value.bot
-        + layout->border.value.bot + layout->border.value.top;
+    pScale.x -= scrollNodeData.shrinkBy.x + layout->padding.left + layout->padding.right
+        + layout->border.left + layout->border.right;
+    pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.top + layout->padding.bot
+        + layout->border.bot + layout->border.top;
     
     // TEMPORARY HERE:
     // Compute box divider shit
@@ -74,14 +74,14 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                 return {0, 0};
             }
 
-            if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+            if (chLayout->scaleType.x == Layout::ScaleType::ABS)
             {
-                totalAbsChildSize.x += chLayout->scale.value.x;
+                totalAbsChildSize.x += chLayout->scale.x;
             }
 
-            if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+            if (chLayout->scaleType.y == Layout::ScaleType::ABS)
             {
-                totalAbsChildSize.y += chLayout->scale.value.y;
+                totalAbsChildSize.y += chLayout->scale.y;
             }
         }
         processBoxDivider(pScale - totalAbsChildSize, children);
@@ -114,8 +114,8 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             return {0, 0};
         }
 
-        totalChildSize.x += ch->getTransform().scale.x + (chLayout->margin.value.left + chLayout->margin.value.right);
-        totalChildSize.y += ch->getTransform().scale.y + (chLayout->margin.value.top + chLayout->margin.value.bot);
+        totalChildSize.x += ch->getTransform().scale.x + (chLayout->margin.left + chLayout->margin.right);
+        totalChildSize.y += ch->getTransform().scale.y + (chLayout->margin.top + chLayout->margin.bot);
     }
 
     // Compute ZERO relative position of objects PASS
@@ -166,7 +166,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             auto& scale = ch->getTransform().scale;
             if (layout->allowWrap)
             {
-                if (rollingX + scale.x + chLayout->margin.value.left + chLayout->margin.value.right > pScale.x)
+                if (rollingX + scale.x + chLayout->margin.left + chLayout->margin.right > pScale.x)
                 {
                     startX = 0;
                     startY += maxY;
@@ -178,14 +178,14 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     maxY = 0;
                     startIdx = endIdx;
                 }
-                rollingX += scale.x + chLayout->margin.value.left + chLayout->margin.value.right;
+                rollingX += scale.x + chLayout->margin.left + chLayout->margin.right;
             }
-            maxY = std::max(maxY, scale.y + chLayout->margin.value.top + chLayout->margin.value.bot);
+            maxY = std::max(maxY, scale.y + chLayout->margin.top + chLayout->margin.bot);
             endIdx++;
             // 1st zero positioning
-            pos.x = startX + chLayout->margin.value.left;
-            pos.y = startY + chLayout->margin.value.top;
-            startX += scale.x + spacing + (chLayout->margin.value.left + chLayout->margin.value.right);
+            pos.x = startX + chLayout->margin.left;
+            pos.y = startY + chLayout->margin.top;
+            startX += scale.x + spacing + (chLayout->margin.left + chLayout->margin.right);
         }
 
         // Align Self (2nd zero positioning)
@@ -235,7 +235,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
             auto& scale = ch->getTransform().scale;
             if (layout->allowWrap)
             {
-                if (rollingY + scale.y + chLayout->margin.value.top + chLayout->margin.value.bot > pScale.y)
+                if (rollingY + scale.y + chLayout->margin.top + chLayout->margin.bot > pScale.y)
                 {
                     startX += maxX;
                     startY = 0;
@@ -247,14 +247,14 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     maxX = 0;
                     startIdx = endIdx;
                 }
-                rollingY += scale.y + chLayout->margin.value.top + chLayout->margin.value.bot;
+                rollingY += scale.y + chLayout->margin.top + chLayout->margin.bot;
             }
-            maxX = std::max(maxX, scale.x + chLayout->margin.value.left + chLayout->margin.value.right);
+            maxX = std::max(maxX, scale.x + chLayout->margin.left + chLayout->margin.right);
             endIdx++;
             // 1st zero positioning
-            pos.x = startX + chLayout->margin.value.left;
-            pos.y = startY + chLayout->margin.value.top;
-            startY += scale.y + spacing + (chLayout->margin.value.top + chLayout->margin.value.bot);
+            pos.x = startX + chLayout->margin.left;
+            pos.y = startY + chLayout->margin.top;
+            startY += scale.y + spacing + (chLayout->margin.top + chLayout->margin.bot);
         }
         // Align Self (2nd zero positioning)
         resolveAlignSelf(children, startIdx, endIdx, maxX, Layout::Type::VERTICAL);
@@ -272,15 +272,15 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         { continue; }
 
         auto& pos = ch->getTransform().pos;
-        pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.value.left + layout->border.value.left;
-        pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.value.top + layout->border.value.top;
+        pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.left + layout->border.left;
+        pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.top + layout->border.top;
 
         // AlignChild
         // Negative overflow means we still have X amount of pixels until the parent is full on that axis
         // We can leverage this to position elements top, left, right, bot, center.
         if (computedOverflow.x < 0)
         {
-            switch (layout->alignChildX)
+            switch (layout->alignChild.x)
             {
                 IGNORE_GRID_ALIGN
                 IGNORE_TB_ALIGN
@@ -295,13 +295,13 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     break;
                 default:
                     log_.warnLn("Unrecognized alignChildX value: ENUM(%d)",
-                        static_cast<uint8_t>(layout->alignChildX));
+                        static_cast<uint8_t>(layout->alignChild.x));
             }
         }
 
         if (computedOverflow.y < 0)
         {
-            switch (layout->alignChildY)
+            switch (layout->alignChild.y)
             {
                 IGNORE_GRID_ALIGN
                 IGNORE_LR_ALIGN
@@ -316,7 +316,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     break;
                 default:
                     log_.warnLn("Unrecognized alignChildY value: ENUM(%d)",
-                        static_cast<uint8_t>(layout->alignChildY));
+                        static_cast<uint8_t>(layout->alignChild.y));
             }
         }
     }
@@ -340,30 +340,30 @@ void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const Abstrac
             return;
         }
 
-        if (chLayout->scaleType.value.x == Layout::ScaleType::REL)
+        if (chLayout->scaleType.x == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.x = pScale.x * chLayout->scale.value.x;
-            scale.x -= chLayout->margin.value.left + chLayout->margin.value.right;
+            scale.x = pScale.x * chLayout->scale.x;
+            scale.x -= chLayout->margin.left + chLayout->margin.right;
         }
 
-        if (chLayout->scaleType.value.y == Layout::ScaleType::REL)
+        if (chLayout->scaleType.y == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.y = pScale.y * chLayout->scale.value.y;
-            scale.y -= chLayout->margin.value.top + chLayout->margin.value.bot;
+            scale.y = pScale.y * chLayout->scale.y;
+            scale.y -= chLayout->margin.top + chLayout->margin.bot;
         }
 
-        if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+        if (chLayout->scaleType.x == Layout::ScaleType::ABS)
         {
             auto& scale = ch->getTransform().scale;
-            scale.x = chLayout->scale.value.x;
+            scale.x = chLayout->scale.x;
         }
 
-        if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+        if (chLayout->scaleType.y == Layout::ScaleType::ABS)
         {
             auto& scale = ch->getTransform().scale;
-            scale.y = chLayout->scale.value.y;
+            scale.y = chLayout->scale.y;
         }
     }
 }
@@ -393,10 +393,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.y += (max - scale.y - chLayout->margin.value.bot) * 0.5f;
+                    pos.y += (max - scale.y - chLayout->margin.bot) * 0.5f;
                     break;
                 case Layout::BOTTOM:
-                    pos.y += max - scale.y - chLayout->margin.value.bot;
+                    pos.y += max - scale.y - chLayout->margin.bot;
                     break;
                 default:
                     log_.warnLn("Unrecognized horizontal alignSelf value: ENUM(%d)",
@@ -413,10 +413,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.x += (max - scale.x - chLayout->margin.value.right) * 0.5f;
+                    pos.x += (max - scale.x - chLayout->margin.right) * 0.5f;
                     break;
                 case Layout::RIGHT:
-                    pos.x += max - scale.x - chLayout->margin.value.right;
+                    pos.x += max - scale.x - chLayout->margin.right;
                     break;
                 default:
                     log_.warnLn("Unrecognized vertical alignSelf value: ENUM(%d)",
@@ -445,8 +445,8 @@ glm::vec2 SimpleLayoutEngine::computeOverflow(const glm::vec2& pScale, const Abs
 
         auto scale = ch->getTransform().scale;
         auto pos = ch->getTransform().pos;
-        scale.x += chLayout->margin.value.right;
-        scale.y += chLayout->margin.value.bot;
+        scale.x += chLayout->margin.right;
+        scale.y += chLayout->margin.bot;
         currentScale.x = std::max(currentScale.x, pos.x + scale.x);
         currentScale.y = std::max(currentScale.y, pos.y + scale.y);
     }
@@ -508,10 +508,10 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         if (sb->getOrientation() == ScrollBar::Orientation::VERTICAL)
         {
             // Scrollbar positioning
-            pos.x = pPos.x + pScale.x - scale.x - layout->border.value.right;
-            pos.y = pPos.y + layout->border.value.top;
+            pos.x = pPos.x + pScale.x - scale.x - layout->border.right;
+            pos.y = pPos.y + layout->border.top;
             scale.y = pScale.y - (bothSbOn ? scale.x : 0)
-             - (layout->border.value.top + layout->border.value.bot);
+             - (layout->border.top + layout->border.bot);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
@@ -536,10 +536,10 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
         {
             // Scrollbar positioning
-            pos.y = pPos.y + pScale.y - scale.y - layout->border.value.bot;
-            pos.x = pPos.x + layout->border.value.left;
+            pos.y = pPos.y + pScale.y - scale.y - layout->border.bot;
+            pos.x = pPos.x + layout->border.left;
             scale.x = pScale.x - (bothSbOn ? scale.y : 0)
-                - (layout->border.value.left + layout->border.value.right);
+                - (layout->border.left + layout->border.right);
 
             // Knob positioning
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
@@ -623,14 +623,14 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             return;
         }
 
-        float newMin = Utils::remap(chLayout->minScale.value.x, 0, pScale.x, 0.0f, 1.0f);
+        float newMin = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
         // log_.debugLn("newMin: %f", newMin);
 
-        if (newMin - chLayout->scale.value.x > 0)
+        if (newMin - chLayout->scale.x > 0)
         {
-            runningMinOverflowX += newMin - chLayout->scale.value.x;
+            runningMinOverflowX += newMin - chLayout->scale.x;
         }
-        chLayout->scale.value.x = std::max(chLayout->scale.value.x, newMin);
+        chLayout->scale.x = std::max(chLayout->scale.x, newMin);
     }
     // log_.debugLn("runningX: %f", runningMinOverflowX);
 
@@ -649,18 +649,18 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
                 return;
             }
 
-            float newMin = Utils::remap(chLayout->minScale.value.x, 0, pScale.x, 0.0f, 1.0f);
-            float distToMin = chLayout->scale.value.x - newMin;
+            float newMin = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
+            float distToMin = chLayout->scale.x - newMin;
             if (distToMin > 0)
             {
                 if (runningMinOverflowX - distToMin > 0)
                 {
-                    chLayout->scale.value.x -= distToMin;
+                    chLayout->scale.x -= distToMin;
                     runningMinOverflowX -= distToMin;
                 }
                 else
                 {
-                    chLayout->scale.value.x -= runningMinOverflowX;
+                    chLayout->scale.x -= runningMinOverflowX;
                     runningMinOverflowX = 0;
                 }
             }
@@ -670,7 +670,7 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
     // if there's still something in runningX it means the mins cannot be satisfied with current layout;
     // error out, notify user, idk
 
-    for (int32_t i = 0; i < children.size() - 1; i++)
+    for (uint32_t i = 0; i < children.size() - 1; i++)
     {
         auto& ch = children[i];
         if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
@@ -685,16 +685,16 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             float newL = left->props.layout.tempScale.x / pScale.x;
             float newR = right->props.layout.tempScale.x / pScale.x;
 
-            if (newL + left->props.layout.scale.value.x >= left->props.layout.minScale.value.x/pScale.x &&
-                newR + right->props.layout.scale.value.x >= right->props.layout.minScale.value.x/pScale.x)
+            if (newL + left->props.layout.scale.x >= left->props.layout.minScale.x/pScale.x &&
+                newR + right->props.layout.scale.x >= right->props.layout.minScale.x/pScale.x)
             {
                 // if (right->getName() == "Box3")
                 // {
                 // log_.debugLn("%s %f %f", right->getCName(), newL + left->props.layout.scale.value.x, newR + right->props.layout.scale.value.x);
 
                 // }
-                left->props.layout.scale.value.x += newL;
-                right->props.layout.scale.value.x += newR;
+                left->props.layout.scale.x += newL;
+                right->props.layout.scale.x += newR;
                 // log_.debugLn("pe aici");
             }
 
@@ -712,31 +712,31 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             return;
         }
 
-        if (chLayout->scaleType.value.x == Layout::ScaleType::REL)
+        if (chLayout->scaleType.x == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.x = pScale.x * chLayout->scale.value.x;
-            scale.x -= chLayout->margin.value.left + chLayout->margin.value.right;
+            scale.x = pScale.x * chLayout->scale.x;
+            scale.x -= chLayout->margin.left + chLayout->margin.right;
         }
 
-        if (chLayout->scaleType.value.y == Layout::ScaleType::REL)
+        if (chLayout->scaleType.y == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.y = pScale.y * chLayout->scale.value.y;
-            scale.y -= chLayout->margin.value.top + chLayout->margin.value.bot;
+            scale.y = pScale.y * chLayout->scale.y;
+            scale.y -= chLayout->margin.top + chLayout->margin.bot;
         }
 
-        if (chLayout->scaleType.value.x == Layout::ScaleType::ABS)
+        if (chLayout->scaleType.x == Layout::ScaleType::ABS)
         {
             auto& scale = ch->getTransform().scale;
-            scale.x = chLayout->scale.value.x;
+            scale.x = chLayout->scale.x;
             // log_.debugLn("x %f %s", scale.x, ch->getCName());
         }
 
-        if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
+        if (chLayout->scaleType.y == Layout::ScaleType::ABS)
         {
             auto& scale = ch->getTransform().scale;
-            scale.y = chLayout->scale.value.y;
+            scale.y = chLayout->scale.y;
         }
     }
 }
