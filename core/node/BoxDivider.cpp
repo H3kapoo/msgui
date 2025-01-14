@@ -7,6 +7,7 @@
 #include "core/node/FrameState.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
 #include <iterator>
+#include <memory>
 
 namespace msgui
 {
@@ -17,14 +18,28 @@ BoxDivider::BoxDivider(const std::string& name)
 
     //TODO: Box divider should not be "active" with < 2 boxes
     setupReloadables();
-
-    // props.color = Utils::hexToVec4("#bbbbbbff");
-    // props.borderColor = Utils::hexToVec4("#55bbbbff");
-    // props.layout.border = Layout::TBLR{5, 2, 5, 2};
-    // props.layout.border = Layout::TBLR{2, 5, 2, 5};
 }
 
-void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
+void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercSize)
+{
+    std::vector<BoxPtr> boxes;
+    for (uint32_t i = 0; i < slotCount; i++)
+    {
+        auto ref = boxes.emplace_back(std::make_shared<Box>("Box"));
+        if (props.layout.type == Layout::Type::HORIZONTAL)
+        {
+            ref->props.layout.scale = {initialPercSize[i], 1.0f};
+        }
+        else if (props.layout.type == Layout::Type::VERTICAL)
+        {
+            ref->props.layout.scale = {1.0f, initialPercSize[i]};
+        }
+    }
+
+    appendBoxContainers(boxes);
+}
+
+void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
 {
     // Minimum of 2 containers needed
     // Order is BOX SEP BOX SEP BOX.. always ending with a box.
@@ -50,10 +65,10 @@ void BoxDivider::appendBoxContainers(const std::initializer_list<BoxPtr>& boxes)
                 "BoxDividerSep" + std::to_string(i),
                 *thisBoxIt,
                 *nextBoxIt);
+            sep->props.layout.setType(props.layout.type);
             AbstractNode::append(sep);
         }
     }
-    props.layout._onTypeChange();
 }
 
 void BoxDivider::setShaderAttributes()
@@ -68,6 +83,17 @@ void BoxDivider::setShaderAttributes()
 }
 
 void* BoxDivider::getProps() { return (void*)&props; }
+
+BoxPtr BoxDivider::getSlot(uint32_t slotNumber)
+{
+    uint32_t idx = slotNumber * 2;
+    if (idx < children_.size())
+    {
+        // Guaranteed to be Box type
+        return std::static_pointer_cast<Box>(children_[idx]);
+    }
+    return nullptr;
+}
 
 void BoxDivider::onMouseButtonNotify()
 {
@@ -89,6 +115,11 @@ void BoxDivider::setupReloadables()
             {
                 auto sep = static_cast<BoxDividerSep*>(ch.get());
                 sep->props.layout.setType(props.layout.type);
+            }
+            else
+            {
+                auto box = static_cast<Box*>(ch.get());
+                std::swap(box->props.layout.scale.x, box->props.layout.scale.y);
             }
         }
 

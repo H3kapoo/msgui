@@ -53,60 +53,32 @@ int main()
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
 
-    BoxPtr box1 = std::make_shared<Box>("Box1");
+    divider->createSlots(3, {1.0f / 3, 1.0f / 3, 1.0f / 3});
+    BoxPtr box1 = divider->getSlot(0);
+    BoxPtr box2 = divider->getSlot(1);
+    BoxPtr box3 = divider->getSlot(2);
+
     box1->props.color = Utils::hexToVec4("#163f52ff");
-    box1->props.layout.setType(Layout::Type::HORIZONTAL);
-
-    BoxPtr box2 = std::make_shared<Box>("Box2");
     box2->props.color = Utils::hexToVec4("#165239ff");
-    box2->props.layout.setType(Layout::Type::HORIZONTAL);
-
-    BoxPtr box3 = std::make_shared<Box>("Box3");
     box3->props.color = Utils::hexToVec4("#70ddb0ff");
-    box3->props.layout.setType(Layout::Type::HORIZONTAL);
 
-    box1->props.layout.scale = {1.0f / 3.0f, 1.0f};
-    box2->props.layout.scale = {1.0f / 3.0f, 1.0f};
-    box3->props.layout.scale = {1.0f / 3.0f, 1.0f};
+    box1->props.layout.setMinScale({200, 200});
+    box2->props.layout.setMinScale({200, 200});
+    box3->props.layout.setMinScale({200, 200});
 
-    // box1->props.layout.scale = {1.0f, 1.0f / 3.0f};
-    // box2->props.layout.scale = {1.0f, 1.0f / 3.0f};
-    // box3->props.layout.scale = {1.0f, 1.0f / 3.0f};
-
-    // frame->getRoot()->appendMany({box1, box2, box3});
-
-    bool vertical{false};
-    box1->listeners.setOnMouseButtonLeftClick([&]()
+    bool mybool{false};
+    box1->listeners.setOnMouseButtonLeftClick([&divider, &mybool]()
     {
-        mainLog.debugLn("dada");
-        vertical = !vertical;
-        if (vertical)
+        mybool = !mybool;
+        if (mybool)
         {
             divider->props.layout.setType(Layout::Type::VERTICAL);
-            box1->props.layout.scale = {1.0f, 1.0f / 3.0f};
-            box2->props.layout.scale = {1.0f, 1.0f / 3.0f};
-            box3->props.layout.scale = {1.0f, 1.0f / 3.0f};
         }
         else
         {
             divider->props.layout.setType(Layout::Type::HORIZONTAL);
-            box1->props.layout.scale = {1.0f / 3.0f, 1.0f};
-            box2->props.layout.scale = {1.0f / 3.0f, 1.0f};
-            box3->props.layout.scale = {1.0f / 3.0f, 1.0f};
         }
     });
-
-    // box3->props.layout.setType(Layout::Type::HORIZONTAL);
-    // box1 0.33 min 0.1
-    // box2 0.33 min 0.5 ( 0.17 overflow )
-    // box3 0.33 min 0.2 0 overflow
-    box1->props.layout.minScale.x = 200;
-    box2->props.layout.minScale.x = 200;
-    box3->props.layout.minScale.x = 200;
-    box1->props.layout.minScale.y = 200;
-    box2->props.layout.minScale.y = 200;
-    box3->props.layout.minScale.y = 200;
-    divider->appendBoxContainers({box1, box2, box3});
 
     ButtonPtr preButton = std::make_shared<Button>("PreButton");
     preButton->getTransform().scale = {200, 50, 1};

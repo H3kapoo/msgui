@@ -22,12 +22,14 @@ public:
 
     // void appendBoxContainer(const BoxPtr& box);
     // void append(const BoxPtr& box);
-    void appendBoxContainers(const std::initializer_list<BoxPtr>& boxes);
+    void createSlots(uint32_t slotCount, std::vector<float> initialPercSize);
 
     void setShaderAttributes() override;
     void* getProps() override;
+    BoxPtr getSlot(uint32_t slotNumber);
 
 private:
+    void appendBoxContainers(const std::vector<BoxPtr>& boxes);
     void onMouseButtonNotify() override;
 
     void setupReloadables();
