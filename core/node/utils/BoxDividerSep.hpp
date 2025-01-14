@@ -40,9 +40,12 @@ public:
     Listeners listeners;
     Props props;
 
-private:
     BoxPtr firstBox_{nullptr};
     BoxPtr secondBox_{nullptr};
+    bool activeNow_{false};
+private:
+    // BoxPtr firstBox_{nullptr};
+    // BoxPtr secondBox_{nullptr};
 };
 using BoxDividerSepPtr = std::shared_ptr<BoxDividerSep>;
 } // namespace msgui

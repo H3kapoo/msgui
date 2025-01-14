@@ -51,20 +51,15 @@ void BoxDividerSep::onMouseDragNotify()
     //Note: this func will be called more times than processLayout()
     // so thats why doing the proportional calculations there appeared
     // "slow" changing. 
-    float incBy = (state_->lastMouseX - state_->mouseX) / getParent().lock()->getTransform().scale.x;
+    float diff = (state_->mouseX - state_->lastMouseX);
 
     Layout* left = static_cast<Layout*>(firstBox_->getProps());
     Layout* right = static_cast<Layout*>(secondBox_->getProps());
 
-    // if ((right->scale.value.x + incBy >= right->minScale.value.x) &&
-    //     (left->scale.value.x - incBy >= left->minScale.value.x))
-    {
-        // log_.debugLn("here");
-        left->scale.value.x -= incBy;
-        right->scale.value.x += incBy;
-    }
+    left->tempScale.x += diff;
+    right->tempScale.x -= diff;
+    activeNow_ = true;
 
-    // MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     MAKE_LAYOUT_DIRTY
 }
 

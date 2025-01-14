@@ -610,26 +610,10 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 
 void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
 {
-    // for (auto& ch : children)
-    // {
-    //     if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
-
-    //     Layout* chLayout = static_cast<Layout*>(ch->getProps());
-    //     if (!chLayout)
-    //     {
-    //         log_.errorLn("Whoops no layout %s", ch->getCName());
-    //         return;
-    //     }
-
-    //     // 0     x     1
-    //     // 0   300   1280
-    //     if (chLayout->scale.value.x > 1.0f)
-    //     {
-    //         float scaleX = Utils::remap(chLayout->scale.value.x, 0, 1270, 0.0f, 1.0f);
-    //         chLayout->scale.value.x = scaleX;
-    //     }
-    // }
-
+    // blocks are all REL
+    // min/max are all in ABS
+    // subtract SEP spaces from parent scale => pScale
+    //
     // see if there's any MIN not satisfied
     float runningMinOverflowX{0};
     for (auto& ch : children)
@@ -643,19 +627,22 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             return;
         }
 
-        if (chLayout->minScale.value.x - chLayout->scale.value.x > 0)
+        float newMin = Utils::remap(chLayout->minScale.value.x, 0, pScale.x, 0.0f, 1.0f);
+        // log_.debugLn("newMin: %f", newMin);
+
+        if (newMin - chLayout->scale.value.x > 0)
         {
-            runningMinOverflowX += chLayout->minScale.value.x - chLayout->scale.value.x;
+            runningMinOverflowX += newMin - chLayout->scale.value.x;
         }
-        chLayout->scale.value.x = std::max(chLayout->scale.value.x, chLayout->minScale.value.x);
+        chLayout->scale.value.x = std::max(chLayout->scale.value.x, newMin);
     }
     // log_.debugLn("runningX: %f", runningMinOverflowX);
 
-    // there are MINs not satisfied; try to spread the overflow to the rest of the nodes
-    // who can take it
+    // // there are MINs not satisfied; try to spread the overflow to the rest of the nodes
+    // // who can take it
     for (auto& ch : children)
     {
-        if (runningMinOverflowX > 0)
+        if (runningMinOverflowX > 0.01f)
         {
             if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
 
@@ -666,7 +653,8 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
                 return;
             }
 
-            float distToMin = chLayout->scale.value.x - chLayout->minScale.value.x;
+            float newMin = Utils::remap(chLayout->minScale.value.x, 0, pScale.x, 0.0f, 1.0f);
+            float distToMin = chLayout->scale.value.x - newMin;
             if (distToMin > 0)
             {
                 if (runningMinOverflowX - distToMin > 0)
@@ -682,10 +670,43 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             }
         }
     }
-    // log_.debugLn("runningX: %f", runningX);
 
     // if there's still something in runningX it means the mins cannot be satisfied with current layout;
     // error out, notify user, idk
+
+    for (int32_t i = 0; i < children.size() - 1; i++)
+    {
+        auto& ch = children[i];
+        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
+        {
+            BoxDividerSep* sep = static_cast<BoxDividerSep*>(ch.get());
+            if (!sep->activeNow_) { continue; }
+            sep->activeNow_ = false;
+
+            auto left = static_cast<Box*>(sep->firstBox_.get());
+            auto right = static_cast<Box*>(sep->secondBox_.get());
+
+            float newL = left->props.layout.tempScale.x / pScale.x;
+            float newR = right->props.layout.tempScale.x / pScale.x;
+
+            if (newL + left->props.layout.scale.value.x >= left->props.layout.minScale.value.x/pScale.x &&
+                newR + right->props.layout.scale.value.x >= right->props.layout.minScale.value.x/pScale.x)
+            {
+                // if (right->getName() == "Box3")
+                // {
+                // log_.debugLn("%s %f %f", right->getCName(), newL + left->props.layout.scale.value.x, newR + right->props.layout.scale.value.x);
+
+                // }
+                left->props.layout.scale.value.x += newL;
+                right->props.layout.scale.value.x += newR;
+                // log_.debugLn("pe aici");
+            }
+
+            left->props.layout.tempScale.x = 0;
+            right->props.layout.tempScale.x = 0;
+        }
+    }
+
     for (auto& ch : children)
     {
         Layout* chLayout = static_cast<Layout*>(ch->getProps());
@@ -700,7 +721,6 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             auto& scale = ch->getTransform().scale;
             scale.x = pScale.x * chLayout->scale.value.x;
             scale.x -= chLayout->margin.value.left + chLayout->margin.value.right;
-            log_.debugLn("x %f %s", chLayout->scale.value.x, ch->getCName());
         }
 
         if (chLayout->scaleType.value.y == Layout::ScaleType::REL)
@@ -714,7 +734,7 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
         {
             auto& scale = ch->getTransform().scale;
             scale.x = chLayout->scale.value.x;
-            log_.debugLn("x %f %s", scale.x, ch->getCName());
+            // log_.debugLn("x %f %s", scale.x, ch->getCName());
         }
 
         if (chLayout->scaleType.value.y == Layout::ScaleType::ABS)
