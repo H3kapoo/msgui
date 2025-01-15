@@ -5,6 +5,8 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/FrameState.hpp"
+#include "core/node/utils/LayoutData.hpp"
+#include <GLFW/glfw3.h>
 
 namespace msgui
 {
@@ -40,7 +42,24 @@ BoxPtr BoxDividerSep::getFirstBox() { return firstBox_; }
 
 BoxPtr BoxDividerSep::getSecondBox() { return secondBox_; }
 
-void BoxDividerSep::onMouseButtonNotify() {}
+void BoxDividerSep::onMouseButtonNotify()
+{
+    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    {
+        if (props.layout.type == Layout::Type::HORIZONTAL)
+        {
+            state_->currentCursorId = GLFW_HRESIZE_CURSOR;
+        }
+        else if (props.layout.type == Layout::Type::VERTICAL)
+        {
+            state_->currentCursorId = GLFW_VRESIZE_CURSOR;
+        }
+    }
+    else
+    {
+        state_->currentCursorId = GLFW_ARROW_CURSOR;
+    }
+}
 
 void BoxDividerSep::onMouseDragNotify()
 {

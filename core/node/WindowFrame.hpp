@@ -55,6 +55,9 @@ private:
     std::vector<AbstractNodePtr> allFrameChildNodes_;
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
+
+    static std::array<GLFWcursor*, 6> standardCursors_;
+    static bool initCursors;
 };
 using WindowFramePtr = std::shared_ptr<WindowFrame>;
 } // msgui

@@ -1,5 +1,6 @@
 #include "WindowFrame.hpp"
 
+#include <GLFW/glfw3.h>
 #include <X11/X.h>
 #include <algorithm>
 #include <memory>
@@ -16,6 +17,9 @@
 
 namespace msgui
 {
+std::array<GLFWcursor*, 6> WindowFrame::standardCursors_ = {0};
+bool WindowFrame::initCursors = true;
+
 WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height, const bool isPrimary)
     : log_("WindowFrame(" + windowName + ")")
     , window_(windowName, width, height)
@@ -66,6 +70,23 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
         width - frameBox_->props.layout.border.left - frameBox_->props.layout.border.left,
         height - frameBox_->props.layout.border.top - frameBox_->props.layout.border.bot};
     frameBox_->state_ = frameState_;
+
+    // Init cursors
+    if (initCursors)
+    {
+        standardCursors_ =
+        {
+            // They shouldn't fail really
+            glfwCreateStandardCursor(GLFW_ARROW_CURSOR),
+            glfwCreateStandardCursor(GLFW_IBEAM_CURSOR),
+            glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR),
+            glfwCreateStandardCursor(GLFW_HAND_CURSOR),
+            glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR),
+            glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR)
+        };
+        log_.infoLn("Standard cursors initialized!");
+        initCursors = false;
+    }
 }
 
 WindowFrame::~WindowFrame()
@@ -113,6 +134,14 @@ bool WindowFrame::isPrimary() const
 
 bool WindowFrame::run()
 {
+    // see if cursor needs changing
+    if (frameState_->currentCursorId != frameState_->prevCursorId)
+    {
+        frameState_->prevCursorId = frameState_->currentCursorId;
+        int32_t idx = frameState_->currentCursorId - GLFW_ARROW_CURSOR;
+        glfwSetCursor(window_.getHandle(), standardCursors_[idx]);
+    }
+
     // layout pass
     if (frameState_->isLayoutDirty)
     {
@@ -262,27 +291,18 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             {
                 frameState_->clickedNodePtr = node;
             }
-            // Otherwise we need to clear whatever we deduced to be pressed before
-            else
+
+            if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
-                // Notify the last clicked of the LMB release before clearing it
-                // frameState_->clickedNodePtr->onMouseButtonNotify();
+                if (!clickedIsAlsoHovered && frameState_->clickedNodePtr)
+                {
+                    frameState_->clickedNodePtr->onMouseButtonNotify();
+                    // break;
+                }
                 frameState_->clickedNodePtr = NO_PTR;
             }
 
-            // Notify about LMB release ONLY IF we the initially clicked node is still the hovered one
-            if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-            {
-                if (clickedIsAlsoHovered)
-                {
-                    node->onMouseButtonNotify();
-                }
-            }
-            // Otherwise don't care, call on notify
-            else
-            {
-                node->onMouseButtonNotify();
-            }
+            node->onMouseButtonNotify();
             break; // event was consumed
         }
     }

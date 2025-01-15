@@ -35,6 +35,8 @@ struct FrameState
     bool isLayoutDirty                              {true};
     bool layoutNeedsSort                            {true};
     bool layoutStoreNeedsRecreate                   {true};
+    int32_t currentCursorId                         {GLFW_ARROW_CURSOR};
+    int32_t prevCursorId                            {GLFW_ARROW_CURSOR};
 };
 using FrameStatePtr = std::shared_ptr<FrameState>;
 } // msgui

@@ -68,12 +68,14 @@ int main()
     box2->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
     box3->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
 
-    // BoxDividerPtr divider2 = std::make_shared<BoxDivider>("BoxDivider2");
-    // divider2->props.color = Utils::hexToVec4("#393a2eff");
-    // divider2->props.layout
-    //     .setType(Layout::Type::VERTICAL)
-    //     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-    //     .setScale({1.0f, 1.0f});
+    BoxDividerPtr divider2 = std::make_shared<BoxDivider>("BoxDivider2");
+    divider2->props.color = Utils::hexToVec4("#393a2eff");
+    divider2->props.layout
+        .setType(Layout::Type::VERTICAL)
+        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+        .setScale({1.0f, 1.0f});
+
+    divider2->createSlots(2, {1.0f / 2, 1.0f / 2});
 
 
     // BoxPtr box21 = divider2->getSlot(0);
@@ -84,7 +86,7 @@ int main()
     // box21->props.layout.setMinScale({0, 100});
     // box22->props.layout.setMinScale({0, 100});
 
-    // box1->append(divider2);
+    box1->append(divider2);
 
     // BoxDividerPtr divider3 = std::make_shared<BoxDivider>("BoxDivider3");
     // divider3->props.color = Utils::hexToVec4("#393a2eff");
