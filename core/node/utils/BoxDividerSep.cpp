@@ -36,6 +36,10 @@ void BoxDividerSep::setShaderAttributes()
 
 void* BoxDividerSep::getProps() { return (void*)&props; }
 
+BoxPtr BoxDividerSep::getFirstBox() { return firstBox_; }
+
+BoxPtr BoxDividerSep::getSecondBox() { return secondBox_; }
+
 void BoxDividerSep::onMouseButtonNotify() {}
 
 void BoxDividerSep::onMouseDragNotify()
@@ -58,7 +62,7 @@ void BoxDividerSep::onMouseDragNotify()
         right->tempScale.y -= diff;
     }
 
-    activeNow_ = true;
+    props.isActiveSeparator = true;
     MAKE_LAYOUT_DIRTY
 }
 

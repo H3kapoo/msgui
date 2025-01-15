@@ -39,6 +39,7 @@ int main()
         .setType(Layout::Type::HORIZONTAL)
         .setAllowOverflow({true, true})
         .setAllowWrap(true);
+        // .setPadding({10, 10, 10, 10});
     frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
     // frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
     // {
@@ -51,7 +52,8 @@ int main()
     divider->props.layout
         .setType(Layout::Type::HORIZONTAL)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-        .setScale({1.0f, 1.0f});
+        .setScale({1.0f, 1.0f})
+        .setPadding({10, 10, 10, 10});
 
     divider->createSlots(3, {1.0f / 3, 1.0f / 3, 1.0f / 3});
     BoxPtr box1 = divider->getSlot(0);
@@ -62,23 +64,62 @@ int main()
     box2->props.color = Utils::hexToVec4("#165239ff");
     box3->props.color = Utils::hexToVec4("#70ddb0ff");
 
-    box1->props.layout.setMinScale({200, 200});
-    box2->props.layout.setMinScale({200, 200});
-    box3->props.layout.setMinScale({200, 200});
+    box1->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
+    box2->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
+    box3->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
 
-    bool mybool{false};
-    box1->listeners.setOnMouseButtonLeftClick([&divider, &mybool]()
-    {
-        mybool = !mybool;
-        if (mybool)
-        {
-            divider->props.layout.setType(Layout::Type::VERTICAL);
-        }
-        else
-        {
-            divider->props.layout.setType(Layout::Type::HORIZONTAL);
-        }
-    });
+    // BoxDividerPtr divider2 = std::make_shared<BoxDivider>("BoxDivider2");
+    // divider2->props.color = Utils::hexToVec4("#393a2eff");
+    // divider2->props.layout
+    //     .setType(Layout::Type::VERTICAL)
+    //     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+    //     .setScale({1.0f, 1.0f});
+
+
+    // BoxPtr box21 = divider2->getSlot(0);
+    // BoxPtr box22 = divider2->getSlot(1);
+
+    // box21->props.color = Utils::hexToVec4("#911572ff");
+    // box22->props.color = Utils::hexToVec4("#180a97ff");
+    // box21->props.layout.setMinScale({0, 100});
+    // box22->props.layout.setMinScale({0, 100});
+
+    // box1->append(divider2);
+
+    // BoxDividerPtr divider3 = std::make_shared<BoxDivider>("BoxDivider3");
+    // divider3->props.color = Utils::hexToVec4("#393a2eff");
+    // divider3->props.layout
+    //     .setType(Layout::Type::HORIZONTAL)
+    //     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+    //     .setScale({1.0f, 1.0f});
+
+    // divider3->createSlots(2, {0.6f, 0.4f});
+    // BoxPtr box31 = divider3->getSlot(0);
+    // BoxPtr box32 = divider3->getSlot(1);
+
+    // box31->props.color = Utils::hexToVec4("#911572ff");
+    // box32->props.color = Utils::hexToVec4("#180a97ff");
+    // // box31->props.layout.setMinScale({0, 100});
+    // // box32->props.layout.setMinScale({0, 100});
+    // box31->props.layout.setMinScale({100, 0});
+    // box32->props.layout.setMinScale({100, 0});
+
+
+    // box1->append(divider2);
+    // box3->append(divider3);
+    // bool mybool{false};
+    // box1->listeners.setOnMouseButtonLeftClick([&divider, &mybool]()
+    // {
+    //     mybool = !mybool;
+    //     if (mybool)
+    //     {
+    //         divider->props.layout.setType(Layout::Type::VERTICAL);
+    //     }
+    //     else
+    //     {
+    //         divider->props.layout.setType(Layout::Type::HORIZONTAL);
+    //     }
+    // });
 
     ButtonPtr preButton = std::make_shared<Button>("PreButton");
     preButton->getTransform().scale = {200, 50, 1};

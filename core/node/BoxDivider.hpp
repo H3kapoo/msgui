@@ -3,6 +3,7 @@
 #include "AbstractNode.hpp"
 #include "core/Listeners.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/utils/BoxDividerSep.hpp"
 #include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
@@ -27,6 +28,7 @@ public:
     void setShaderAttributes() override;
     void* getProps() override;
     BoxPtr getSlot(uint32_t slotNumber);
+    BoxDividerSepPtr getSepatator(uint32_t sepNumber);
 
 private:
     void appendBoxContainers(const std::vector<BoxPtr>& boxes);

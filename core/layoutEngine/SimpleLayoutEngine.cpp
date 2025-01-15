@@ -30,6 +30,12 @@ namespace msgui
     case Layout::BOTTOM:\
         break;\
 
+#define IGNORE_SCROLLBAR\
+    if (ch->getType() == AbstractNode::NodeType::SCROLL ||\
+        ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)\
+    { continue; }\
+
+
 glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
@@ -60,31 +66,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     // Compute box divider shit
     if (parent->getType() == AbstractNode::NodeType::BOX_DIVIDER)
     {
-        glm::vec3 totalAbsChildSize{0};
-        for (auto& ch : children)
-        {
-            if (ch->getType() == AbstractNode::NodeType::SCROLL ||
-                ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-            { continue; }
-
-            const Layout* chLayout = static_cast<Layout*>(ch->getProps());
-            if (!chLayout)
-            {
-                log_.errorLn("Whoops no layout %s", ch->getCName());
-                return {0, 0};
-            }
-
-            if (chLayout->scaleType.x == Layout::ScaleType::ABS)
-            {
-                totalAbsChildSize.x += chLayout->scale.x;
-            }
-
-            if (chLayout->scaleType.y == Layout::ScaleType::ABS)
-            {
-                totalAbsChildSize.y += chLayout->scale.y;
-            }
-        }
-        processBoxDivider(pScale - totalAbsChildSize, children);
+        processBoxDivider(pScale, children);
     }
     else
     {
@@ -610,134 +592,176 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 
 void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
 {
-    // see if there's any MIN not satisfied
-    glm::vec2 runningMinOverflow{0, 0};
-    for (auto& ch : children)
+    auto getChildrenAbsTotal = [this](const AbstractNodePVec& children2) -> glm::vec2
     {
-        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
-
-        Layout* chLayout = static_cast<Layout*>(ch->getProps());
-        if (!chLayout)
+        glm::vec2 totalAbsChildSize{0};
+        for (auto& ch : children2)
         {
-            log_.errorLn("Whoops no layout %s", ch->getCName());
-            return;
-        }
+            IGNORE_SCROLLBAR
 
-        float newMinX = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
-        if (newMinX - chLayout->scale.x > 0)
-        {
-            runningMinOverflow.x += newMinX - chLayout->scale.x;
-        }
-        chLayout->scale.x = std::max(chLayout->scale.x, newMinX);
+            const Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return {0, 0};
+            }
 
-        float newMinY = Utils::remap(chLayout->minScale.y, 0, pScale.y, 0.0f, 1.0f);
-        if (newMinY - chLayout->scale.y > 0)
-        {
-            runningMinOverflow.y += newMinY - chLayout->scale.y;
-        }
-        chLayout->scale.y = std::max(chLayout->scale.y, newMinY);
-    }
-    // log_.debugLn("runningX: %f", runningMinOverflowX);
+            if (chLayout->scaleType.x == Layout::ScaleType::ABS)
+            {
+                totalAbsChildSize.x += chLayout->scale.x;
+            }
 
-    // // there are MINs not satisfied; try to spread the overflow to the rest of the nodes
-    // // who can take it
-    for (auto& ch : children)
+            if (chLayout->scaleType.y == Layout::ScaleType::ABS)
+            {
+                totalAbsChildSize.y += chLayout->scale.y;
+            }
+        }
+        return totalAbsChildSize;
+    };
+
+    auto getUnsatMin = [this](const AbstractNodePVec& children2, const glm::vec2 newParentScale) -> glm::vec2
     {
-        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
-        Layout* chLayout = static_cast<Layout*>(ch->getProps());
-        if (!chLayout)
+        glm::vec2 runningMinOverflow{0, 0};
+        for (auto& ch : children2)
         {
-            log_.errorLn("Whoops no layout %s", ch->getCName());
-            return;
-        }
+            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
 
-        if (runningMinOverflow.x > 0.01f)
+            Layout* chLayout = static_cast<Layout*>(ch->getProps());
+            if (!chLayout)
+            {
+                log_.errorLn("Whoops no layout %s", ch->getCName());
+                return {0, 0};
+            }
+
+            float newMinX = Utils::remap(chLayout->minScale.x, 0, newParentScale.x, 0.0f, 1.0f);
+            if (newMinX - chLayout->scale.x > 0)
+            {
+                runningMinOverflow.x += newMinX - chLayout->scale.x;
+            }
+            chLayout->scale.x = std::max(chLayout->scale.x, newMinX);
+
+            float newMinY = Utils::remap(chLayout->minScale.y, 0, newParentScale.y, 0.0f, 1.0f);
+            if (newMinY - chLayout->scale.y > 0)
+            {
+                runningMinOverflow.y += newMinY - chLayout->scale.y;
+            }
+            chLayout->scale.y = std::max(chLayout->scale.y, newMinY);
+        }
+        return runningMinOverflow;
+    };
+
+    auto trySpreadUnsatMin = [this](Layout* chLayout, const glm::vec2& newParentScale, glm::vec2& unsatMin) -> void
+    {
+        if (unsatMin.x > 0.01f)
         {
-            float newMinX = Utils::remap(chLayout->minScale.x, 0, pScale.x, 0.0f, 1.0f);
+            float newMinX = Utils::remap(chLayout->minScale.x, 0, newParentScale.x, 0.0f, 1.0f);
             float distToMinX = chLayout->scale.x - newMinX;
             if (distToMinX > 0)
             {
-                if (runningMinOverflow.x - distToMinX > 0)
+                if (unsatMin.x - distToMinX > 0)
                 {
                     chLayout->scale.x -= distToMinX;
-                    runningMinOverflow.x -= distToMinX;
+                    unsatMin.x -= distToMinX;
                 }
                 else
                 {
-                    chLayout->scale.x -= runningMinOverflow.x;
-                    runningMinOverflow.x = 0;
+                    chLayout->scale.x -= unsatMin.x;
+                    unsatMin.x = 0;
                 }
             }
         }
 
-        if (runningMinOverflow.y > 0.01f)
+        if (unsatMin.y > 0.01f)
         {
-            float newMinY = Utils::remap(chLayout->minScale.y, 0, pScale.y, 0.0f, 1.0f);
+            float newMinY = Utils::remap(chLayout->minScale.y, 0, newParentScale.y, 0.0f, 1.0f);
             float distToMinY = chLayout->scale.y - newMinY;
             if (distToMinY > 0)
             {
-                if (runningMinOverflow.y - distToMinY > 0)
+                if (unsatMin.y - distToMinY > 0)
                 {
                     chLayout->scale.y -= distToMinY;
-                    runningMinOverflow.y -= distToMinY;
+                    unsatMin.y -= distToMinY;
                 }
                 else
                 {
-                    chLayout->scale.y -= runningMinOverflow.y;
-                    runningMinOverflow.y = 0;
+                    chLayout->scale.y -= unsatMin.y;
+                    unsatMin.y = 0;
                 }
             }
         }
-    }
+    };
 
+    glm::vec2 newParentScale = pScale - getChildrenAbsTotal(children);
+    // see if there's any MIN not satisfied
+    glm::vec2 unsatMin = getUnsatMin(children, newParentScale);
+
+    // there are MINs not satisfied; try to spread the overflow to the rest of the nodes that can take it
     // if there's still something in runningX it means the mins cannot be satisfied with current layout;
     // error out, notify user, idk
+    for (auto& ch : children)
+    {
+        if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
 
+        Layout* chLayout = static_cast<Layout*>(ch->getProps());
+        if (!chLayout)
+        {
+            log_.errorLn("Whoops no layout %s", ch->getCName());
+            return;
+        }
+
+        trySpreadUnsatMin(chLayout, newParentScale, unsatMin);
+    }
+
+    // Keep mins in check
+    // Adjust scale of boxes inside the divers to reflect what the user does (box separator dragging).
+    // Keep also boxes from going smaller than the required minimum scale.
     for (uint32_t i = 0; i < children.size() - 1; i++)
     {
         auto& ch = children[i];
         if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
-        {
+        {   
+            // Only handle active separator (the one the user is currently dragging)
             BoxDividerSep* sep = static_cast<BoxDividerSep*>(ch.get());
-            if (!sep->activeNow_) { continue; }
-            sep->activeNow_ = false;
+            if (!sep->props.isActiveSeparator) { continue; }
+            sep->props.isActiveSeparator = false;
 
-            auto left = static_cast<Box*>(sep->firstBox_.get());
-            auto right = static_cast<Box*>(sep->secondBox_.get());
+            auto firstBox = static_cast<Box*>(sep->getFirstBox().get());
+            auto secondBox = static_cast<Box*>(sep->getSecondBox().get());
 
             if (sep->props.layout.type == Layout::Type::HORIZONTAL)
             {
-                float newL = left->props.layout.tempScale.x / pScale.x;
-                float newR = right->props.layout.tempScale.x / pScale.x;
+                float newL = firstBox->props.layout.tempScale.x / newParentScale.x;
+                float newR = secondBox->props.layout.tempScale.x / newParentScale.x;
 
-                if (newL + left->props.layout.scale.x >= left->props.layout.minScale.x/pScale.x &&
-                    newR + right->props.layout.scale.x >= right->props.layout.minScale.x/pScale.x)
+                if (newL + firstBox->props.layout.scale.x >= firstBox->props.layout.minScale.x / newParentScale.x &&
+                    newR + secondBox->props.layout.scale.x >= secondBox->props.layout.minScale.x / newParentScale.x)
                 {
-                    left->props.layout.scale.x += newL;
-                    right->props.layout.scale.x += newR;
+                    firstBox->props.layout.scale.x += newL;
+                    secondBox->props.layout.scale.x += newR;
                 }
 
-                left->props.layout.tempScale.x = 0;
-                right->props.layout.tempScale.x = 0;
+                firstBox->props.layout.tempScale.x = 0;
+                secondBox->props.layout.tempScale.x = 0;
             }
             else if (sep->props.layout.type == Layout::Type::VERTICAL)
             {
-                float newT = left->props.layout.tempScale.y / pScale.y;
-                float newB = right->props.layout.tempScale.y / pScale.y;
+                float newT = firstBox->props.layout.tempScale.y / pScale.y;
+                float newB = secondBox->props.layout.tempScale.y / pScale.y;
 
-                if (newT + left->props.layout.scale.y >= left->props.layout.minScale.y / pScale.y &&
-                    newB + right->props.layout.scale.y >= right->props.layout.minScale.y / pScale.y)
+                if (newT + firstBox->props.layout.scale.y >= firstBox->props.layout.minScale.y / newParentScale.y &&
+                    newB + secondBox->props.layout.scale.y >= secondBox->props.layout.minScale.y / newParentScale.y)
                 {
-                    left->props.layout.scale.y += newT;
-                    right->props.layout.scale.y += newB;
+                    firstBox->props.layout.scale.y += newT;
+                    secondBox->props.layout.scale.y += newB;
                 }
 
-                left->props.layout.tempScale.y = 0;
-                right->props.layout.tempScale.y = 0;
+                firstBox->props.layout.tempScale.y = 0;
+                secondBox->props.layout.tempScale.y = 0;
             }
         }
     }
 
+    // Normal scaling; maybe can be combined with the default scaling?
     for (auto& ch : children)
     {
         Layout* chLayout = static_cast<Layout*>(ch->getProps());
@@ -750,22 +774,23 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
         if (chLayout->scaleType.x == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.x = pScale.x * chLayout->scale.x;
+            scale.x = newParentScale.x * chLayout->scale.x;
             scale.x -= chLayout->margin.left + chLayout->margin.right;
+            scale.x = std::round(scale.x);
         }
 
         if (chLayout->scaleType.y == Layout::ScaleType::REL)
         {
             auto& scale = ch->getTransform().scale;
-            scale.y = pScale.y * chLayout->scale.y;
+            scale.y = newParentScale.y * chLayout->scale.y;
             scale.y -= chLayout->margin.top + chLayout->margin.bot;
+            scale.y = std::round(scale.y);
         }
 
         if (chLayout->scaleType.x == Layout::ScaleType::ABS)
         {
             auto& scale = ch->getTransform().scale;
             scale.x = chLayout->scale.x;
-            // log_.debugLn("x %f %s", scale.x, ch->getCName());
         }
 
         if (chLayout->scaleType.y == Layout::ScaleType::ABS)

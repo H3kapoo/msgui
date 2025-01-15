@@ -8,6 +8,7 @@
 #include "core/node/utils/BoxDividerSep.hpp"
 #include <iterator>
 #include <memory>
+#include <string>
 
 namespace msgui
 {
@@ -22,10 +23,11 @@ BoxDivider::BoxDivider(const std::string& name)
 
 void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercSize)
 {
+    //TODO: When this gets called again (although it shouldn't for now) reset all children.
     std::vector<BoxPtr> boxes;
     for (uint32_t i = 0; i < slotCount; i++)
     {
-        auto ref = boxes.emplace_back(std::make_shared<Box>("Box"));
+        auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
         if (props.layout.type == Layout::Type::HORIZONTAL)
         {
             ref->props.layout.scale = {initialPercSize[i], 1.0f};
@@ -91,6 +93,17 @@ BoxPtr BoxDivider::getSlot(uint32_t slotNumber)
     {
         // Guaranteed to be Box type
         return std::static_pointer_cast<Box>(children_[idx]);
+    }
+    return nullptr;
+}
+
+BoxDividerSepPtr BoxDivider::getSepatator(uint32_t sepNumber)
+{
+    uint32_t idx = sepNumber * 2 + 1;
+    if (idx < children_.size() - 1)
+    {
+        // Guaranteed to be BoxDividerSep type
+        return std::static_pointer_cast<BoxDividerSep>(children_[idx]);
     }
     return nullptr;
 }
