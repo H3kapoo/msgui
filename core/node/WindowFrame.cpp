@@ -1,7 +1,6 @@
 #include "WindowFrame.hpp"
+#include "core/node/RecycleList.hpp"
 
-#include <GLFW/glfw3.h>
-#include <X11/X.h>
 #include <algorithm>
 #include <memory>
 #include <ranges>
@@ -31,11 +30,13 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
 {
     input_.onWindowResize([this](uint32_t newWidth, uint32_t newHeight)
     {
-        window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
-        window_.onResizeEvent(newWidth, newHeight);
         frameBox_->transform_.scale = {newWidth, newHeight, 1};
         frameBox_->transform_.vScale = {newWidth, newHeight};
         frameState_->isLayoutDirty = true;
+        frameState_->frameSize = {newWidth, newHeight};
+        window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
+        window_.onResizeEvent(newWidth, newHeight);
+        resolveOnWindowReizeFromInput(newWidth, newHeight);
     });
 
     input_.onKeyPress([this](int32_t key, int32_t scanCode, int32_t mods)
@@ -61,6 +62,7 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
             this, std::placeholders::_1, std::placeholders::_2));
 
     frameState_->requestNewFrameFunc = Window::requestEmptyEvent;
+    frameState_->frameSize = {width, height};
 
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.pos = {0, 0, 1};
@@ -94,6 +96,11 @@ WindowFrame::~WindowFrame()
     log_.infoLn("Cleaning up frameState..");
     frameState_->clickedNodePtr = NO_PTR;
     frameState_->hoveredNodePtr = NO_PTR;
+
+    for (GLFWcursor* cursor : standardCursors_)
+    {
+        glfwDestroyCursor(cursor);
+    }
 }
 
 void WindowFrame::saveBufferToFile(const std::string& filePath, const int32_t quality) const
@@ -216,6 +223,15 @@ void WindowFrame::updateLayout()
         // TODO: This shall be moved into layout process().
         if (auto p = node->getParentRaw())
         {
+            // RecyleList being the king it is, requires that we tell it that the layout pass for it had finished
+            // Note that we do this on the parent of the current node because we need to notify it AFTER the
+            // item containing BOX inside it finished the layout pass.
+            if (node->getType() == AbstractNode::NodeType::BOX &&
+                p->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+            {
+                static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
+            }
+
             const Layout* pLayout = static_cast<Layout*>(p->getProps());
             if (!pLayout)
             {
@@ -335,6 +351,14 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     {
         frameState_->clickedNodePtr->onMouseDragNotify();
         return;
+    }
+}
+
+void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
+{
+    for (const auto& node : allFrameChildNodes_)
+    {
+        node->onWindowResizeNotify();
     }
 }
 } // namespace msgui

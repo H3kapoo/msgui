@@ -18,6 +18,7 @@ public:
         Layout layout; // Do not change position
         glm::vec4 color{1.0f};
         glm::vec4 borderColor{1.0f};
+        float additionalOffset{0};
         AR<int32_t> scrollBarSize{20};
     };
 

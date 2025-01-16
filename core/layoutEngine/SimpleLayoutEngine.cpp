@@ -61,7 +61,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         + layout->border.left + layout->border.right;
     pScale.y -= scrollNodeData.shrinkBy.y + layout->padding.top + layout->padding.bot
         + layout->border.bot + layout->border.top;
-    
+
     // TEMPORARY HERE:
     // Compute box divider shit
     if (parent->getType() == AbstractNode::NodeType::BOX_DIVIDER)
@@ -246,12 +246,11 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     const glm::vec2 computedOverflow = computeOverflow(pScale, children);
 
     // Apply SCROLLBAR offsets + any group offseting from ZERO PASS
+    //TODO: Maybe RecycleList will not come through here?
     for (auto& ch : children)
     {
         // Already calculated, skip
-        if (ch->getType() == AbstractNode::NodeType::SCROLL ||
-            ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        { continue; }
+        IGNORE_SCROLLBAR
 
         auto& pos = ch->getTransform().pos;
         pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.left + layout->border.left;
@@ -300,6 +299,19 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     log_.warnLn("Unrecognized alignChildY value: ENUM(%d)",
                         static_cast<uint8_t>(layout->alignChild.y));
             }
+        }
+    }
+
+    // Temp for now
+    if (parent->getType() == AbstractNode::NodeType::BOX)
+    {
+        Box* boxCont = static_cast<Box*>(parent.get());
+
+        // log_.debugLn("pe aici %f", boxCont->props.additionalOffset);
+        for (auto& ch : children)
+        {
+            auto& pos = ch->getTransform().pos;
+            pos.y -= boxCont->props.additionalOffset;
         }
     }
 
@@ -574,14 +586,14 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& parent)
 
     // Knob positioning
     float sliderOffset = sliderRawPtr->getOffsetPerc();
-    if (sliderRawPtr->props.orientType == Layout::Type::HORIZONTAL)
+    if (sliderRawPtr->props.layout.type == Layout::Type::HORIZONTAL)
     {
         float newX = Utils::remap(sliderOffset,
             0.0f, 1.0f, pPos.x + kScale.x / 2, pPos.x + pScale.x - kScale.x / 2);
         kPos.y = pPos.y;
         kPos.x = newX - kScale.x / 2;
     }
-    else if (sliderRawPtr->props.orientType == Layout::Type::VERTICAL)
+    else if (sliderRawPtr->props.layout.type == Layout::Type::VERTICAL)
     {
         float newY = Utils::remap(sliderOffset,
             0.0f, 1.0f, pPos.y + kScale.y / 2, pPos.y + pScale.y - kScale.y / 2);

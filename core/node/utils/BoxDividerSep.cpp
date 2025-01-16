@@ -6,7 +6,6 @@
 #include "core/node/Box.hpp"
 #include "core/node/FrameState.hpp"
 #include "core/node/utils/LayoutData.hpp"
-#include <GLFW/glfw3.h>
 
 namespace msgui
 {

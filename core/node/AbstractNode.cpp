@@ -1,4 +1,5 @@
 #include "AbstractNode.hpp"
+#include <algorithm>
 
 namespace msgui
 {
@@ -11,7 +12,12 @@ AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name, 
 {}
 
 void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
-{   
+{
+    appendAt(node, children_.size());
+}
+
+void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx)
+{
     if (!node)
     {
         log_.errorLn("Trying to nullptr node!");
@@ -31,7 +37,7 @@ void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
     // populated accordingly if absent.
     node->isParented_ = true;
 
-    children_.push_back(node);
+    children_.insert(children_.begin() + idx, node);
     if (state_)
     {
         state_->isLayoutDirty = true;
@@ -55,6 +61,23 @@ void AbstractNode::appendMany(std::initializer_list<std::shared_ptr<AbstractNode
     }
 }
 
+int32_t AbstractNode::removeBy(std::function<bool(AbstractNodePtr)> pred)
+{
+    return std::erase_if(children_, [this, &pred](AbstractNodePtr node)
+    {
+        if (!pred(node)) { return false; }
+
+        resetNodeToDefaults(node);
+
+        return true;
+    });
+}
+
+void AbstractNode::removeAll()
+{
+    removeBy([](auto){ return true; });
+}
+
 std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
 {
     const auto it = std::find_if(children_.begin(), children_.end(),
@@ -68,15 +91,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
         return nullptr;
     }
 
-    // Notify layout
-    (*it)->state_->isLayoutDirty = true;
-    (*it)->state_->layoutStoreNeedsRecreate = true;
-
-    // Reset to defaults
-    (*it)->state_ = nullptr;
-    (*it)->isParented_ = false;
-    (*it)->parent_.reset();
-    (*it)->parentRaw_ = nullptr;
+    resetNodeToDefaults(*it);
 
     // Transfer ownership out of the vector and erase remaining iterator
     std::shared_ptr<AbstractNode> returned = std::move(*it);
@@ -126,14 +141,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
         return nullptr;
     }
 
-    // Notify layout
-    (*it)->state_->isLayoutDirty = true;
-
-    // Reset to defaults
-    (*it)->state_ = nullptr;
-    (*it)->isParented_ = false;
-    (*it)->parent_.reset();
-    (*it)->parentRaw_ = nullptr;
+    resetNodeToDefaults(*it);
 
     // Transfer ownership out of the vector and erase remaining iterator
     std::shared_ptr<AbstractNode> returned = std::move(*it);
@@ -270,10 +278,28 @@ std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
 void AbstractNode::onMouseButtonNotify() {}
 void AbstractNode::onMouseHoverNotify() {}
 void AbstractNode::onMouseDragNotify() {}
+void AbstractNode::onWindowResizeNotify() {}
 
 uint32_t AbstractNode::genetateNextId() const
 {
     static uint32_t id = 0;
     return ++id;
+}
+
+void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
+{
+    // Notify layout
+    if (node->state_)
+    {
+        node->state_->isLayoutDirty = true;
+        node->state_->layoutStoreNeedsRecreate = true;
+    }
+
+    // Reset to defaults
+    node->state_ = nullptr;
+    node->isParented_ = false;
+    node->parent_.reset();
+    node->parentRaw_ = nullptr;
+
 }
 } // namespace msgui

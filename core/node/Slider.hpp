@@ -25,7 +25,6 @@ public:
         Layout layout; // Do not change position
         glm::vec4 color{Utils::hexToVec4("#000000ff")};
         glm::vec4 borderColor{Utils::hexToVec4("#ff0000ff")};
-        AR<Layout::Type> orientType{Layout::Type::HORIZONTAL};
         AR<float> slideFrom{0};
         AR<float> slideTo{0};
         AR<float> slideValue{0};

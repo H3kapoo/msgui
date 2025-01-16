@@ -18,7 +18,7 @@ Button::Button(const std::string& name)
     props.color = Utils::hexToVec4("#bbbbbbff");
     props.borderColor = Utils::hexToVec4("#55bbbbff");
     // props.layout.border = Layout::TBLR{5, 2, 5, 2};
-    props.layout.border = Layout::TBLR{2, 5, 2, 5};
+    // props.layout.border = Layout::TBLR{2, 5, 2, 5};
 }
 
 void Button::setShaderAttributes()
@@ -50,13 +50,13 @@ void Button::onMouseButtonNotify()
     // Predefined behavior
     if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
-        props.layout.border = Layout::TBLR{5, 2, 5, 2};
-        props.borderColor = Utils::hexToVec4("#dd0000ff");
+        // props.layout.border = Layout::TBLR{5, 2, 5, 2};
+        // props.borderColor = Utils::hexToVec4("#dd0000ff");
     }
     else if (!state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
-        props.layout.border = Layout::TBLR{2, 5, 2, 5};
-        props.borderColor = Utils::hexToVec4("#660000ff");
+        // props.layout.border = Layout::TBLR{2, 5, 2, 5};
+        // props.borderColor = Utils::hexToVec4("#55bbbbff");
     }
 
     // User custom behavior

@@ -49,9 +49,6 @@ private:
 public:
     Listeners listeners;
     Props props;
-
-private:
-
 };
 using BoxDividerPtr = std::shared_ptr<BoxDivider>;
 } // namespace msgui

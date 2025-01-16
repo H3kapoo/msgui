@@ -44,6 +44,7 @@ private:
 
     void resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action);
     void resolveOnMouseMoveFromInput(const int32_t x, const int32_t y);
+    void resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight);
 
 private:
     Logger log_;

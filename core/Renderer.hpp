@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+#include "core/Window.hpp"
 #include "core/node/AbstractNode.hpp"
 
 namespace msgui
@@ -14,19 +15,19 @@ public:
         auto& t = node->getTransform();
 
         // Skip rendering objects that have no viewable area.
-        if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
+        // if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
 
         node->getMesh().bind();
         node->setShaderAttributes();
         node->getShader().setMat4f("uProjMat", projMat);
 
-        // Window::setScissorTest(false);
-        glScissor(
-            t.vPos.x,
-            // Height can be computed based on the projMat alone
-            (-2.0f / projMat[1][1]) - t.vPos.y - t.vScale.y,
-            t.vScale.x,
-            t.vScale.y);
+        Window::setScissorTest(false);
+        // glScissor(
+        //     t.vPos.x,
+        //     // Height can be computed based on the projMat alone
+        //     (-2.0f / projMat[1][1]) - t.vPos.y - t.vScale.y,
+        //     t.vScale.x,
+        //     t.vScale.y);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
     }
 };

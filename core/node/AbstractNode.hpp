@@ -26,6 +26,7 @@ public:
         SLIDER,
         BOX_DIVIDER,
         BOX_DIVIDER_SEP,
+        RECYCLE_LIST,
         SCROLL,
         SCROLL_KNOB
     };
@@ -35,13 +36,16 @@ public:
         const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
+    void appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx = -1);
     void append(const std::shared_ptr<AbstractNode>& node);
     void appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes);
     void appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes);
-    std::shared_ptr<AbstractNode>              remove(const uint32_t& nodeId);
+    int32_t removeBy(std::function<bool(std::shared_ptr<AbstractNode>)> pred);
+    void removeAll();
+    std::shared_ptr<AbstractNode> remove(const uint32_t& nodeId);
     std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<uint32_t>& nodeIds);
     std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<uint32_t>& nodeIds);
-    std::shared_ptr<AbstractNode>              remove(const std::string& nodeName);
+    std::shared_ptr<AbstractNode> remove(const std::string& nodeName);
     std::vector<std::shared_ptr<AbstractNode>> remove(const std::initializer_list<std::string>& nodeNames) = delete;
     std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<std::string>& nodeNames);
     std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<std::string>& nodeNames);
@@ -73,9 +77,11 @@ private: // friend
     virtual void onMouseButtonNotify();
     virtual void onMouseHoverNotify();
     virtual void onMouseDragNotify();
+    virtual void onWindowResizeNotify();
 
 private:
     uint32_t genetateNextId() const;
+    void resetNodeToDefaults(std::shared_ptr<AbstractNode>& node);
 
 protected:
     std::string name_;

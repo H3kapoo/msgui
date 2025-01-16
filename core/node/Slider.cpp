@@ -15,7 +15,8 @@ Slider::Slider(const std::string& name)
 {
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->props.color = Utils::hexToVec4("#ee0000ff");
-    knobNode_->getTransform().scale = glm::vec3(50, 50, 1);
+    // knobNode_->getTransform().scale = glm::vec3(50, 50, 1);
+    knobNode_->props.layout.setScale({50, 50});
     append(knobNode_);
 
     setupReloadables();
@@ -50,12 +51,12 @@ void Slider::setShaderAttributes()
 void Slider::updateSliderValue()
 {
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
-    if (props.orientType == Layout::Type::VERTICAL)
+    if (props.layout.type == Layout::Type::VERTICAL)
     {
         knobOffsetPerc_ = Utils::remap(state_->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
-    else if (props.orientType == Layout::Type::HORIZONTAL)
+    else if (props.layout.type == Layout::Type::HORIZONTAL)
     {
         knobOffsetPerc_ = Utils::remap(state_->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
@@ -95,11 +96,11 @@ void Slider::onMouseDragNotify()
 
 void Slider::setupReloadables()
 {
-    props.orientType.onReload = [this]()
-    {
-        std::swap(transform_.scale.x, transform_.scale.y);
-        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    };
+    // props.orientType.onReload = [this]()
+    // {
+    //     std::swap(transform_.scale.x, transform_.scale.y);
+    //     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    // };
 
     props.slideValue.onReload = [this]()
     {

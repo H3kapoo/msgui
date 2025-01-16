@@ -5,6 +5,7 @@
 #include "core/node/Box.hpp"
 #include "core/node/BoxDivider.hpp"
 #include "core/node/Button.hpp"
+#include "core/node/RecycleList.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
 
@@ -41,41 +42,51 @@ int main()
         .setAllowWrap(true);
         // .setPadding({10, 10, 10, 10});
     frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
-    // frame->getRoot()->listeners.setOnMouseButtonLeftClick([&]()
-    // {
-    //     mainLog.debugLn("clicked to 40");
-    //     frame->getRoot()->props.scrollBarSize = 40;
-    // });
 
-    BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
-    divider->props.color = Utils::hexToVec4("#a7b430ff");
-    divider->props.layout
-        .setType(Layout::Type::HORIZONTAL)
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-        .setScale({1.0f, 1.0f})
-        .setPadding({10, 10, 10, 10});
+    RecycleListPtr recycleList = std::make_shared<RecycleList>("RecycleList1");
+    
+    recycleList->props.color = Utils::hexToVec4("#1185bbff");
+    recycleList->props.layout
+        .setMargin({50, 0, 50, 0})
+        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
+        .setScale({400, 500});
+    // BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
+    // divider->props.color = Utils::hexToVec4("#a7b430ff");
+    // divider->props.layout
+    //     .setType(Layout::Type::HORIZONTAL)
+    //     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+    //     .setScale({1.0f, 1.0f})
+    //     .setPadding({10, 10, 10, 10});
 
-    divider->createSlots(3, {1.0f / 3, 1.0f / 3, 1.0f / 3});
-    BoxPtr box1 = divider->getSlot(0);
-    BoxPtr box2 = divider->getSlot(1);
-    BoxPtr box3 = divider->getSlot(2);
+    // divider->createSlots(3, {1.0f / 3, 1.0f / 3, 1.0f / 3});
+    // BoxPtr box1 = divider->getSlot(0);
+    // BoxPtr box2 = divider->getSlot(1);
+    // BoxPtr box3 = divider->getSlot(2);
 
-    box1->props.color = Utils::hexToVec4("#163f52ff");
-    box2->props.color = Utils::hexToVec4("#165239ff");
-    box3->props.color = Utils::hexToVec4("#70ddb0ff");
+    // box1->props.color = Utils::hexToVec4("#163f52ff");
+    // box2->props.color = Utils::hexToVec4("#165239ff");
+    // box3->props.color = Utils::hexToVec4("#70ddb0ff");
 
-    box1->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
-    box2->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
-    box3->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
+    // box1->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
+    // box2->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
+    // box3->props.layout.setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
 
-    BoxDividerPtr divider2 = std::make_shared<BoxDivider>("BoxDivider2");
-    divider2->props.color = Utils::hexToVec4("#393a2eff");
-    divider2->props.layout
-        .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-        .setScale({1.0f, 1.0f});
+    // box2->props.layout.setAllowOverflow({true, false});
 
-    divider2->createSlots(2, {1.0f / 2, 1.0f / 2});
+    // ButtonPtr btn1 = std::make_shared<Button>("Button1");
+    // btn1->props.layout.setScale({300, 50});
+    // btn1->props.color = Utils::hexToVec4("#c2b509ff");
+
+    // box2->append(btn1);
+
+    // BoxDividerPtr divider2 = std::make_shared<BoxDivider>("BoxDivider2");
+    // divider2->props.color = Utils::hexToVec4("#393a2eff");
+    // divider2->props.layout
+    //     .setType(Layout::Type::VERTICAL)
+    //     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+    //     .setScale({1.0f, 1.0f});
+
+    // divider2->createSlots(2, {1.0f / 2, 1.0f / 2});
 
 
     // BoxPtr box21 = divider2->getSlot(0);
@@ -86,7 +97,7 @@ int main()
     // box21->props.layout.setMinScale({0, 100});
     // box22->props.layout.setMinScale({0, 100});
 
-    box1->append(divider2);
+    // box1->append(divider2);
 
     // BoxDividerPtr divider3 = std::make_shared<BoxDivider>("BoxDivider3");
     // divider3->props.color = Utils::hexToVec4("#393a2eff");
@@ -160,10 +171,11 @@ int main()
     // theBox->appendMany(nodes);
     // frame->getRoot()->appendMany(nodes);
     // frame->getRoot()->append(preButton);
-    frame->getRoot()->append(divider);
+    // frame->getRoot()->append(divider);
+    frame->getRoot()->append(recycleList);
     // frame->getRoot()->append(slider);
 
-    frame->getRoot()->printTree();
+    // frame->getRoot()->printTree();
 
 
     // app.setPollMode(Application::PollMode::CONTINUOUS);
