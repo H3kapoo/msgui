@@ -32,8 +32,6 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     {
         frameBox_->transform_.scale = {newWidth, newHeight, 1};
         frameBox_->transform_.vScale = {newWidth, newHeight};
-        frameState_->isLayoutDirty = true;
-        frameState_->frameSize = {newWidth, newHeight};
         window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
         window_.onResizeEvent(newWidth, newHeight);
         resolveOnWindowReizeFromInput(newWidth, newHeight);
@@ -356,6 +354,8 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
 
 void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
 {
+    frameState_->isLayoutDirty = true;
+    frameState_->frameSize = {newWidth, newHeight};
     for (const auto& node : allFrameChildNodes_)
     {
         node->onWindowResizeNotify();

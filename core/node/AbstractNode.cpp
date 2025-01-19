@@ -61,6 +61,14 @@ void AbstractNode::appendMany(std::initializer_list<std::shared_ptr<AbstractNode
     }
 }
 
+void AbstractNode::removeAt(const int32_t idx)
+{
+    if (idx < 0 || idx > (int32_t)children_.size() - 1) { return; }
+
+    resetNodeToDefaults(children_[idx]);
+    children_.erase(children_.begin() + idx);
+}
+
 int32_t AbstractNode::removeBy(std::function<bool(AbstractNodePtr)> pred)
 {
     return std::erase_if(children_, [this, &pred](AbstractNodePtr node)

@@ -48,8 +48,10 @@ int main()
     recycleList->props.color = Utils::hexToVec4("#1185bbff");
     recycleList->props.layout
         .setMargin({50, 0, 50, 0})
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
-        .setScale({400, 500});
+        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
+        .setScale({400, 0.8f});
+        // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
+        // .setScale({400, 500});
     // BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
     // divider->props.color = Utils::hexToVec4("#a7b430ff");
     // divider->props.layout

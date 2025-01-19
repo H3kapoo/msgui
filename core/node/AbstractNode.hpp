@@ -36,10 +36,11 @@ public:
         const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
-    void appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx = -1);
+    void appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx);
     void append(const std::shared_ptr<AbstractNode>& node);
     void appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes);
     void appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes);
+    void removeAt(const int32_t idx);
     int32_t removeBy(std::function<bool(std::shared_ptr<AbstractNode>)> pred);
     void removeAll();
     std::shared_ptr<AbstractNode> remove(const uint32_t& nodeId);

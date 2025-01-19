@@ -30,12 +30,12 @@ public:
     void* getProps() override;
 
     void onLayoutUpdateNotify();
+    void dummy();
 
 private:
     void onSliderValueChanged(float newVal);
 
     void onMouseButtonNotify() override;
-    void onWindowResizeNotify() override;
 
     void setupReloadables();
 
@@ -45,9 +45,11 @@ public:
 
 private:
     float diff_{0};
-    std::vector<glm::vec4> itemColors_;
+    std::vector<glm::vec4> listItems_;
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
+
+    int32_t oldTopOfList_{0};
 };
 using RecycleListPtr = std::shared_ptr<RecycleList>;
 } // namespace msgui

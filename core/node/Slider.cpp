@@ -63,6 +63,7 @@ void Slider::updateSliderValue()
     }
 
     props.slideValue.value = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
+
     listeners.callOnSlide(props.slideValue.value);
 }
 
