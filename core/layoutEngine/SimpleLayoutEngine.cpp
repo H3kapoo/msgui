@@ -307,11 +307,11 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     {
         Box* boxCont = static_cast<Box*>(parent.get());
 
-        // log_.debugLn("pe aici %f", boxCont->props.additionalOffset);
         for (auto& ch : children)
         {
             auto& pos = ch->getTransform().pos;
-            pos.y -= boxCont->props.additionalOffset;
+            pos.y += boxCont->props.additionalOffset;
+            // pos.y += (int32_t)boxCont->props.additionalOffset % 20;
         }
     }
 

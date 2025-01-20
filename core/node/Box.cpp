@@ -106,18 +106,7 @@ void Box::onMouseButtonNotify()
 }
 
 void Box::onMouseDragNotify()
-{
-    // if (getName() == "BoxMid2")
-    // {
-    //     auto& siblingLeft = getParent().lock()->getChildren()[2];
-    //     auto& siblingRight = getParent().lock()->getChildren()[4];
-
-    //     float decreaseBy = 0.001f * (state_->lastMouseX - state_->mouseX);
-    //     static_cast<Layout*>(siblingLeft->getProps())->scale.value.x -= decreaseBy;
-    //     static_cast<Layout*>(siblingRight->getProps())->scale.value.x += decreaseBy;
-    //     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
-    // }
-}
+{}
 
 void Box::setupReloadables()
 {

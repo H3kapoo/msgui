@@ -43,15 +43,45 @@ int main()
         // .setPadding({10, 10, 10, 10});
     frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
 
-    RecycleListPtr recycleList = std::make_shared<RecycleList>("RecycleList1");
+    BoxPtr recycleList = std::make_shared<Box>("RecycleList1");
     
     recycleList->props.color = Utils::hexToVec4("#1185bbff");
     recycleList->props.layout
-        .setMargin({50, 0, 50, 0})
+        .setType(Layout::Type::VERTICAL)
+        .setAllowOverflow({false, true})
+        .setMargin({100, 0, 50, 0})
         .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({400, 0.8f});
+        .setScale({400, 0.7f});
         // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
         // .setScale({400, 500});
+
+    std::vector<glm::vec4> listItems_;
+
+    int32_t elNo = 40;
+    int32_t rowSize = 20;
+    float step = 1.0f / elNo;
+    step *= 2;
+    for (int32_t i = 0; i < elNo; i++)
+    {
+        if (i + 1 == elNo)
+        {
+            listItems_.push_back(glm::vec4(0, 0, 1, 1));
+            continue;
+        }
+        // log_.debugLn("%f", i*step);
+        listItems_.push_back(glm::vec4(i*step, 0, 0, 1));
+    }
+
+    for (uint32_t i = 0; i < listItems_.size(); i++)
+    {
+        auto ref = std::make_shared<Button>("ListBtn" + std::to_string(i));
+        ref->props.layout.setMargin({0, 0, 5, 5})
+            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+            .setScale({1.0f, rowSize});
+        ref->props.color = listItems_[i];
+        recycleList->append(ref);
+    }
+
     // BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
     // divider->props.color = Utils::hexToVec4("#a7b430ff");
     // divider->props.layout

@@ -6,6 +6,7 @@
 #include "core/node/Button.hpp"
 #include "core/node/FrameState.hpp"
 #include "core/node/Slider.hpp"
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 
@@ -37,7 +38,8 @@ RecycleList::RecycleList(const std::string& name)
 
     boxCont_ = std::make_shared<Box>("RLBox");
     boxCont_->props.layout
-        .setAllowOverflow({false, false}) // In this context, it shall never have overflow enabled
+        // .setAllowOverflow({false, false}) // In this context, it shall never have overflow enabled
+        .setAllowOverflow({false, true}) // In this context, it shall never have overflow enabled
         .setType(Layout::Type::VERTICAL)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
@@ -46,11 +48,16 @@ RecycleList::RecycleList(const std::string& name)
     append(slider_);
     append(boxCont_);
 
-    int32_t elNo = 100;
+    int32_t elNo = 40;
     float step = 1.0f / elNo;
     step *= 2;
     for (int32_t i = 0; i < elNo; i++)
     {
+        if (i + 1 == elNo)
+        {
+            listItems_.push_back(glm::vec4(0, 0, 1, 1));
+            continue;
+        }
         // log_.debugLn("%f", i*step);
         listItems_.push_back(glm::vec4(i*step, 0, 0, 1));
     }
@@ -87,55 +94,32 @@ void RecycleList::onLayoutUpdateNotify()
     float availableSpace = transform_.scale.y;
 
     // Setting the overflow if none
-    if (slider_->props.slideTo == 0)
+    if (lastScaleY != transform_.scale.y)
     {
         //TODO: Ensure OF >0 before setting
-        slider_->props.slideTo = totalElements * props.rowSize - availableSpace;
+        slider_->props.slideTo = std::max(totalElements * props.rowSize - availableSpace, 0.0f);
     }
 
     float sliderVal = slider_->props.slideValue;
     uint64_t maxDisplayAmt = availableSpace / props.rowSize;
     int32_t topOfListIdx = sliderVal / props.rowSize;
-    int32_t botOfListIdx = topOfListIdx + std::min(maxDisplayAmt, listItems_.size() - 1);
-    int32_t diff = topOfListIdx - oldTopOfList_;
+    int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
+    int32_t slideIndexDiff = topOfListIdx - oldTopOfList_;
+    int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
 
-    log_.debugLn("TOP: %d BOL: %d DIFF: %d SV: %f T %d",
-        topOfListIdx, botOfListIdx, diff, sliderVal, boxCont_->getChildren().size());
+    log_.debugLn("TOP: %d OTOL: %d DIFF: %d SV: %f T %d",
+        topOfListIdx, oldTopOfList_, slideIndexDiff, sliderVal, boxCont_->getChildren().size());
 
-    // If diff is positive it means the list is going "down" so the node elements will go "up".
+    // If diff is positive it means the slide knob is going "down" so the node elements will go "up".
     // We need to remove "|diff|" elements from the top and put them at the bottom.
     // Basically remove top "|diff|" times & append back "|diff|" times.
-    if (diff > 0)
+    if (slideIndexDiff > 0 && slideDiff_ != 0)
     {
-        int32_t absDiff = std::abs(diff);
+        log_.debugLn("diff POS");
+        int32_t absDiff = std::abs(slideIndexDiff);
         for (int32_t i = 0; i < absDiff; i++)
         {
             boxCont_->removeAt(0);
-            boxCont_->props.additionalOffset -= props.rowSize;
-        }
-
-        for (int32_t i = 0; i < absDiff; i++)
-        {
-            auto ref = std::make_shared<Button>("ListBtn2222");
-            ref->props.layout.setMargin({0, 0, 5, 5})
-                .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-                .setScale({1.0f, props.rowSize});
-            // ref->props.color = Utils::randomRGB();
-            // ref->props.color = listItems_[botOfListIdx - i];
-            ref->props.color = listItems_[topOfListIdx + i];
-
-            boxCont_->append(ref);
-        }
-    }
-    // If "diff" is negative it means the list is going "up" so the node elements will go "down".
-    // We need to remove "|diff|" elements from the bottom and put them at the top.
-    // Basically remove bot "|diff|" times & append back to the top "|diff|" times.
-    else if (diff < 0)
-    {
-        int32_t absDiff = std::abs(diff);
-        for (int32_t i = 0; i < absDiff; i++)
-        {
-            boxCont_->removeAt(boxCont_->getChildren().size() - 1);
             boxCont_->props.additionalOffset += props.rowSize;
         }
 
@@ -146,156 +130,76 @@ void RecycleList::onLayoutUpdateNotify()
                 .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
                 .setScale({1.0f, props.rowSize});
             // ref->props.color = Utils::randomRGB();
-            ref->props.color = listItems_[topOfListIdx - i];
+            ref->props.color = listItems_[oldBotOfList_ + i + 1];
 
+            boxCont_->append(ref);
+        }
+    }
+    // If "diff" is negative it means the the slide knob is going "up" so the node elements will go "down".
+    // We need to remove "|diff|" elements from the bottom and put them at the top.
+    // Basically remove bot "|diff|" times & append back to the top "|diff|" times.
+    else if (slideIndexDiff < 0 && slideDiff_ != 0)
+    {
+        log_.debugLn("diff NEG");
+        int32_t absDiff = std::abs(slideIndexDiff);
+        for (int32_t i = 0; i < absDiff; i++)
+        {   
+            boxCont_->props.additionalOffset -= props.rowSize;
+            boxCont_->removeAt(boxCont_->getChildren().size() - 1);
+        }
+
+        for (int32_t i = 0; i < absDiff; i++)
+        {
+            auto ref = std::make_shared<Button>("ListBtn2222");
+            ref->props.layout.setMargin({0, 0, 5, 5})
+                .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+                .setScale({1.0f, props.rowSize});
+            // ref->props.color = Utils::randomRGB();
+
+            ref->props.color = listItems_[oldTopOfList_ - i - 1];
             boxCont_->appendAt(ref, 0);
         }
     }
 
-    oldTopOfList_ = topOfListIdx;
-}
-
-void RecycleList::dummy()
-{
-    float currentOverflow = listItems_.size() * props.rowSize - transform_.scale.y;
-
-    // // Remove scrollbar if there's no overflow
-    // if (getChildren().size() == 2 && currentOverflow <= 0)
-    // {
-    //     remove(slider_->getId());
-    //     boxCont_->props.additionalOffset = 0;
-    //     slider_->props.slideValue = 0;
-    // }
-    // // Put it back after overflow has been deduced to be >0
-    // else if (getChildren().size() == 1 && currentOverflow > 0)
-    // {
-    //     appendAt(slider_, 0);
-    // }
-
-    if (slider_->props.slideTo == 0) // or when elements are added or removed
+    if (visibleNodes < (int32_t)boxCont_->getChildren().size())
     {
-        if (currentOverflow > 0)
+        int32_t nodesToRemove = boxCont_->getChildren().size() - visibleNodes;
+        log_.debugLn("Nodes to remove %d", nodesToRemove);
+        for (int32_t i = 0; i < nodesToRemove; i++)
         {
-            slider_->props.slideTo = currentOverflow;
+            boxCont_->removeAt(boxCont_->getChildren().size() - 1);
+        }
+    }
+    else if (visibleNodes > (int32_t)boxCont_->getChildren().size())
+    {
+        int32_t nodesToAdd = visibleNodes - boxCont_->getChildren().size();// + 1;
+        log_.debugLn("Nodes to addd %d", nodesToAdd);
+        for (int32_t i = 0; i < nodesToAdd; i++)
+        {
+            auto ref = std::make_shared<Button>("ListBtn2222");
+            ref->props.layout.setMargin({0, 0, 5, 5})
+                .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+                .setScale({1.0f, props.rowSize});
+            // ref->props.color = Utils::randomRGB();
+
+            ref->props.color = listItems_[oldBotOfList_ + i + 1];
+            boxCont_->append(ref);
         }
     }
 
-    float sv = slider_->props.slideValue;
-    int32_t topIdx = (int32_t)sv / props.rowSize;
-    int32_t botIdx = topIdx + transform_.scale.y / props.rowSize;
-    log_.debugLn("slilder val: %f | top of the list: %d | bottom: %d",
-    sv, topIdx, botIdx);
-
-    // Only do this when we are not actively scrolling through the elements
-    if (diff_ == 4323.0f)
-    // if (diff_ == 0)
-    {   
-        // float childrenLen = boxCont_->getChildren().size() * props.rowSize;
-        AbstractNodePtr lastEl = boxCont_->getChildren()[boxCont_->getChildren().size() - 1];
-        float childEnd = lastEl->getTransform().pos.y + props.rowSize;
-        float parentEnd = transform_.pos.y + transform_.scale.y;
-        if (childEnd < parentEnd + props.rowSize)
-        {
-            int32_t nodesToAdd = (parentEnd - childEnd) / props.rowSize + 1;
-            // log_.debugLn("removed %f %d", transform_.scale.y - childrenLen, nodesToAdd);
-            for (int32_t i = 0; i < nodesToAdd; i++)
-            {
-                auto ref = std::make_shared<Button>("ListBtn2222");
-                ref->props.layout.setMargin({0, 0, 5, 5})
-                    .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-                    .setScale({1.0f, props.rowSize});
-                ref->props.color = Utils::randomRGB();
-                boxCont_->append(ref);
-            }
-        }
-
-        // log_.debugLn("here %f %f", childEnd, parentEnd - props.rowSize);
-        if (childEnd > parentEnd - props.rowSize)
-        {
-            log_.debugLn("overflow");
-
-            int32_t nodesToRemove = (childEnd - parentEnd) / props.rowSize - 1;
-            // log_.debugLn("here %d", nodesToRemove);
-            for (int32_t i = 0; i < nodesToRemove; i++)
-            {
-                boxCont_->removeAt(boxCont_->getChildren().size());
-            }
-        }
-    }
-
-    // Don't do append/remove calcs if there's no diff in scroll
-    if (diff_ == 0) { return; }
-
-    // std::vector<glm::vec4> removedColors; // shall be "removed items" or to at least know at what index it was
-    // int32_t removed = boxCont_->removeBy([this, &removedColors](AbstractNodePtr btn)
-    // {
-    //     Button* ref = static_cast<Button*>(btn.get());
-    //     // Scroll knob goes downwards
-    //     if (diff_ > 0)
-    //     {
-    //         if (ref->getTransform().pos.y < boxCont_->getTransform().pos.y - props.rowSize)
-    //         {
-    //             boxCont_->props.additionalOffset -= props.rowSize;
-    //             // removedColor = ref->props.color;
-    //             removedColors.push_back(ref->props.color);
-    //             return true;
-    //         }
-    //     }
-    //     // Scroll knob goes upwards
-    //     else if (diff_ < 0)
-    //     {
-    //         if (ref->getTransform().pos.y + ref->getTransform().scale.y
-    //             > boxCont_->getTransform().pos.y + boxCont_->getTransform().scale.y + props.rowSize)
-    //         {
-    //             boxCont_->props.additionalOffset += props.rowSize;
-    //             removedColors.push_back(ref->props.color);
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // });
-
-    // TODO: Check if we really need to add more or leave the current amount of nodes + remove slider
-    // for (int32_t i = 0; i < removed; i++)
-    // {
-    //     // TODO: Nodes on scroll should be recycled, not recreated
-    //     auto ref = std::make_shared<Button>("ListBtn2222");
-    //     ref->props.layout.setMargin({0, 0, 5, 5})
-    //         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-    //         .setScale({1.0f, props.rowSize});
-    //     // ref->props.color = Utils::randomRGB();
-
-    //     // Scroll knob goes downwards
-    //     if (diff_ > 0)
-    //     {
-    //         ref->props.color = removedColors[i];
-    //         boxCont_->append(ref);
-    //     }
-    //     // Scroll knob goes upwards
-    //     else if (diff_ < 0)
-    //     {
-    //         ref->props.color = removedColors[removed - 1 - i];
-    //         boxCont_->appendAt(ref, 0);
-    //     }
-    // }
-
-    diff_ = 0;
+    oldTopOfList_ = topOfListIdx;
+    oldBotOfList_ = botOfListIdx;
+    slideDiff_ = 0;
+    lastScaleY = transform_.scale.y;
 }
+
 
 void RecycleList::onSliderValueChanged(float newVal)
 {
     static float prevVal = 0;
-    diff_ = newVal - prevVal;
-    // boxCont_->props.additionalOffset = newVal;
-    boxCont_->props.additionalOffset += diff_;
-    // diff_ = 0;
+    slideDiff_ = (newVal - prevVal);
+    boxCont_->props.additionalOffset -= slideDiff_;
     prevVal = newVal;
-
-    // of 100 | rs 20
-    // sv 0 -> top of the list is index 0
-    // sv 20 -> top of the list is index 1
-    // sv 40 -> top of the list is index 2
-    // sv / rs ?
 }
 
 void RecycleList::onMouseButtonNotify()
