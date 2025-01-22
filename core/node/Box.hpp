@@ -19,7 +19,6 @@ public:
         glm::vec4 color{1.0f};
         glm::vec4 borderColor{1.0f};
         // int32_t additionalOffset{0};
-        float additionalOffset{0};
         AR<int32_t> scrollBarSize{20};
     };
 

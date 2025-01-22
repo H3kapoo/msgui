@@ -255,7 +255,6 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
         auto& pos = ch->getTransform().pos;
         pos.x += -scrollNodeData.offsetPx.x + pPos.x + layout->padding.left + layout->border.left;
         pos.y += -scrollNodeData.offsetPx.y + pPos.y + layout->padding.top + layout->border.top;
-
         // AlignChild
         // Negative overflow means we still have X amount of pixels until the parent is full on that axis
         // We can leverage this to position elements top, left, right, bot, center.
@@ -299,19 +298,6 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
                     log_.warnLn("Unrecognized alignChildY value: ENUM(%d)",
                         static_cast<uint8_t>(layout->alignChild.y));
             }
-        }
-    }
-
-    // Temp for now
-    if (parent->getType() == AbstractNode::NodeType::BOX)
-    {
-        Box* boxCont = static_cast<Box*>(parent.get());
-
-        for (auto& ch : children)
-        {
-            auto& pos = ch->getTransform().pos;
-            pos.y += boxCont->props.additionalOffset;
-            // pos.y += (int32_t)boxCont->props.additionalOffset % 20;
         }
     }
 

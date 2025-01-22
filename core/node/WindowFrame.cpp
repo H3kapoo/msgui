@@ -139,7 +139,7 @@ bool WindowFrame::isPrimary() const
 
 bool WindowFrame::run()
 {
-    // see if cursor needs changing
+    // See if cursor needs changing
     if (frameState_->currentCursorId != frameState_->prevCursorId)
     {
         frameState_->prevCursorId = frameState_->currentCursorId;
@@ -159,6 +159,7 @@ bool WindowFrame::run()
         if (frameState_->isLayoutDirty)
         {
             Window::requestEmptyEvent();
+            return false; // do not render yet, go away.
             //TODO: Theoretically it's better to use run() here but it can get stuck in an infinite
             // layout calculation loop if we mess pretty hard with the window size.
             // Calling requestEmptyEvent is a bit slower because it needs to also render the frame but maybe
@@ -193,14 +194,13 @@ void WindowFrame::renderLayout()
     // for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
     for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
-        Renderer::render(node, pMat);
+        Renderer::render(node, pMat, frameState_->frameSize.y);
     }
 }
 
 void WindowFrame::updateLayout()
 {
-    // Must redo internal vector structure if something was added.
-    // Removal preserves the node "depth"-ness so we don't need to redo it.
+    // Must redo internal vector structure if something was added/removed.
     if (frameState_->layoutStoreNeedsRecreate)
     {
         resolveNodeRelations();
@@ -276,7 +276,6 @@ void WindowFrame::resolveNodeRelations()
         {
             return a->getTransform().pos.z > b->getTransform().pos.z;
         });
-    frameState_->layoutNeedsSort = false;
 }
 
 void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action)

@@ -49,8 +49,9 @@ private:
     BoxPtr boxCont_{nullptr};
 
     float slideDiff_{0};
-    int32_t oldTopOfList_{0};
+    int32_t oldTopOfList_{-1};
     int32_t oldBotOfList_{0};
+    int32_t oldVisibleNodes_{0};
     float lastScaleY{0};
 };
 using RecycleListPtr = std::shared_ptr<RecycleList>;

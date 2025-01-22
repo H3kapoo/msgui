@@ -136,7 +136,8 @@ void BoxDivider::setupReloadables()
         MAKE_LAYOUT_DIRTY
     };
 
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+    // auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY };
 
     props.layout._onAlignSelfChange = updateCb;
     props.layout._onMarginChange = updateCb;

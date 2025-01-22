@@ -9,9 +9,10 @@
 namespace msgui
 {
 #define MAKE_LAYOUT_DIRTY if (state_) { state_->isLayoutDirty = true; };
+#define REQUEST_STORE_RECREATE MAKE_LAYOUT_DIRTY if (state_) { state_->layoutStoreNeedsRecreate = true; };
 #define REQUEST_NEW_FRAME if (state_) { state_->requestNewFrameFunc(); };
 #define MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME\
-    MAKE_LAYOUT_DIRTY\
+    REQUEST_STORE_RECREATE\
     REQUEST_NEW_FRAME\
 
 // Cannot include AbstractNode.hpp due to imminent gl/glfw conflicts
@@ -35,7 +36,6 @@ struct FrameState
     AbstractNodePtr hoveredNodePtr                  {NO_PTR};
     std::function<void()> requestNewFrameFunc       {nullptr};
     bool isLayoutDirty                              {true};
-    bool layoutNeedsSort                            {true};
     bool layoutStoreNeedsRecreate                   {true};
     int32_t currentCursorId                         {GLFW_ARROW_CURSOR};
     int32_t prevCursorId                            {GLFW_ARROW_CURSOR};
