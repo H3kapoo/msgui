@@ -21,7 +21,8 @@ public:
         node->setShaderAttributes();
         node->getShader().setMat4f("uProjMat", projMat);
 
-        // printf("height %f\n", -2.0f / projMat[1][1]);
+        // printf("%d\n", frameSizeY);
+        // printf("vPos %d %d vScale %d %d\n", t.vPos.x, t.vPos.y, t.vScale.x, t.vScale.y);
         // Window::setScissorTest(false);
         glScissor(
             t.vPos.x,

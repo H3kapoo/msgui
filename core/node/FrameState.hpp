@@ -8,10 +8,11 @@
 
 namespace msgui
 {
-#define MAKE_LAYOUT_DIRTY if (state_) { state_->isLayoutDirty = true; };
-#define REQUEST_STORE_RECREATE MAKE_LAYOUT_DIRTY if (state_) { state_->layoutStoreNeedsRecreate = true; };
-#define REQUEST_NEW_FRAME if (state_) { state_->requestNewFrameFunc(); };
+#define MAKE_LAYOUT_DIRTY      if (state_) { state_->isLayoutDirty = true; };
+#define REQUEST_STORE_RECREATE if (state_) { state_->layoutStoreNeedsRecreate = true; };
+#define REQUEST_NEW_FRAME      if (state_) { state_->requestNewFrameFunc(); };
 #define MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME\
+    MAKE_LAYOUT_DIRTY \
     REQUEST_STORE_RECREATE\
     REQUEST_NEW_FRAME\
 

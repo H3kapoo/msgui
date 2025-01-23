@@ -22,21 +22,18 @@ public:
 public:
     RecycleList(const std::string& name);
 
-    // void appendBoxContainer(const BoxPtr& box);
-    // void append(const BoxPtr& box);
-    void createSlots(uint32_t slotCount, std::vector<float> initialPercSize);
-
     void setShaderAttributes() override;
     void* getProps() override;
 
+private: // friend
+    friend WindowFrame;
     void onLayoutUpdateNotify();
-    void dummy();
 
 private:
     void onSliderValueChanged(float newVal);
-
     void onMouseButtonNotify() override;
 
+    void updateNodePositions();
     void setupReloadables();
 
 public:
@@ -48,9 +45,7 @@ private:
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
 
-    float slideDiff_{0};
     int32_t oldTopOfList_{-1};
-    int32_t oldBotOfList_{0};
     int32_t oldVisibleNodes_{0};
     float lastScaleY{0};
 };

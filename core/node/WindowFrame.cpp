@@ -210,22 +210,23 @@ void WindowFrame::updateLayout()
     for (auto& node : allFrameChildNodes_ | std::views::reverse)
     {
         glm::ivec2 overflow = layoutEngine_->process(node);
+
         // Currently only BOX type nodes support overflow handling
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
             static_cast<Box*>(node.get())->updateOverflow(overflow);
         }
 
-        // After updating the node layout, we need to update the viewable area of the node. Raw parent is used
-        // for better performance (compared to locking each time).
+        // After updating the node layout, we need to update the viewable area of the node based on the parent's
+        // viewable area. Raw parent is used for better performance (compared to locking each time).
         // TODO: This shall be moved into layout process().
         if (auto p = node->getParentRaw())
         {
-            // RecyleList being the king it is, requires that we tell it that the layout pass for it had finished
-            // Note that we do this on the parent of the current node because we need to notify it AFTER the
+            // RecyleList being the king it is, requires that we tell it that the layout pass for it had finished.
+            // Note that we do this on the parent of the current BOX node because we need to notify it AFTER the
             // item containing BOX inside it finished the layout pass.
-            if (node->getType() == AbstractNode::NodeType::BOX &&
-                p->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+            if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
+                node->getType() == AbstractNode::NodeType::BOX)
             {
                 static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
             }

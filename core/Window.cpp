@@ -41,9 +41,9 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     }
 
     maskUnnecessaryEvents();
-    log_.infoLn("Created!");
-
     onResizeEvent(width, height);
+    setScissorArea(0, 0, width, height);
+    log_.infoLn("Created!");
 }
 
 Window::~Window()
@@ -145,6 +145,11 @@ void Window::setDepthTest(const bool state)
 void Window::setScissorTest(const bool state)
 {
     state ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+}
+
+void Window::setScissorArea(const int32_t x, const int32_t y, const int32_t width, const int32_t height)
+{
+    glScissor(x, y, width, height);
 }
 
 void Window::setVSync(const int32_t internal)

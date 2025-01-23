@@ -25,10 +25,10 @@ public:
 
     static inline float random01()
     {
-        std::random_device rd;
-        std::mt19937 generator(rd());
+        static std::random_device rd;
+        static std::mt19937 generator(rd());
 
-        std::uniform_real_distribution<> distance(0.0, 1.0);
+        static std::uniform_real_distribution<> distance(0.0, 1.0);
         return distance(generator);
     }
 
