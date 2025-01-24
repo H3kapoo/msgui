@@ -1,32 +1,26 @@
 #pragma once
 
-#include <memory>
-
 #include "core/Listeners.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/ScrollBar.hpp"
-#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
-class WindowFrame; //Friend
 class Box : public AbstractNode
 {
-public:
-    struct Props
-    {
-        Layout layout; // Do not change position
-        glm::vec4 color{1.0f};
-        glm::vec4 borderColor{1.0f};
-        // int32_t additionalOffset{0};
-        AR<int32_t> scrollBarSize{20};
-    };
-
+struct Props;
 public:
     Box(const std::string& name);
 
-    void* getProps() override;
     bool isScrollBarActive(const ScrollBar::Orientation orientation);
+
+    Props& setColor(const glm::vec4& color);
+    Props& setBorderColor(const glm::vec4& color);
+    Props& setScrollbarSize(const int32_t size);
+
+    glm::vec4 getColor() const;
+    glm::vec4 getBorderColor() const;
+    int32_t getScrollbarSize() const;
 
 private: // friend
     friend WindowFrame;
@@ -37,16 +31,18 @@ private:
     void onMouseButtonNotify() override;
     void onMouseDragNotify() override;
 
-    void setupReloadables();
-
 public:
     Listeners listeners;
-    Props props;
 
 private:
-    // temp
-    int32_t lastX{0};
+    struct Props
+    {
+        glm::vec4 color{1.0f};
+        glm::vec4 borderColor{1.0f};
+        int32_t scrollBarSize{20};
+    };
 
+    Props props;
     glm::ivec2 overflow_{0, 0};
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};

@@ -12,13 +12,8 @@ ScrollBarKnob::ScrollBarKnob()
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
         "ScrollBarKnob", NodeType::SCROLL_KNOB)
 {
-    props.layout.border = Layout::TBLR{4};
-    props.layout.borderRadius = Layout::TBLR{8};
-}
-
-void* ScrollBarKnob::getProps()
-{
-    return &props;
+    getLayout().border = Layout::TBLR{4};
+    getLayout().borderRadius = Layout::TBLR{8};
 }
 
 void ScrollBarKnob::setShaderAttributes()
@@ -27,8 +22,8 @@ void ScrollBarKnob::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
+    shader_->setVec4f("uBorderSize", getLayout().border);
+    shader_->setVec4f("uBorderRadii", getLayout().borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
@@ -57,4 +52,20 @@ void ScrollBarKnob::onMouseDragNotify()
 
     sbParentRaw->onMouseDragNotify();
 }
+
+ScrollBarKnob::Props& ScrollBarKnob::setColor(const glm::vec4& color)
+{
+    props.color = color;
+    return props;
+}
+
+ScrollBarKnob::Props& ScrollBarKnob::setBorderColor(const glm::vec4& color)
+{
+    props.borderColor = color;
+    return props;
+}
+
+glm::vec4 ScrollBarKnob::getColor() const { return props.color; }
+
+glm::vec4 ScrollBarKnob::getBorderColor() const { return props.borderColor; }
 } // msgui

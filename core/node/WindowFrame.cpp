@@ -65,10 +65,10 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     frameBox_->props.color = Utils::hexToVec4("#cc338bff");
     frameBox_->transform_.pos = {0, 0, 1};
     frameBox_->transform_.scale = {width, height, 1};
-    frameBox_->transform_.vPos = {frameBox_->props.layout.border.left, frameBox_->props.layout.border.top};
+    frameBox_->transform_.vPos = {frameBox_->getLayout().border.left, frameBox_->getLayout().border.top};
     frameBox_->transform_.vScale = {
-        width - frameBox_->props.layout.border.left - frameBox_->props.layout.border.left,
-        height - frameBox_->props.layout.border.top - frameBox_->props.layout.border.bot};
+        width - frameBox_->getLayout().border.left - frameBox_->getLayout().border.left,
+        height - frameBox_->getLayout().border.top - frameBox_->getLayout().border.bot};
     frameBox_->state_ = frameState_;
 
     // Init cursors
@@ -231,13 +231,8 @@ void WindowFrame::updateLayout()
                 static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
             }
 
-            const Layout* pLayout = static_cast<Layout*>(p->getProps());
-            if (!pLayout)
-            {
-                log_.errorLn("Whoops no layout %s", p->getCName());
-                return;
-            }
-            node->transform_.computeViewableArea(p->transform_, pLayout->border);
+            const Layout& pLayout = p->getLayout();
+            node->transform_.computeViewableArea(p->transform_, pLayout.border);
         }
     }
 }

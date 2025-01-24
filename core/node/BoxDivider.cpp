@@ -15,7 +15,7 @@ BoxDivider::BoxDivider(const std::string& name)
     log_ = ("BoxDivider(" + name + ")");
 
     //TODO: Box divider should not be "active" with < 2 boxes
-    setupReloadables();
+    setupLayoutReloadables();
 }
 
 void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercSize)
@@ -25,13 +25,13 @@ void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercS
     for (uint32_t i = 0; i < slotCount; i++)
     {
         auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
-        if (props.layout.type == Layout::Type::HORIZONTAL)
+        if (layout_.type == Layout::Type::HORIZONTAL)
         {
-            ref->props.layout.scale = {initialPercSize[i], 1.0f};
+            ref->getLayout().scale = {initialPercSize[i], 1.0f};
         }
-        else if (props.layout.type == Layout::Type::VERTICAL)
+        else if (layout_.type == Layout::Type::VERTICAL)
         {
-            ref->props.layout.scale = {1.0f, initialPercSize[i]};
+            ref->getLayout().scale = {1.0f, initialPercSize[i]};
         }
     }
 
@@ -48,7 +48,7 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
         auto thisBoxIt = std::next(boxes.begin(), i);
         AbstractNode::append(*thisBoxIt);
 
-        (*thisBoxIt)->props.layout
+        (*thisBoxIt)->getLayout()
             .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL});
 
         if (i == 0 || i != size - 1)
@@ -64,7 +64,7 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
                 "BoxDividerSep" + std::to_string(i),
                 *thisBoxIt,
                 *nextBoxIt);
-            sep->props.layout.setType(props.layout.type);
+            sep->getLayout().setType(layout_.type);
             AbstractNode::append(sep);
         }
     }
@@ -76,12 +76,50 @@ void BoxDivider::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
+    shader_->setVec4f("uBorderSize", layout_.border);
+    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void* BoxDivider::getProps() { return (void*)&props; }
+void BoxDivider::onMouseButtonNotify()
+{
+    // User custom behavior
+    // listeners.callOnMouseButton(
+    //     state_->lastMouseButtonTriggeredIdx,
+    //     state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
+    //     state_->mouseX,
+    //     state_->mouseY);
+}
+
+void BoxDivider::setupLayoutReloadables()
+{
+    layout_.onTypeChange = [this]()
+    {
+        for (auto& ch : getChildren())
+        {
+            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
+            {
+                auto sep = static_cast<BoxDividerSep*>(ch.get());
+                sep->getLayout().setType(layout_.type);
+            }
+            else
+            {
+                auto box = static_cast<Box*>(ch.get());
+                std::swap(box->getLayout().scale.x, box->getLayout().scale.y);
+            }
+        }
+
+        MAKE_LAYOUT_DIRTY
+    };
+
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY };
+
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onMarginChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onScaleChange = updateCb;
+}
 
 BoxPtr BoxDivider::getSlot(uint32_t slotNumber)
 {
@@ -105,44 +143,19 @@ BoxDividerSepPtr BoxDivider::getSepatator(uint32_t sepNumber)
     return nullptr;
 }
 
-void BoxDivider::onMouseButtonNotify()
+BoxDivider::Props& BoxDivider::setColor(const glm::vec4& color)
 {
-    // User custom behavior
-    // listeners.callOnMouseButton(
-    //     state_->lastMouseButtonTriggeredIdx,
-    //     state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
-    //     state_->mouseX,
-    //     state_->mouseY);
+    props.color = color;
+    return props;
 }
 
-void BoxDivider::setupReloadables()
+BoxDivider::Props& BoxDivider::setBorderColor(const glm::vec4& color)
 {
-    props.layout._onTypeChange = [this]()
-    {
-        for (auto& ch : getChildren())
-        {
-            if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
-            {
-                auto sep = static_cast<BoxDividerSep*>(ch.get());
-                sep->props.layout.setType(props.layout.type);
-            }
-            else
-            {
-                auto box = static_cast<Box*>(ch.get());
-                std::swap(box->props.layout.scale.x, box->props.layout.scale.y);
-            }
-        }
-
-        MAKE_LAYOUT_DIRTY
-    };
-
-    // auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY };
-
-    props.layout._onAlignSelfChange = updateCb;
-    props.layout._onMarginChange = updateCb;
-    props.layout._onBorderChange = updateCb;
-    props.layout._onScaleTypeChange = updateCb;
-    props.layout._onScaleChange = updateCb;
+    props.borderColor = color;
+    return props;
 }
+
+glm::vec4 BoxDivider::getColor() const { return props.color; }
+
+glm::vec4 BoxDivider::getBorderColor() const { return props.borderColor; }
 } // msgui

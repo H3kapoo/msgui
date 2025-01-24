@@ -70,41 +70,5 @@ public:
         const float t = (value - startA) / (endA - startA);
         return (1.0f - t) * startB + t * endB;
     }
-
-    // Used for values that cannot take effect by means of layout update or render call.
-    template <typename T>
-    struct AssignReloadable
-    {
-        // Cannot copy or create from another AR.
-        AssignReloadable(const AssignReloadable& _value) = delete;
-        AssignReloadable& operator=(const AssignReloadable& _value) = delete;
-
-        AssignReloadable()
-        {}
-
-        AssignReloadable(const T& _value)
-            : value{_value}
-        {}
-
-
-        AssignReloadable& operator=(const T& _value)
-        {
-            value = _value;
-
-            if (onReload) { onReload(); }
-            else { Logger("Utils").warnLn("AssignReloadable no function provided"); };
-
-            return *this;
-        }
-
-        operator T&() { return value; }
-        operator const T&() const { return value; }
-
-        T value{};
-        std::function<void()> onReload{nullptr};
-    };
-
 };
-template<typename T>
-using AR = Utils::AssignReloadable<T>;
 } // namespace msgui

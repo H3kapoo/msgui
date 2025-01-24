@@ -8,6 +8,7 @@
 #include "core/Transform.hpp"
 #include "core/node/FrameState.hpp"
 #include "core/Logger.hpp"
+#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
@@ -53,7 +54,7 @@ public:
     void printTree(uint32_t currentDepth = 1);
 
     virtual void setShaderAttributes() = 0;
-    virtual void* getProps() = 0;
+    // virtual void* getProps() = 0;
 
     void setShader(Shader* shader);
 
@@ -69,6 +70,7 @@ public:
     uint32_t getId() const;
     NodeType getType() const;
     std::vector<std::shared_ptr<AbstractNode>>& getChildren();
+    Layout& getLayout();
 
 private: // friend
     friend WindowFrame;
@@ -96,6 +98,7 @@ protected:
     std::weak_ptr<AbstractNode> parent_;
     AbstractNode* parentRaw_{nullptr}; 
     std::vector<std::shared_ptr<AbstractNode>> children_;
+    Layout layout_;
 
     Logger log_;
 };

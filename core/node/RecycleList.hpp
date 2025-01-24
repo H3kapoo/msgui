@@ -4,21 +4,12 @@
 #include "core/Listeners.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/Slider.hpp"
-#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
 class RecycleList : public AbstractNode
 {
-public:
-    struct Props
-    {
-        Layout layout; // Do not change position
-        glm::vec4 color{1.0f};
-        glm::vec4 borderColor{1.0f};
-        int32_t rowSize{20};
-    };
-
+struct Props;
 public:
     RecycleList(const std::string& name);
 
@@ -26,25 +17,38 @@ public:
     void removeItem(const int32_t idx);
     void removeTailItems(const int32_t amount);
 
-    void setShaderAttributes() override;
-    void* getProps() override;
+    Props& setColor(const glm::vec4& color);
+    Props& setBorderColor(const glm::vec4& color);
+    Props& setRowSize(const int32_t rowSize);
+
+    glm::vec4 getColor() const;
+    glm::vec4 getBorderColor() const;
+    int32_t getRowSize() const;
 
 private: // friend
     friend WindowFrame;
     void onLayoutUpdateNotify();
 
 private:
+    void setShaderAttributes() override;
+
     void onSliderValueChanged(float newVal);
     void onMouseButtonNotify() override;
 
     void updateNodePositions();
-    void setupReloadables();
+    void setupLayoutReloadables();
 
 public:
     Listeners listeners;
-    Props props;
 
 private:
+    struct Props
+    {
+        glm::vec4 color{1.0f};
+        glm::vec4 borderColor{1.0f};
+        int32_t rowSize{20};
+    };
+    Props props;
     std::vector<glm::vec4> listItems_;
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};

@@ -5,7 +5,6 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/Utils.hpp"
-#include "core/node/utils/LayoutData.hpp"
 #include "core/node/utils/ScrollBarKnob.hpp"
 
 namespace msgui
@@ -13,6 +12,7 @@ namespace msgui
 /* Manages scroll actions on an attached Box node */
 class ScrollBar : public AbstractNode
 {
+struct Props;
 public:
     enum class Orientation
     {
@@ -22,20 +22,15 @@ public:
         NONE
     };
 
-    struct Props
-    {
-        Layout layout; // Do not change position
-        glm::vec4 color{Utils::hexToVec4("#ffffffff")};
-        AR<int32_t> sbSize{20};
-    };
-
 public:
     ScrollBar(const std::string& name, const Orientation orientation);
 
     bool setOverflow(const int32_t overflow);
+    Props& setColor(const glm::vec4& color);
+    Props& setScrollbarSize(const int32_t size);
 
-    void* getProps() override;
-
+    glm::vec4 getColor() const;
+    int32_t getScrollbarSize() const;
     float getKnobOffset();
     int32_t geOverflowOffset();
     int32_t getOverflowSize();
@@ -51,10 +46,14 @@ private:
     void onMouseHoverNotify() override;
     void onMouseDragNotify() override;
 
-public:
+private:
+    struct Props
+    {
+        glm::vec4 color{Utils::hexToVec4("#ffffffff")};
+        int32_t sbSize{20};
+    };
     Props props;
 
-private:
     Logger log_;
     float knobOffset_{0};
     int32_t overflowSize_{0};

@@ -12,13 +12,8 @@ SliderKnob::SliderKnob(const std::string& name)
     : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
         name, NodeType::COMMON)
 {
-    // props.layout.border = Layout::TBLR{4};
-    // props.layout.borderRadius = Layout::TBLR{8};
-}
-
-void* SliderKnob::getProps()
-{
-    return &props;
+    // getLayout().border = Layout::TBLR{4};
+    // getLayout().borderRadius = Layout::TBLR{8};
 }
 
 void SliderKnob::setShaderAttributes()
@@ -27,8 +22,8 @@ void SliderKnob::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
+    shader_->setVec4f("uBorderSize", getLayout().border);
+    shader_->setVec4f("uBorderRadii", getLayout().borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
@@ -57,4 +52,20 @@ void SliderKnob::onMouseDragNotify()
 
     sbParentRaw->onMouseDragNotify();
 }
+
+SliderKnob::Props& SliderKnob::setColor(const glm::vec4& color)
+{
+    props.color = color;
+    return props;
+}
+
+SliderKnob::Props& SliderKnob::setBorderColor(const glm::vec4& color)
+{
+    props.borderColor = color;
+    return props;
+}
+
+glm::vec4 SliderKnob::getColor() const { return props.color; }
+
+glm::vec4 SliderKnob::getBorderColor() const { return props.borderColor; }
 } // msgui

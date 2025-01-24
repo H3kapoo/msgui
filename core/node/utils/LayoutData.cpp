@@ -5,98 +5,98 @@ namespace msgui
 Layout& Layout::setType(const Type typeIn)
 {
     type = typeIn;
-    _onTypeChange();
+    onTypeChange();
     return *this;
 }
 
 Layout& Layout::setAllowWrap(const bool allowIn)
 {
     allowWrap = allowIn;
-    _onAllowWrapChange();
+    onAllowWrapChange();
     return *this;
 }
 
 Layout& Layout::setAllowOverflow(const AllowXY allowIn)
 {
     allowOverflow = allowIn;
-    _onAllowOverflowChange();
+    onAllowOverflowChange();
     return *this;
 }
 
 Layout& Layout::setMargin(const TBLR valueIn)
 {
     margin = valueIn;
-    _onMarginChange();
+    onMarginChange();
     return *this;
 }
 
 Layout& Layout::setPadding(const TBLR valueIn)
 {
     padding = valueIn;
-    _onPaddingChange();
+    onPaddingChange();
     return *this;
 }
 
 Layout& Layout::setBorder(const TBLR valueIn)
 {
     border = valueIn;
-    _onBorderChange();
+    onBorderChange();
     return *this;
 }
 
 Layout& Layout::setBorderRadius(const TBLR valueIn)
 {
     borderRadius = valueIn;
-    _onBorderRadiusChange();
+    onBorderRadiusChange();
     return *this;
 }
 
 Layout& Layout::setAlignSelf(const Align valueIn)
 {
     alignSelf = valueIn;
-    _onAlignSelfChange();
+    onAlignSelfChange();
     return *this;
 }
 
 Layout& Layout::setAlignChild(const AlignXY valueIn)
 {
     alignChild = valueIn;
-    _onAlignChildChange();
+    onAlignChildChange();
     return *this;
 }
 
 Layout& Layout::setSpacing(const Spacing valueIn)
 {
     spacing = valueIn;
-    _onSpacingChange();
+    onSpacingChange();
     return *this;
 }
 
 Layout& Layout::setScaleType(const ScaleTypeXY valueIn)
 {
     scaleType = valueIn;
-    _onScaleTypeChange();
+    onScaleTypeChange();
     return *this;
 }
 
 Layout& Layout::setScale(const glm::vec2 valueIn)
 {
     scale = valueIn;
-    _onScaleChange();
+    onScaleChange();
     return *this;
 }
 
 Layout& Layout::setMinScale(const glm::vec2 valueIn)
 {
     minScale = valueIn;
-    _onMinScaleChange();
+    onMinScaleChange();
     return *this;
 }
 
 Layout& Layout::setMaxScale(const glm::vec2 valueIn)
 {
     maxScale = valueIn;
-    _onMaxScaleChange();
+    onMaxScaleChange();
     return *this;
 }
 } // namespace msgui

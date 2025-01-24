@@ -283,6 +283,11 @@ std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
     return children_;
 }
 
+Layout& AbstractNode::getLayout()
+{
+    return layout_;
+}
+
 void AbstractNode::onMouseButtonNotify() {}
 void AbstractNode::onMouseHoverNotify() {}
 void AbstractNode::onMouseDragNotify() {}

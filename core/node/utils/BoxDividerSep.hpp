@@ -4,27 +4,21 @@
 #include "core/Listeners.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/FrameState.hpp"
-#include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
 {
 class BoxDividerSep : public AbstractNode
 {
-public:
-    struct Props
-    {
-        Layout layout; // Do not change position
-        glm::vec4 color{1.0f};
-        glm::vec4 borderColor{1.0f};
-        bool isActiveSeparator{false};
-    };
-
+struct Props;
 public:
     BoxDividerSep(const std::string& name, const BoxPtr& firstBox, const BoxPtr& secondBox);
 
     void setShaderAttributes() override;
-    void* getProps() override;
 
+    Props& setColor(const glm::vec4 color);
+    Props& setBorderColor(const glm::vec4 color);
+
+    bool getIsActiveSeparator();
     BoxPtr getFirstBox();
     BoxPtr getSecondBox();
 
@@ -32,20 +26,20 @@ private:
     void onMouseButtonNotify() override;
     void onMouseDragNotify() override;
 
-    void setupReloadables();
-
-    // BoxDividerSeps shall not have user added children
-    // void append();
-    // void appendMany();
-    // void remove();
-    // void removeMany();
+    void setupLayoutReloadables();
 
 public:
     Listeners listeners;
-    Props props;
-
     bool activeNow_{false};
+
 private:
+    struct Props
+    {
+        glm::vec4 color{1.0f};
+        glm::vec4 borderColor{1.0f};
+        bool isActiveSeparator{false};
+    };
+    Props props;
     BoxPtr firstBox_{nullptr};
     BoxPtr secondBox_{nullptr};
 };

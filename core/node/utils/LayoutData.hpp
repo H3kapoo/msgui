@@ -119,20 +119,20 @@ struct Layout
     glm::vec2 minScale    {0, 0};
     glm::vec2 maxScale    {10'000, 10'000};
 
-    std::function<void()> _onAllowOverflowChange {[](){}};
-    std::function<void()> _onAllowWrapChange {[](){}};
-    std::function<void()> _onTypeChange {[](){}};
-    std::function<void()> _onMarginChange {[](){}};
-    std::function<void()> _onPaddingChange {[](){}};
-    std::function<void()> _onBorderChange {[](){}};
-    std::function<void()> _onBorderRadiusChange {[](){}};
-    std::function<void()> _onAlignSelfChange {[](){}};
-    std::function<void()> _onAlignChildChange {[](){}};
-    std::function<void()> _onSpacingChange {[](){}};
-    std::function<void()> _onScaleTypeChange {[](){}};
-    std::function<void()> _onScaleChange {[](){}};
-    std::function<void()> _onMinScaleChange {[](){}};
-    std::function<void()> _onMaxScaleChange {[](){}};
+    std::function<void()> onAllowOverflowChange {[](){}};
+    std::function<void()> onAllowWrapChange {[](){}};
+    std::function<void()> onTypeChange {[](){}};
+    std::function<void()> onMarginChange {[](){}};
+    std::function<void()> onPaddingChange {[](){}};
+    std::function<void()> onBorderChange {[](){}};
+    std::function<void()> onBorderRadiusChange {[](){}};
+    std::function<void()> onAlignSelfChange {[](){}};
+    std::function<void()> onAlignChildChange {[](){}};
+    std::function<void()> onSpacingChange {[](){}};
+    std::function<void()> onScaleTypeChange {[](){}};
+    std::function<void()> onScaleChange {[](){}};
+    std::function<void()> onMinScaleChange {[](){}};
+    std::function<void()> onMaxScaleChange {[](){}};
 
     glm::vec2       tempScale     {0, 0};
 };

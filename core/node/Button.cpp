@@ -13,12 +13,12 @@ Button::Button(const std::string& name)
 {
     log_ = ("Button(" + name + ")");
 
-    setupReloadables();
+    setupLayoutReloadables();
 
     props.color = Utils::hexToVec4("#bbbbbbff");
     props.borderColor = Utils::hexToVec4("#55bbbbff");
-    // props.layout.border = Layout::TBLR{5, 2, 5, 2};
-    // props.layout.border = Layout::TBLR{2, 5, 2, 5};
+    // layout_.border = Layout::TBLR{5, 2, 5, 2};
+    // layout_.border = Layout::TBLR{2, 5, 2, 5};
 }
 
 void Button::setShaderAttributes()
@@ -35,14 +35,9 @@ void Button::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
+    shader_->setVec4f("uBorderSize", layout_.border);
+    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-}
-
-void* Button::getProps()
-{
-    return (void*)&props;
 }
 
 void Button::onMouseButtonNotify()
@@ -50,12 +45,12 @@ void Button::onMouseButtonNotify()
     // Predefined behavior
     if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
-        // props.layout.border = Layout::TBLR{5, 2, 5, 2};
+        // layout_.border = Layout::TBLR{5, 2, 5, 2};
         // props.borderColor = Utils::hexToVec4("#dd0000ff");
     }
     else if (!state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
-        // props.layout.border = Layout::TBLR{2, 5, 2, 5};
+        // layout_.border = Layout::TBLR{2, 5, 2, 5};
         // props.borderColor = Utils::hexToVec4("#55bbbbff");
     }
 
@@ -67,19 +62,40 @@ void Button::onMouseButtonNotify()
         state_->mouseY);
 }
 
-void Button::setupReloadables()
+void Button::setupLayoutReloadables()
 {
     auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
-    props.layout._onAlignSelfChange = updateCb;
-    props.layout._onMarginChange = updateCb;
-    props.layout._onBorderChange = updateCb;
-    props.layout._onScaleTypeChange = updateCb;
-    props.layout._onScaleChange = updateCb;
-
-    props.texture.onReload = [this]()
-    {
-        btnTex_ = TextureLoader::loadTexture(props.texture.value);
-    };
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onMarginChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onScaleChange = updateCb;
 }
+
+Button::Props& Button::setColor(const glm::vec4& color)
+{
+    props.color = color;
+    return props;
+}
+
+Button::Props& Button::setBorderColor(const glm::vec4& color)
+{
+    props.borderColor = color;
+    return props;
+}
+
+Button::Props& Button::setTexture(const std::string texturePath)
+{
+    props.texturePath = texturePath;
+    btnTex_ = TextureLoader::loadTexture(texturePath);
+    return props;
+}
+
+glm::vec4 Button::getColor() const { return props.color; }
+
+glm::vec4 Button::getBorderColor() const { return props.borderColor; }
+
+std::string Button::getTexturePath() const { return props.texturePath; }
+
 } // msgui

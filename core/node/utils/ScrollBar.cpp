@@ -13,69 +13,14 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
     , orientation_(orientation)
 {
     knob_ = std::make_shared<ScrollBarKnob>();
-    props.layout.borderRadius = Layout::TBLR{8};
+    layout_.borderRadius = Layout::TBLR{8};
     props.color = Utils::hexToVec4("#eeffccff");
 
     // Note: Current limitation is that H and V scrollbars will always have the same size.
     // Cannot do independent size based on orientation yet.
-    props.sbSize.onReload = [this, orientation]()
-    {
-        if (orientation == Orientation::HORIZONTAL)
-        {
-            transform_.scale.y = props.sbSize.value;
-        }
-        else if (orientation == Orientation::VERTICAL)
-        {
-            transform_.scale.x = props.sbSize.value;
-        }
-    };
-
-    props.sbSize.onReload();
+    setScrollbarSize(props.sbSize);
 
     append(knob_);
-}
-
-bool ScrollBar::setOverflow(const int32_t overflow)
-{
-    // We shall indicate if the value was modified or not
-    if (overflowSize_ == overflow)
-    {
-        return false;
-    }
-
-    overflowSize_ = overflow;
-    return true;
-}
-
-void* ScrollBar::getProps()
-{
-    return &props;
-}
-
-float ScrollBar::getKnobOffset()
-{
-    return knobOffset_;
-}
-
-int32_t ScrollBar::geOverflowOffset()
-{
-    // When knobOffset is really small, the scrollbar will experience a "long range" of knob places
-    // in which the value should be "1" for the returned offset but instead it is "0".
-    // Current fix is to bump the offset back to "1" if knobOffset is still non zero even if the computed
-    // offset turns out to be "0".
-    // TODO: Maybe there's a better way?
-    int32_t offset = knobOffset_ * (float)overflowSize_;
-    return offset == 0 && knobOffset_ > 0 ? 1 : offset;
-}
-
-int32_t ScrollBar::getOverflowSize()
-{
-    return overflowSize_;
-}
-
-ScrollBar::Orientation ScrollBar::getOrientation()
-{
-    return orientation_;
 }
 
 void ScrollBar::setShaderAttributes()
@@ -84,8 +29,8 @@ void ScrollBar::setShaderAttributes()
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
     shader_->setVec4f("uColor", props.color);
     // shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", props.layout.border);
-    shader_->setVec4f("uBorderRadii", props.layout.borderRadius);
+    shader_->setVec4f("uBorderSize", layout_.border);
+    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
@@ -133,4 +78,68 @@ void ScrollBar::onMouseDragNotify()
     updateKnobOffset();
     state_->isLayoutDirty = true;
 }
+
+bool ScrollBar::setOverflow(const int32_t overflow)
+{
+    // We shall indicate if the value was modified or not
+    if (overflowSize_ == overflow)
+    {
+        return false;
+    }
+
+    overflowSize_ = overflow;
+    return true;
+}
+
+ScrollBar::Props& ScrollBar::setColor(const glm::vec4& color)
+{
+    props.color = color;
+    return props;
+}
+
+ScrollBar::Props& ScrollBar::setScrollbarSize(const int32_t size)
+{
+    props.sbSize = size;
+    if (orientation_ == Orientation::HORIZONTAL)
+    {
+        transform_.scale.y = props.sbSize;
+    }
+    else if (orientation_ == Orientation::VERTICAL)
+    {
+        transform_.scale.x = props.sbSize;
+    }
+    return props;
+}
+
+glm::vec4 ScrollBar::getColor() const { return props.color; }
+
+int32_t ScrollBar::getScrollbarSize() const { return props.sbSize; }
+
+
+float ScrollBar::getKnobOffset()
+{
+    return knobOffset_;
+}
+
+int32_t ScrollBar::geOverflowOffset()
+{
+    // When knobOffset is really small, the scrollbar will experience a "long range" of knob places
+    // in which the value should be "1" for the returned offset but instead it is "0".
+    // Current fix is to bump the offset back to "1" if knobOffset is still non zero even if the computed
+    // offset turns out to be "0".
+    // TODO: Maybe there's a better way?
+    int32_t offset = knobOffset_ * (float)overflowSize_;
+    return offset == 0 && knobOffset_ > 0 ? 1 : offset;
+}
+
+int32_t ScrollBar::getOverflowSize()
+{
+    return overflowSize_;
+}
+
+ScrollBar::Orientation ScrollBar::getOrientation()
+{
+    return orientation_;
+}
+
 } // namespace msgui
