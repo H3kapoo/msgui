@@ -22,6 +22,10 @@ public:
 public:
     RecycleList(const std::string& name);
 
+    void addItem(const glm::vec4& color);
+    void removeItem(const int32_t idx);
+    void removeTailItems(const int32_t amount);
+
     void setShaderAttributes() override;
     void* getProps() override;
 
@@ -45,9 +49,10 @@ private:
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
 
+    bool listIsDirty_{true};
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};
-    float lastScaleY{0};
+    float lastScaleY_{0};
 };
 using RecycleListPtr = std::shared_ptr<RecycleList>;
 } // namespace msgui

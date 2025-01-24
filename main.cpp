@@ -8,6 +8,7 @@
 #include "core/node/RecycleList.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
+#include <GLFW/glfw3.h>
 
 using namespace msgui;
 
@@ -52,6 +53,22 @@ int main()
         .setScale({400, 0.8f});
         // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
         // .setScale({400, 500});
+
+    frame->getRoot()->listeners.setOnMouseButton([&](int32_t btn, int32_t action, int32_t, int32_t)
+    {
+        if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            recycleList->addItem(Utils::randomRGB());
+            recycleList->addItem(Utils::randomRGB());
+            recycleList->addItem(Utils::randomRGB());
+        }
+        if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_RIGHT)
+        {
+            recycleList->removeTailItems(1);
+        }
+
+        mainLog.debugLn("clicked");
+    });
     // BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
     // divider->props.color = Utils::hexToVec4("#a7b430ff");
     // divider->props.layout
