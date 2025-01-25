@@ -24,13 +24,10 @@ public:
     };
 
 public:
-    Application() = default;
-    ~Application();
 
     bool init();
     void run();
-    WindowFramePtr createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
-        const bool isPrimary = false);
+    WindowFramePtr createFrame(const std::string& windowName, const uint32_t width, const uint32_t height);
 
     void setPollMode(const PollMode mode);
     void setVSync(const Toggle toggle);
@@ -40,6 +37,12 @@ public:
     static Application& get();
 
 private:
+    Application() = default;
+    Application(Application&&) = delete;
+    Application(const Application&) = delete;
+    Application& operator=(Application&&) = delete;
+    ~Application();
+
     Logger log_{"Application"};
     WindowPtr initializationWindow_;
 

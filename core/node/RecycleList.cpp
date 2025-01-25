@@ -129,7 +129,7 @@ void RecycleList::onLayoutUpdateNotify()
             if (topOfListIdx + i < (int32_t)listItems_.size())
             {
                 auto ref = std::make_shared<Button>("ListBtn2222");
-                ref->getLayout().setMargin({0, 0, 5, 5})
+                ref->getLayout().setMargin({4, 0, 5, 5})
                     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
                     .setScale({1.0f, props.rowSize});
                 ref->setColor(listItems_[topOfListIdx + i]);

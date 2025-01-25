@@ -26,7 +26,7 @@ int main()
     Logger mainLog{"MainLog"};
     // Debug& dbg = Debug::get();
 
-    WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
+    WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
     // frame->getRoot()->props.layout.type = Layout::Type::GRID;
     // frame->getRoot()->props.layout.distribution = {1fr, 10px, 1fr};  // |   eq_space  |10px|  eq_space   |
     // child->props.layout.gridStartX/Y = 0;
@@ -39,7 +39,8 @@ int main()
     frame->getRoot()->getLayout()
         .setType(Layout::Type::HORIZONTAL)
         .setAllowOverflow({true, true})
-        .setAllowWrap(true);
+        .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
+        .setAllowWrap(false);
         // .setPadding({10, 10, 10, 10});
     // frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
     // frame->getRoot()->props.color = Utils::hexToVec4("#aabb11ff");
@@ -50,11 +51,11 @@ int main()
     recycleList->getLayout()
         .setMargin({5, 5, 5, 5})
         .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({200, 1.0f});
+        .setScale({400, 0.8f});
         // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
         // .setScale({400, 500});
 
-    for (int32_t i = 0; i < 50; i++)
+    for (int32_t i = 0; i < 10; i++)
     {
         recycleList->addItem(Utils::randomRGB());
     }
@@ -81,21 +82,21 @@ int main()
     // box3->getLayout().setMinScale({100, 100}); //.setMargin({10, 10, 10, 10});
 
     // box2->append(recycleList);
-    frame->getRoot()->listeners.setOnMouseButton([&](int32_t btn, int32_t action, int32_t, int32_t)
-    {
-        if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_LEFT)
-        {
-            recycleList->addItem(Utils::randomRGB());
-            recycleList->addItem(Utils::randomRGB());
-            recycleList->addItem(Utils::randomRGB());
-        }
-        if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_RIGHT)
-        {
-            recycleList->removeTailItems(1);
-        }
+    // frame->getRoot()->listeners.setOnMouseButton([&](int32_t btn, int32_t action, int32_t, int32_t)
+    // {
+    //     if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_LEFT)
+    //     {
+    //         recycleList->addItem(Utils::randomRGB());
+    //         recycleList->addItem(Utils::randomRGB());
+    //         recycleList->addItem(Utils::randomRGB());
+    //     }
+    //     if (action == GLFW_RELEASE && btn == GLFW_MOUSE_BUTTON_RIGHT)
+    //     {
+    //         recycleList->removeTailItems(1);
+    //     }
 
-        // mainLog.debugLn("clicked");
-    });
+    //     // mainLog.debugLn("clicked");
+    // });
     // ButtonPtr preButton = std::make_shared<Button>("PreButton");
     // preButton->getTransform().scale = {200, 50, 1};
     // preButton->props.texture = "assets/textures/container.jpg";
@@ -105,15 +106,21 @@ int main()
     // frame->getRoot()->props.layout.padding = Layout::TBLR{5};
     // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
 
-    // for (int32_t i = 0; i < 20'000; i++)
+    AbstractNodePVec nodes;
+    for (int32_t i = 0; i < 4; i++)
+    {
+        BoxPtr ref = std::make_shared<Box>("Boxy");
+        ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
+        // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
+        ref->setColor(Utils::randomRGB());
+        nodes.emplace_back(ref);
+    }
     // theBox->appendMany(nodes);
-    // frame->getRoot()->appendMany(nodes);
-    // frame->getRoot()->append(preButton);
+    frame->getRoot()->appendMany(nodes);
     // frame->getRoot()->append(divider);
-    frame->getRoot()->append(recycleList);
-    // frame->getRoot()->append(slider);
+    // frame->getRoot()->append(recycleList);
 
-    frame->getRoot()->printTree();
+    // frame->getRoot()->printTree();
 
     // app.setVSync(Application::Toggle::OFF);
     app.setPollMode(Application::PollMode::ON_EVENT);

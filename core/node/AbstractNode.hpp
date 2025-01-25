@@ -12,8 +12,11 @@
 
 namespace msgui
 {
-// Friend
 class WindowFrame;
+
+class AbstractNode;
+using AbstractNodePtr = std::shared_ptr<AbstractNode>;
+using AbstractNodePVec = std::vector<AbstractNodePtr>;
 
 /* Base class for all UI nodes */
 class AbstractNode
@@ -37,20 +40,20 @@ public:
         const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
-    void appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx);
-    void append(const std::shared_ptr<AbstractNode>& node);
-    void appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes);
-    void appendMany(std::initializer_list<std::shared_ptr<AbstractNode>>& nodes);
+    void appendAt(const AbstractNodePtr& node, const uint32_t idx);
+    void append(const AbstractNodePtr& node);
+    void appendMany(const AbstractNodePVec& nodes);
+    void appendMany(std::initializer_list<AbstractNodePtr>& nodes);
     void removeAt(const int32_t idx);
-    int32_t removeBy(std::function<bool(std::shared_ptr<AbstractNode>)> pred);
+    int32_t removeBy(std::function<bool(AbstractNodePtr)> pred);
     void removeAll();
-    std::shared_ptr<AbstractNode> remove(const uint32_t& nodeId);
-    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<uint32_t>& nodeIds);
-    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<uint32_t>& nodeIds);
-    std::shared_ptr<AbstractNode> remove(const std::string& nodeName);
-    std::vector<std::shared_ptr<AbstractNode>> remove(const std::initializer_list<std::string>& nodeNames) = delete;
-    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::initializer_list<std::string>& nodeNames);
-    std::vector<std::shared_ptr<AbstractNode>> removeMany(const std::vector<std::string>& nodeNames);
+    AbstractNodePtr remove(const uint32_t& nodeId);
+    AbstractNodePVec removeMany(const std::initializer_list<uint32_t>& nodeIds);
+    AbstractNodePVec removeMany(const std::vector<uint32_t>& nodeIds);
+    AbstractNodePtr remove(const std::string& nodeName);
+    AbstractNodePVec remove(const std::initializer_list<std::string>& nodeNames) = delete;
+    AbstractNodePVec removeMany(const std::initializer_list<std::string>& nodeNames);
+    AbstractNodePVec removeMany(const std::vector<std::string>& nodeNames);
     void printTree(uint32_t currentDepth = 1);
 
     virtual void setShaderAttributes() = 0;
@@ -69,7 +72,7 @@ public:
     const char* getCName() const;
     uint32_t getId() const;
     NodeType getType() const;
-    std::vector<std::shared_ptr<AbstractNode>>& getChildren();
+    AbstractNodePVec& getChildren();
     Layout& getLayout();
 
 private: // friend
@@ -84,7 +87,7 @@ private: // friend
 
 private:
     uint32_t genetateNextId() const;
-    void resetNodeToDefaults(std::shared_ptr<AbstractNode>& node);
+    void resetNodeToDefaults(AbstractNodePtr& node);
 
 protected:
     std::string name_;
@@ -97,11 +100,9 @@ protected:
     NodeType nodeType_{NodeType::COMMON};
     std::weak_ptr<AbstractNode> parent_;
     AbstractNode* parentRaw_{nullptr}; 
-    std::vector<std::shared_ptr<AbstractNode>> children_;
+    AbstractNodePVec children_;
     Layout layout_;
 
     Logger log_;
 };
-using AbstractNodePtr = std::shared_ptr<AbstractNode>;
-using AbstractNodePVec = std::vector<AbstractNodePtr>;
 } // namespace msgui

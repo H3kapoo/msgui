@@ -23,7 +23,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
     windowHandle_ = glfwCreateWindow(width, height, windowName.c_str(), NULL, NULL);
     if (!windowHandle_)
     {
-        log_.error("Failed to create!");
+        log_.error("Failed to create! Check if App was initialized properly!");
         glfwTerminate();
         return;
     }

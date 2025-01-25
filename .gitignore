@@ -4,3 +4,5 @@ mock.cpp
 core/build_dir
 lib_out/
 perf_img/
+examples/examples_artifacts
+examples/test_executables
