@@ -26,7 +26,10 @@ int main()
     Logger mainLog{"MainLog"};
     // Debug& dbg = Debug::get();
 
-    WindowFramePtr frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
+    // WindowFramePtr frame  = 
+    app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
+    // WindowFramePtr frame2 = 
+    app.createFrame("SecPrimary", WINDOW_W/2, WINDOW_H/2);
     // frame->getRoot()->props.layout.type = Layout::Type::GRID;
     // frame->getRoot()->props.layout.distribution = {1fr, 10px, 1fr};  // |   eq_space  |10px|  eq_space   |
     // child->props.layout.gridStartX/Y = 0;
@@ -36,29 +39,27 @@ int main()
     // child->props.layout.scale = {100, 0.5f};
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
 
-    frame->getRoot()->getLayout()
-        .setType(Layout::Type::HORIZONTAL)
-        .setAllowOverflow({true, true})
-        .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
-        .setAllowWrap(false);
+    // frame->getRoot()->setColor(Utils::randomRGB());
+    // frame2->getRoot()->setColor(Utils::randomRGB());
+
         // .setPadding({10, 10, 10, 10});
     // frame->getRoot()->props.borderColor = Utils::hexToVec4("#aabb11ff");
     // frame->getRoot()->props.color = Utils::hexToVec4("#aabb11ff");
 
-    RecycleListPtr recycleList = std::make_shared<RecycleList>("RecycleList1");
+    // RecycleListPtr recycleList = std::make_shared<RecycleList>("RecycleList1");
 
-    recycleList->setColor(Utils::hexToVec4("#1185bbff"));
-    recycleList->getLayout()
-        .setMargin({5, 5, 5, 5})
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({400, 0.8f});
-        // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
-        // .setScale({400, 500});
+    // recycleList->setColor(Utils::hexToVec4("#1185bbff"));
+    // recycleList->getLayout()
+    //     .setMargin({5, 5, 5, 5})
+    //     .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
+    //     .setScale({400, 0.8f});
+    //     // .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
+    //     // .setScale({400, 500});
 
-    for (int32_t i = 0; i < 10; i++)
-    {
-        recycleList->addItem(Utils::randomRGB());
-    }
+    // for (int32_t i = 0; i < 10; i++)
+    // {
+    //     recycleList->addItem(Utils::randomRGB());
+    // }
 
     // BoxDividerPtr divider = std::make_shared<BoxDivider>("BoxDivider1");
     // divider->props.color = Utils::hexToVec4("#a7b430ff");
@@ -106,17 +107,17 @@ int main()
     // frame->getRoot()->props.layout.padding = Layout::TBLR{5};
     // frame->getRoot()->props.layout.spacing = Layout::Spacing::EVEN_WITH_START_GAP;
 
-    AbstractNodePVec nodes;
-    for (int32_t i = 0; i < 4; i++)
-    {
-        BoxPtr ref = std::make_shared<Box>("Boxy");
-        ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
-        // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
-        ref->setColor(Utils::randomRGB());
-        nodes.emplace_back(ref);
-    }
-    // theBox->appendMany(nodes);
-    frame->getRoot()->appendMany(nodes);
+    // AbstractNodePVec nodes;
+    // for (int32_t i = 0; i < 4; i++)
+    // {
+    //     BoxPtr ref = std::make_shared<Box>("Boxy");
+    //     ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
+    //     // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
+    //     ref->setColor(Utils::randomRGB());
+    //     nodes.emplace_back(ref);
+    // }
+    // // theBox->appendMany(nodes);
+    // frame->getRoot()->appendMany(nodes);
     // frame->getRoot()->append(divider);
     // frame->getRoot()->append(recycleList);
 

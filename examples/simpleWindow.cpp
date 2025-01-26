@@ -18,6 +18,7 @@ int main()
     app.setPollMode(Application::PollMode::ON_EVENT);
     app.setVSync(Application::Toggle::ON);
 
+    // Blocks from here on
     app.run();
 
     return 0;

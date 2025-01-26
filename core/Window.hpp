@@ -36,6 +36,7 @@ public:
     void setTitle(const std::string& title);
     void setContextCurrent() const;
     void setCurrentViewport() const;
+    void setCurrentScissorArea() const;
 
     GLFWwindow* getHandle() const;
     std::string getName() const;

@@ -97,9 +97,9 @@ void Application::run()
     }
 }
 
-WindowFramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height)
+WindowFramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+    const bool isPrimary)
 {
-    bool isPrimary = frames_.empty();
     auto newFrame = std::make_shared<WindowFrame>(windowName, width, height, isPrimary);
     frames_.emplace_back(newFrame);
     return newFrame;

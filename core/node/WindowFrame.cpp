@@ -95,9 +95,13 @@ WindowFrame::~WindowFrame()
     frameState_->clickedNodePtr = NO_PTR;
     frameState_->hoveredNodePtr = NO_PTR;
 
-    for (GLFWcursor* cursor : standardCursors_)
+    if (!initCursors)
     {
-        glfwDestroyCursor(cursor);
+        for (GLFWcursor* cursor : standardCursors_)
+        {
+            glfwDestroyCursor(cursor);
+        }
+        initCursors = true;
     }
 }
 
@@ -172,12 +176,15 @@ bool WindowFrame::run()
     // render pass
     window_.setContextCurrent();
     window_.setCurrentViewport();
+    window_.setCurrentScissorArea();
     Window::clearColor(glm::vec4{0.0, 1.0, 0.0, 1.0f});
     Window::clearBits(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     renderLayout();
     
     window_.swap();
+
+    // log_.debugLn("exit? %d", window_.shouldClose());
 
     return shouldWindowClose_ || window_.shouldClose();
 }

@@ -42,7 +42,6 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
 
     maskUnnecessaryEvents();
     onResizeEvent(width, height);
-    setScissorArea(0, 0, width, height);
     log_.infoLn("Created!");
 }
 
@@ -82,6 +81,7 @@ void Window::onResizeEvent(const uint32_t width, const uint32_t height)
 
     setContextCurrent();
     setCurrentViewport();
+    setCurrentScissorArea();
 }
 
 void Window::setTitle(const std::string& title)
@@ -98,6 +98,11 @@ void Window::setContextCurrent() const
 void Window::setCurrentViewport() const
 {
     glViewport(0, 0, width_, height_);
+}
+
+void Window::setCurrentScissorArea() const
+{
+    setScissorArea(0, 0, width_, height_);
 }
 
 GLFWwindow* Window::getHandle() const
