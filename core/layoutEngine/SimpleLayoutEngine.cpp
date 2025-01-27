@@ -16,6 +16,8 @@ namespace msgui
     case Layout::TOP_RIGHT:\
     case Layout::CENTER_LEFT:\
     case Layout::CENTER_RIGHT:\
+    case Layout::CENTER_TOP:\
+    case Layout::CENTER_BOTTOM:\
     case Layout::BOTTOM_LEFT:\
     case Layout::BOTTOM_RIGHT:\
         break;\
@@ -41,12 +43,6 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     const AbstractNodePVec& children = parent->getChildren();
     if (children.empty()) { return {0, 0}; }
 
-    const Layout& layout = parent->getLayout();
-    if (layout.type == Layout::Type::GRID)
-    {
-        processGridLayout(parent);
-        return {0, 0};
-    }
 
     // Compute SCROLLBARS position PASS
     ScrollBarsData scrollNodeData = processScrollbars(parent);
@@ -54,12 +50,19 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     // Useless to compute further if parent is a scroll node (knob computed already)
     if (parent->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
 
+    const Layout& layout = parent->getLayout();
     auto& pPos = parent->getTransform().pos;
     glm::vec3 pScale = parent->getTransform().scale;
     pScale.x -= scrollNodeData.shrinkBy.x + layout.padding.left + layout.padding.right
         + layout.border.left + layout.border.right;
     pScale.y -= scrollNodeData.shrinkBy.y + layout.padding.top + layout.padding.bot
         + layout.border.bot + layout.border.top;
+
+    if (layout.type == Layout::Type::GRID)
+    {
+        processGridLayout(pScale, parent);
+        return {0, 0};
+    }
 
     // TODO: This needs to be combined as much as possible with computeNodeScale
     // Compute box divider shit
@@ -395,9 +398,7 @@ glm::vec2 SimpleLayoutEngine::computeOverflow(const glm::vec2& pScale, const Abs
     for (auto& ch : children)
     {
         // Shall not be taken into consideration for overflow
-        if (ch->getType() == AbstractNode::NodeType::SCROLL ||
-            ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)
-        { continue; }
+        IGNORE_SCROLLBAR
 
         const Layout& chLayout = ch->getLayout();
         auto scale = ch->getTransform().scale;
@@ -739,11 +740,10 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
     }
 }
 
-void SimpleLayoutEngine::processGridLayout(const AbstractNodePtr& parent)
+void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
-    const glm::vec2 pScale = parent->getTransform().scale;
-    Layout::DistribRC& gridDistribRC = parent->getLayout().gridDist;
+    Layout::DistribRC& gridDistribRC = parent->getLayout().gridDistrib;
 
     // Calculate total frac/abs
     glm::ivec2 totalAbs{0, 0};
@@ -777,58 +777,126 @@ void SimpleLayoutEngine::processGridLayout(const AbstractNodePtr& parent)
     // log_.debugLn("wPerFract %f", wPerFrac);
     // log_.debugLn("Frac %d Abs %d", totalFrac.y, totalAbs.y);
 
-    float startX{0};
+    float rollingX{0};
     for (auto& distribData : gridDistribRC.cols)
     {
-        distribData.computedStart = startX;
+        distribData.computedStart = rollingX;
 
         if (distribData.type == Layout::Distrib::Type::FRAC)
         {
-            startX += distribData.value * wPerFrac;
+            rollingX += distribData.value * wPerFrac;
         }
         else if (distribData.type == Layout::Distrib::Type::ABS)
         {
-            startX += distribData.value;
+            rollingX += distribData.value;
         }
     }
 
-    float startY{0};
+    float rollingY{0};
     for (auto& distribData : gridDistribRC.rows)
     {
-        distribData.computedStart = startY;
+        distribData.computedStart = rollingY;
 
         if (distribData.type == Layout::Distrib::Type::FRAC)
         {
-            startY += distribData.value * hPerFrac;
+            rollingY += distribData.value * hPerFrac;
         }
         else if (distribData.type == Layout::Distrib::Type::ABS)
         {
-            startY += distribData.value;
+            rollingY += distribData.value;
         }
     }
 
     int32_t colsCount = gridDistribRC.cols.size();
     int32_t rowsCount = gridDistribRC.rows.size();
+    const auto& pPadding = parent->getLayout().padding;
     for (auto ch : children)
     {
         IGNORE_SCROLLBAR
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
+        const auto& chLayout = ch->getLayout();
         auto& gridStart = ch->getLayout().gridStartRC;
-        // pos.y = hPerFrac * gridStart.y;
 
-        // TODO: gridStart.xy bound check
+        /* Nodes positioning */
         if ((gridStart.col >= 0 || gridStart.col < colsCount) &&
             (gridStart.row >= 0 || gridStart.row < rowsCount))
         {
-            pos.x = gridDistribRC.cols[gridStart.col].computedStart;
-            pos.y = gridDistribRC.rows[gridStart.row].computedStart;
+            pos.x = gridDistribRC.cols[gridStart.col].computedStart + pPadding.left;
+            pos.y = gridDistribRC.rows[gridStart.row].computedStart + pPadding.top;
         }
         
+        /* Nodes scaling */
+        glm::vec2 leftover{0, 0};
+        float startX = gridDistribRC.cols[gridStart.col].computedStart;
+        float startY = gridDistribRC.rows[gridStart.row].computedStart;
         float endX = gridStart.col + 1 < colsCount ? gridDistribRC.cols[gridStart.col + 1].computedStart : pScale.x;
         float endY = gridStart.row + 1 < rowsCount ? gridDistribRC.rows[gridStart.row + 1].computedStart : pScale.y;
-        scale.x = endX - gridDistribRC.cols[gridStart.col].computedStart;
-        scale.y = endY - gridDistribRC.rows[gridStart.row].computedStart;
+        if (chLayout.scaleType.x == Layout::ScaleType::ABS)
+        {
+            scale.x = chLayout.scale.x;
+            leftover.x = (endX - startX) - scale.x;
+        }
+        else if (chLayout.scaleType.x == Layout::ScaleType::REL)
+        {
+            scale.x = endX - startX;
+            leftover.x = scale.x;
+            scale.x *= chLayout.scale.x;
+            leftover.x -= scale.x;
+        }
+
+        if (chLayout.scaleType.y == Layout::ScaleType::ABS)
+        {
+            scale.y = chLayout.scale.y;
+            leftover.y = (endY - startY) - scale.y;
+        }
+        else if (chLayout.scaleType.y == Layout::ScaleType::REL)
+        {
+            scale.y = endY - startY;
+            leftover.y = scale.y;
+            scale.y *= chLayout.scale.y;
+            leftover.y -= scale.y;
+        }
+
+        /* Self Alignment */
+        switch (chLayout.alignSelf)
+        {
+            IGNORE_LR_ALIGN
+            IGNORE_TB_ALIGN
+            case Layout::CENTER:
+                pos.x += leftover.x * 0.5f;
+                pos.y += leftover.y * 0.5f;
+                break;
+            case Layout::TOP_LEFT:
+                break; /* Nothing to do */
+            case Layout::TOP_RIGHT:
+                pos.x += leftover.x;
+                break;
+            case Layout::CENTER_LEFT:
+                pos.y += leftover.y * 0.5f;
+                break;
+            case Layout::CENTER_RIGHT:
+                pos.x += leftover.x;
+                pos.y += leftover.y * 0.5f;
+                break;
+            case Layout::CENTER_TOP:
+                pos.x += leftover.x * 0.5f;
+                break;
+            case Layout::CENTER_BOTTOM:
+                pos.x += leftover.x * 0.5f;
+                pos.y += leftover.y;
+                break;
+            case Layout::BOTTOM_LEFT:
+                pos.y += leftover.y;
+                break;
+            case Layout::BOTTOM_RIGHT:
+                pos.x += leftover.x;
+                pos.y += leftover.y;
+                break;
+            default:
+                log_.warnLn("Unrecognized grid alignSelf value: ENUM(%d)",
+                    static_cast<uint8_t>(chLayout.alignSelf));
+        }
     }
 }
 

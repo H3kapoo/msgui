@@ -79,6 +79,27 @@ Layout& Layout::setScaleType(const ScaleTypeXY valueIn)
     return *this;
 }
 
+Layout& Layout::setGridDistrib(const DistribRC valueIn)
+{
+    gridDistrib = valueIn;
+    onGridDistribChange();
+    return *this;
+}
+
+Layout& Layout::setGridStartRC(const GridRC valueIn)
+{
+    gridStartRC = valueIn;
+    onGridStartRCChange();
+    return *this;
+}
+
+Layout& Layout::setGridSpanRC(const GridRC valueIn)
+{
+    gridSpanRC = valueIn;
+    onGridSpanRCChange();
+    return *this;
+}
+
 Layout& Layout::setScale(const glm::vec2 valueIn)
 {
     scale = valueIn;

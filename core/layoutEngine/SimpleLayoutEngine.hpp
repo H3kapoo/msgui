@@ -35,7 +35,7 @@ private:
     ScrollBarsData processScrollbars(const AbstractNodePtr& parent);
     void processSlider(const AbstractNodePtr& parent);
     void processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children);
-    void processGridLayout(const AbstractNodePtr& parent);
+    void processGridLayout(const glm::vec2& pScale, const AbstractNodePtr& parent);
 
 private:
     Logger log_{"SimpleLayoutEngine"};

@@ -29,6 +29,8 @@ struct Layout
         TOP_RIGHT,
         CENTER_LEFT,
         CENTER_RIGHT,
+        CENTER_TOP,
+        CENTER_BOTTOM,
         BOTTOM_LEFT,
         BOTTOM_RIGHT
     };
@@ -120,6 +122,9 @@ struct Layout
     Layout& setAlignChild(const AlignXY valueIn);
     Layout& setSpacing(const Spacing valueIn);
     Layout& setScaleType(const ScaleTypeXY valueIn);
+    Layout& setGridDistrib(const DistribRC valueIn);
+    Layout& setGridStartRC(const GridRC valueIn);
+    Layout& setGridSpanRC(const GridRC valueIn);
     Layout& setScale(const glm::vec2 valueIn);
     Layout& setMinScale(const glm::vec2 valueIn);
     Layout& setMaxScale(const glm::vec2 valueIn);
@@ -135,7 +140,7 @@ struct Layout
     AlignXY alignChild     {Align::LEFT, Align::TOP};
     Spacing spacing        {Spacing::TIGHT};
     ScaleTypeXY scaleType  {ScaleType::ABS, ScaleType::ABS};
-    DistribRC gridDist     {DistribVec{Distrib{Distrib::Type::FRAC, 1}}, DistribVec{Distrib{Distrib::Type::FRAC, 1}}};
+    DistribRC gridDistrib  {DistribVec{Distrib{Distrib::Type::FRAC, 1}}, DistribVec{Distrib{Distrib::Type::FRAC, 1}}};
     GridRC gridStartRC     {0, 0};
     GridRC gridSpanRC      {1, 1};
     glm::vec2 scale        {0, 0};
@@ -153,6 +158,9 @@ struct Layout
     std::function<void()> onAlignChildChange {[](){}};
     std::function<void()> onSpacingChange {[](){}};
     std::function<void()> onScaleTypeChange {[](){}};
+    std::function<void()> onGridDistribChange {[](){}};
+    std::function<void()> onGridStartRCChange {[](){}};
+    std::function<void()> onGridSpanRCChange {[](){}};
     std::function<void()> onScaleChange {[](){}};
     std::function<void()> onMinScaleChange {[](){}};
     std::function<void()> onMaxScaleChange {[](){}};

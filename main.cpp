@@ -26,18 +26,20 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-    frame->getRoot()->getLayout().setType(Layout::Type::GRID);
-    frame->getRoot()->getLayout().gridDist = {
+    frame->getRoot()->getLayout().setType(Layout::Type::GRID).setAllowOverflow({true, true}).setPadding({0});
+    frame->getRoot()->getLayout().setGridDistrib({
         .rows = Layout::DistribVec{
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 2}},
+            // Layout::Distrib{Layout::Distrib::Type::ABS, 300}
+            },
         .cols = Layout::DistribVec{
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 2},
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::ABS, 250},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            // Layout::Distrib{Layout::Distrib::Type::ABS, 250},
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1}},
-    };
+    });
 
     // Get to this ideally:
     // frame->getRoot()->getLayout().setGridDistr({1_fr, 1_fr, 10_abs}, {1_fr, 1_fr, 10_abs});
@@ -52,12 +54,33 @@ int main()
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
 
     AbstractNodePVec nodes;
-    for (int32_t i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 1; i++)
     {
         for (int32_t j = 0; j < 4; j++)
         {
+            Layout::Align align;
+            if (j == 0)
+            {
+                align = Layout::Align::TOP_LEFT;
+            }
+            else if (j == 1)
+            {
+                align = Layout::Align::TOP_RIGHT;
+            }
+            else if (j == 2)
+            {
+                align = Layout::Align::BOTTOM_LEFT;
+            }
+            else if (j == 3)
+            {
+                align = Layout::Align::BOTTOM_RIGHT;
+            }
+
             BoxPtr ref = std::make_shared<Box>("Boxy");
-            ref->getLayout().setScale({200, 200});
+            ref->getLayout()
+                .setAlignSelf(align)
+                .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
+                .setScale({200, 200});
             ref->getLayout().gridStartRC = {i, j};
 
             // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
