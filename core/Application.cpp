@@ -97,12 +97,11 @@ void Application::run()
     }
 }
 
-WindowFramePtr Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+WindowFramePtr& Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
     const bool isPrimary)
 {
     auto newFrame = std::make_shared<WindowFrame>(windowName, width, height, isPrimary);
-    frames_.emplace_back(newFrame);
-    return newFrame;
+    return frames_.emplace_back(newFrame);
 }
 
 void Application::setPollMode(const PollMode mode)

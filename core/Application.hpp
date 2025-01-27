@@ -27,7 +27,7 @@ public:
 
     bool init();
     void run();
-    WindowFramePtr createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
+    WindowFramePtr& createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
         const bool isPrimary = false);
 
     void setPollMode(const PollMode mode);

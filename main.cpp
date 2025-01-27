@@ -8,7 +8,6 @@
 #include "core/node/RecycleList.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
-#include <GLFW/glfw3.h>
 
 using namespace msgui;
 
@@ -26,11 +25,24 @@ int main()
     Logger mainLog{"MainLog"};
     // Debug& dbg = Debug::get();
 
-    // WindowFramePtr frame  = 
-    app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-    // WindowFramePtr frame2 = 
-    app.createFrame("SecPrimary", WINDOW_W/2, WINDOW_H/2);
-    // frame->getRoot()->props.layout.type = Layout::Type::GRID;
+    WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
+    frame->getRoot()->getLayout().setType(Layout::Type::GRID);
+    frame->getRoot()->getLayout().gridDist = {
+        .rows = Layout::DistribVec{
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 2}},
+        .cols = Layout::DistribVec{
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 2},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::Distrib{Layout::Distrib::Type::ABS, 250},
+            Layout::Distrib{Layout::Distrib::Type::FRAC, 1}},
+    };
+
+    // Get to this ideally:
+    // frame->getRoot()->getLayout().setGridDistr({1_fr, 1_fr, 10_abs}, {1_fr, 1_fr, 10_abs});
+
+
     // frame->getRoot()->props.layout.distribution = {1fr, 10px, 1fr};  // |   eq_space  |10px|  eq_space   |
     // child->props.layout.gridStartX/Y = 0;
     // child->props.layout.gridSpanX/Y = 1;
@@ -38,6 +50,24 @@ int main()
     // child->props.layout.scaleType.x/y = {Layout::ScaleType::ABSOLUTE/RELATIVE};
     // child->props.layout.scale = {100, 0.5f};
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
+
+    AbstractNodePVec nodes;
+    for (int32_t i = 0; i < 3; i++)
+    {
+        for (int32_t j = 0; j < 4; j++)
+        {
+            BoxPtr ref = std::make_shared<Box>("Boxy");
+            ref->getLayout().setScale({200, 200});
+            ref->getLayout().gridStartRC = {i, j};
+
+            // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
+            // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
+            ref->setColor(Utils::randomRGB());
+            nodes.emplace_back(ref);
+        }
+    }
+
+    frame->getRoot()->appendMany(nodes);
 
     // frame->getRoot()->setColor(Utils::randomRGB());
     // frame2->getRoot()->setColor(Utils::randomRGB());

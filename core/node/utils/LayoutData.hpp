@@ -88,6 +88,27 @@ struct Layout
         float right{0};
     };
 
+    struct Distrib
+    {
+        enum Type { ABS, FRAC };
+        Type type{Type::ABS};
+        int32_t value{0};
+        int32_t computedStart{0};
+    };
+    using DistribVec = std::vector<Distrib>;
+
+    struct DistribRC
+    {
+        DistribVec rows;
+        DistribVec cols;
+    };
+
+    struct GridRC
+    {
+        int32_t row{0};
+        int32_t col{0};
+    };
+
     Layout& setType(const Type valueIn);
     Layout& setAllowWrap(const bool valueIn);
     Layout& setAllowOverflow(const AllowXY valueIn);
@@ -103,21 +124,23 @@ struct Layout
     Layout& setMinScale(const glm::vec2 valueIn);
     Layout& setMaxScale(const glm::vec2 valueIn);
 
-    // TODO: Replace with getters, no more AR, too much hassle
-    AllowXY allowOverflow {false};
-    bool allowWrap        {false};
-    Type type             {Type::HORIZONTAL};
-    TBLR margin           {TBLR{0}};
-    TBLR padding          {TBLR{0}};
-    TBLR border           {TBLR{0}};
-    TBLR borderRadius     {TBLR{0}};
-    Align alignSelf       {Align::TOP};
-    AlignXY alignChild    {Align::LEFT, Align::TOP};
-    Spacing spacing       {Spacing::TIGHT};
-    ScaleTypeXY scaleType {ScaleType::ABS, ScaleType::ABS};
-    glm::vec2 scale       {0, 0};
-    glm::vec2 minScale    {0, 0};
-    glm::vec2 maxScale    {10'000, 10'000};
+    AllowXY allowOverflow  {false};
+    bool allowWrap         {false};
+    Type type              {Type::HORIZONTAL};
+    TBLR margin            {TBLR{0}};
+    TBLR padding           {TBLR{0}};
+    TBLR border            {TBLR{0}};
+    TBLR borderRadius      {TBLR{0}};
+    Align alignSelf        {Align::TOP};
+    AlignXY alignChild     {Align::LEFT, Align::TOP};
+    Spacing spacing        {Spacing::TIGHT};
+    ScaleTypeXY scaleType  {ScaleType::ABS, ScaleType::ABS};
+    DistribRC gridDist     {DistribVec{Distrib{Distrib::Type::FRAC, 1}}, DistribVec{Distrib{Distrib::Type::FRAC, 1}}};
+    GridRC gridStartRC     {0, 0};
+    GridRC gridSpanRC      {1, 1};
+    glm::vec2 scale        {0, 0};
+    glm::vec2 minScale     {0, 0};
+    glm::vec2 maxScale     {10'000, 10'000};
 
     std::function<void()> onAllowOverflowChange {[](){}};
     std::function<void()> onAllowWrapChange {[](){}};
@@ -134,7 +157,8 @@ struct Layout
     std::function<void()> onMinScaleChange {[](){}};
     std::function<void()> onMaxScaleChange {[](){}};
 
-    glm::vec2       tempScale     {0, 0};
+    // Used for BoxDivider calcs
+    glm::vec2 tempScale {0, 0};
 };
 
 } // namespace msgui

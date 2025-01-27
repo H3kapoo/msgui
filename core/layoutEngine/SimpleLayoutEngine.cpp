@@ -41,13 +41,19 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& parent)
     const AbstractNodePVec& children = parent->getChildren();
     if (children.empty()) { return {0, 0}; }
 
+    const Layout& layout = parent->getLayout();
+    if (layout.type == Layout::Type::GRID)
+    {
+        processGridLayout(parent);
+        return {0, 0};
+    }
+
     // Compute SCROLLBARS position PASS
     ScrollBarsData scrollNodeData = processScrollbars(parent);
 
     // Useless to compute further if parent is a scroll node (knob computed already)
     if (parent->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
 
-    const Layout& layout = parent->getLayout();
     auto& pPos = parent->getTransform().pos;
     glm::vec3 pScale = parent->getTransform().scale;
     pScale.x -= scrollNodeData.shrinkBy.x + layout.padding.left + layout.padding.right
@@ -730,6 +736,99 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             auto& scale = ch->getTransform().scale;
             scale.y = chLayout.scale.y;
         }
+    }
+}
+
+void SimpleLayoutEngine::processGridLayout(const AbstractNodePtr& parent)
+{
+    const AbstractNodePVec& children = parent->getChildren();
+    const glm::vec2 pScale = parent->getTransform().scale;
+    Layout::DistribRC& gridDistribRC = parent->getLayout().gridDist;
+
+    // Calculate total frac/abs
+    glm::ivec2 totalAbs{0, 0};
+    glm::ivec2 totalFrac{0, 0};
+    for (const auto& distribData : gridDistribRC.cols)
+    {
+        if (distribData.type == Layout::Distrib::ABS)
+        {
+            totalAbs.x += distribData.value;
+        }
+        else if (distribData.type == Layout::Distrib::FRAC)
+        {
+            totalFrac.x += distribData.value;
+        }
+    }
+
+    for (const auto& distribData : gridDistribRC.rows)
+    {
+        if (distribData.type == Layout::Distrib::ABS)
+        {
+            totalAbs.y += distribData.value;
+        }
+        else if (distribData.type == Layout::Distrib::FRAC)
+        {
+            totalFrac.y += distribData.value;
+        }
+    }
+
+    float wPerFrac = (pScale.x - totalAbs.x) / totalFrac.x;
+    float hPerFrac = (pScale.y - totalAbs.y) / totalFrac.y;
+    // log_.debugLn("wPerFract %f", wPerFrac);
+    // log_.debugLn("Frac %d Abs %d", totalFrac.y, totalAbs.y);
+
+    float startX{0};
+    for (auto& distribData : gridDistribRC.cols)
+    {
+        distribData.computedStart = startX;
+
+        if (distribData.type == Layout::Distrib::Type::FRAC)
+        {
+            startX += distribData.value * wPerFrac;
+        }
+        else if (distribData.type == Layout::Distrib::Type::ABS)
+        {
+            startX += distribData.value;
+        }
+    }
+
+    float startY{0};
+    for (auto& distribData : gridDistribRC.rows)
+    {
+        distribData.computedStart = startY;
+
+        if (distribData.type == Layout::Distrib::Type::FRAC)
+        {
+            startY += distribData.value * hPerFrac;
+        }
+        else if (distribData.type == Layout::Distrib::Type::ABS)
+        {
+            startY += distribData.value;
+        }
+    }
+
+    int32_t colsCount = gridDistribRC.cols.size();
+    int32_t rowsCount = gridDistribRC.rows.size();
+    for (auto ch : children)
+    {
+        IGNORE_SCROLLBAR
+        auto& pos = ch->getTransform().pos;
+        auto& scale = ch->getTransform().scale;
+        auto& gridStart = ch->getLayout().gridStartRC;
+        // pos.y = hPerFrac * gridStart.y;
+
+        // TODO: gridStart.xy bound check
+        if ((gridStart.col >= 0 || gridStart.col < colsCount) &&
+            (gridStart.row >= 0 || gridStart.row < rowsCount))
+        {
+            pos.x = gridDistribRC.cols[gridStart.col].computedStart;
+            pos.y = gridDistribRC.rows[gridStart.row].computedStart;
+        }
+        
+        float endX = gridStart.col + 1 < colsCount ? gridDistribRC.cols[gridStart.col + 1].computedStart : pScale.x;
+        float endY = gridStart.row + 1 < rowsCount ? gridDistribRC.rows[gridStart.row + 1].computedStart : pScale.y;
+        scale.x = endX - gridDistribRC.cols[gridStart.col].computedStart;
+        scale.y = endY - gridDistribRC.rows[gridStart.row].computedStart;
     }
 }
 
