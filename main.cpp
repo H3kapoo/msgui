@@ -26,7 +26,11 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
-    frame->getRoot()->getLayout().setType(Layout::Type::GRID).setAllowOverflow({true, true}).setPadding({0});
+    frame->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
+        .setAllowOverflow({true, true})
+        // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
+        .setAlignChild({Layout::Align::LEFT, Layout::Align::BOTTOM})
+        .setPadding({0});
     frame->getRoot()->getLayout().setGridDistrib({
         .rows = Layout::DistribVec{
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
@@ -53,23 +57,34 @@ int main()
     // child->props.layout.scale = {100, 0.5f};
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
 
+    // BoxDividerPtr bd = std::make_shared<BoxDivider>("myBd");
+    // bd->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+    // bd->createSlots(3, {1.0/3.0f, 1.0/3.0f, 1.0/3.0f});
+    // bd->getSlot(0)->setColor(Utils::randomRGB());
+    // bd->getSlot(1)->setColor(Utils::randomRGB());
+    // bd->getSlot(2)->setColor(Utils::randomRGB());
+
+    // bd->getSlot(0)->getLayout().setMinScale({100, 1});
+    // bd->getSlot(1)->getLayout().setMinScale({100, 1});
+    // bd->getSlot(2)->getLayout().setMinScale({100, 1});
     AbstractNodePVec nodes;
     for (int32_t i = 0; i < 2; i++)
     {
         for (int32_t j = 0; j < 3; j++)
         {
-            Layout::Align align{Layout::Align::BOTTOM_RIGHT};
+            // Layout::Align align{Layout::Align::BOTTOM_RIGHT};
 
             BoxPtr ref = std::make_shared<Box>("Boxy");
             ref->setBorderColor(Utils::hexToVec4("#ffffffff"));
             ref->getLayout()
-                .setBorder({10, 10, 10, 10})
-                .setBorderRadius({10, 10, 10, 10})
-                .setAlignSelf(align)
-                .setScaleType(Layout::ScaleType::REL)
-                .setScale({1.f, 1.f})
-                .setMargin({10, 10, 10, 10});
-            ref->getLayout().setGridStartRC({i, j});
+                // .setBorder({10, 10, 10, 10})
+                // .setBorderRadius({10, 10, 10, 10})
+                // .setAlignSelf(align)
+                .setScaleType(Layout::ScaleType::ABS)
+                .setScale({100, 100})
+                .setGridStartRC({i, j})
+                // .setMargin({10, 10, 10, 10})
+                ;
 
             // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
             // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
@@ -78,6 +93,7 @@ int main()
         }
     }
 
+    // frame->getRoot()->appendMany({bd});
     frame->getRoot()->appendMany(nodes);
 
     // frame->getRoot()->setColor(Utils::randomRGB());
