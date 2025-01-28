@@ -122,6 +122,7 @@ struct Layout
     Layout& setAlignChild(const AlignXY valueIn);
     Layout& setSpacing(const Spacing valueIn);
     Layout& setScaleType(const ScaleTypeXY valueIn);
+    Layout& setScaleType(const ScaleType valueIn);
     Layout& setGridDistrib(const DistribRC valueIn);
     Layout& setGridStartRC(const GridRC valueIn);
     Layout& setGridSpanRC(const GridRC valueIn);

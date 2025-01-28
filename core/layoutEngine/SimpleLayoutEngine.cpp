@@ -819,19 +819,27 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
         auto& gridStart = ch->getLayout().gridStartRC;
 
         /* Nodes positioning */
-        if ((gridStart.col >= 0 || gridStart.col < colsCount) &&
-            (gridStart.row >= 0 || gridStart.row < rowsCount))
+        if ((gridStart.col >= 0 && gridStart.col < colsCount) &&
+            (gridStart.row >= 0 && gridStart.row < rowsCount))
         {
-            pos.x = gridDistribRC.cols[gridStart.col].computedStart + pPadding.left;
-            pos.y = gridDistribRC.rows[gridStart.row].computedStart + pPadding.top;
+            pos.x = gridDistribRC.cols[gridStart.col].computedStart + pPadding.left + chLayout.margin.left;
+            pos.y = gridDistribRC.rows[gridStart.row].computedStart + pPadding.top + chLayout.margin.top;
         }
-        
+        else
+        {
+            // TODO: Out of bounds indexing, should notify user somehow
+            log_.infoLn("Out of bounds gridStart+Span. Shorting.");
+            return;
+        }
+
         /* Nodes scaling */
         glm::vec2 leftover{0, 0};
-        float startX = gridDistribRC.cols[gridStart.col].computedStart;
-        float startY = gridDistribRC.rows[gridStart.row].computedStart;
+        float startX = gridDistribRC.cols[gridStart.col].computedStart + chLayout.margin.left;
+        float startY = gridDistribRC.rows[gridStart.row].computedStart + chLayout.margin.top;
         float endX = gridStart.col + 1 < colsCount ? gridDistribRC.cols[gridStart.col + 1].computedStart : pScale.x;
         float endY = gridStart.row + 1 < rowsCount ? gridDistribRC.rows[gridStart.row + 1].computedStart : pScale.y;
+        endX -= chLayout.margin.right;
+        endY -= chLayout.margin.bot;
         if (chLayout.scaleType.x == Layout::ScaleType::ABS)
         {
             scale.x = chLayout.scale.x;

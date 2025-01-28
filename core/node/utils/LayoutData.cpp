@@ -79,6 +79,11 @@ Layout& Layout::setScaleType(const ScaleTypeXY valueIn)
     return *this;
 }
 
+Layout& Layout::setScaleType(const ScaleType valueIn)
+{
+    return setScaleType({valueIn, valueIn});
+}
+
 Layout& Layout::setGridDistrib(const DistribRC valueIn)
 {
     gridDistrib = valueIn;

@@ -35,9 +35,9 @@ int main()
             },
         .cols = Layout::DistribVec{
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            // Layout::Distrib{Layout::Distrib::Type::ABS, 250},
+            // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::Distrib{Layout::Distrib::Type::ABS, 250},
             Layout::Distrib{Layout::Distrib::Type::FRAC, 1}},
     });
 
@@ -54,34 +54,22 @@ int main()
     // child->props.layout.scale = {100, Layout::Calc(0.5f, -100px)};
 
     AbstractNodePVec nodes;
-    for (int32_t i = 0; i < 1; i++)
+    for (int32_t i = 0; i < 2; i++)
     {
-        for (int32_t j = 0; j < 4; j++)
+        for (int32_t j = 0; j < 3; j++)
         {
-            Layout::Align align;
-            if (j == 0)
-            {
-                align = Layout::Align::TOP_LEFT;
-            }
-            else if (j == 1)
-            {
-                align = Layout::Align::TOP_RIGHT;
-            }
-            else if (j == 2)
-            {
-                align = Layout::Align::BOTTOM_LEFT;
-            }
-            else if (j == 3)
-            {
-                align = Layout::Align::BOTTOM_RIGHT;
-            }
+            Layout::Align align{Layout::Align::BOTTOM_RIGHT};
 
             BoxPtr ref = std::make_shared<Box>("Boxy");
+            ref->setBorderColor(Utils::hexToVec4("#ffffffff"));
             ref->getLayout()
+                .setBorder({10, 10, 10, 10})
+                .setBorderRadius({10, 10, 10, 10})
                 .setAlignSelf(align)
-                .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::ABS})
-                .setScale({200, 200});
-            ref->getLayout().gridStartRC = {i, j};
+                .setScaleType(Layout::ScaleType::REL)
+                .setScale({1.f, 1.f})
+                .setMargin({10, 10, 10, 10});
+            ref->getLayout().setGridStartRC({i, j});
 
             // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
             // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
