@@ -15,8 +15,8 @@ Button::Button(const std::string& name)
 
     setupLayoutReloadables();
 
-    props.color = Utils::hexToVec4("#bbbbbbff");
-    props.borderColor = Utils::hexToVec4("#55bbbbff");
+    color_ = Utils::hexToVec4("#bbbbbbff");
+    borderColor_ = Utils::hexToVec4("#55bbbbff");
     // layout_.border = Layout::TBLR{5, 2, 5, 2};
     // layout_.border = Layout::TBLR{2, 5, 2, 5};
 }
@@ -33,8 +33,8 @@ void Button::setShaderAttributes()
     //     shader_->setTexture2D("uTexture", GL_TEXTURE0, 0);
     // }
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
-    shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uBorderColor", borderColor_);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
@@ -55,7 +55,7 @@ void Button::onMouseButtonNotify()
     }
 
     // User custom behavior
-    listeners.callOnMouseButton(
+    listeners_.callOnMouseButton(
         state_->lastMouseButtonTriggeredIdx,
         state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
         state_->mouseX,
@@ -73,29 +73,30 @@ void Button::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
 }
 
-Button::Props& Button::setColor(const glm::vec4& color)
+Button& Button::setColor(const glm::vec4& color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-Button::Props& Button::setBorderColor(const glm::vec4& color)
+Button& Button::setBorderColor(const glm::vec4& color)
 {
-    props.borderColor = color;
-    return props;
+    borderColor_ = color;
+    return *this;
 }
 
-Button::Props& Button::setTexture(const std::string texturePath)
+Button& Button::setTexture(const std::string texturePath)
 {
-    props.texturePath = texturePath;
+    texturePath_ = texturePath;
     btnTex_ = TextureLoader::loadTexture(texturePath);
-    return props;
+    return *this;
 }
 
-glm::vec4 Button::getColor() const { return props.color; }
+glm::vec4 Button::getColor() const { return color_; }
 
-glm::vec4 Button::getBorderColor() const { return props.borderColor; }
+glm::vec4 Button::getBorderColor() const { return borderColor_; }
 
-std::string Button::getTexturePath() const { return props.texturePath; }
+std::string Button::getTexturePath() const { return texturePath_; }
 
+Listeners& Button::getListeners() { return listeners_; }
 } // msgui

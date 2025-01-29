@@ -30,7 +30,7 @@ RecycleList::RecycleList(const std::string& name)
         .setScale({50, 1.0f});
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
-    slider_->listeners.setOnSlideValueChanged(
+    slider_->getListeners().setOnSlideValueChanged(
         std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
 
     boxCont_ = std::make_shared<Box>("RLBox");
@@ -40,7 +40,7 @@ RecycleList::RecycleList(const std::string& name)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
-    boxCont_->listeners.setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
+    boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
     // append(slider_);
     append(boxCont_);
 
@@ -88,8 +88,8 @@ void RecycleList::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
-    shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uBorderColor", borderColor_);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
@@ -101,7 +101,7 @@ void RecycleList::onLayoutUpdateNotify()
     if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
     {
         int32_t totalElements = listItems_.size();
-        slider_->setSlideTo(std::max(totalElements * props.rowSize - transform_.scale.y, 0.0f));
+        slider_->setSlideTo(std::max(totalElements * rowSize_ - transform_.scale.y, 0.0f));
 
         if (slider_->getSlideTo() == 0 && children_.size() == 2)
         {
@@ -113,8 +113,8 @@ void RecycleList::onLayoutUpdateNotify()
         }
     }
 
-    int32_t maxDisplayAmt = transform_.scale.y / props.rowSize + 1;
-    int32_t topOfListIdx = slider_->getSlideCurrentValue() / props.rowSize;
+    int32_t maxDisplayAmt = transform_.scale.y / rowSize_ + 1;
+    int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSize_;
     int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
     int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
 
@@ -131,7 +131,7 @@ void RecycleList::onLayoutUpdateNotify()
                 auto ref = std::make_shared<Button>("ListBtn2222");
                 ref->getLayout().setMargin({4, 0, 5, 5})
                     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-                    .setScale({1.0f, props.rowSize});
+                    .setScale({1.0f, rowSize_});
                 ref->setColor(listItems_[topOfListIdx + i]);
                 boxCont_->append(ref);
             }
@@ -161,7 +161,7 @@ void RecycleList::updateNodePositions()
     uint32_t size = children.size();
     for (uint32_t i = 0; i < size; i++)
     {
-        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % props.rowSize;
+        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSize_;
     }
 }
 
@@ -181,27 +181,29 @@ void RecycleList::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
 }
 
-RecycleList::Props& RecycleList::setColor(const glm::vec4& color)
+RecycleList& RecycleList::setColor(const glm::vec4& color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-RecycleList::Props& RecycleList::setBorderColor(const glm::vec4& color)
+RecycleList& RecycleList::setBorderColor(const glm::vec4& color)
 {
-    props.borderColor = color;
-    return props;
+    borderColor_ = color;
+    return *this;
 }
 
-RecycleList::Props& RecycleList::setRowSize(const int32_t rowSize)
+RecycleList& RecycleList::setRowSize(const int32_t rowSize)
 {
-    props.rowSize = rowSize;
-    return props;
+    rowSize_ = rowSize;
+    return *this;
 }
 
-glm::vec4 RecycleList::getColor() const { return props.color; }
+glm::vec4 RecycleList::getColor() const { return color_; }
 
-glm::vec4 RecycleList::getBorderColor() const { return props.borderColor; }
+glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 
-int32_t RecycleList::getRowSize() const { return props.rowSize; }
+int32_t RecycleList::getRowSize() const { return rowSize_; }
+
+Listeners& RecycleList::getListeners() { return listeners_; }
 } // msgui

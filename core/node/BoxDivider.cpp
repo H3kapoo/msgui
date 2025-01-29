@@ -74,8 +74,8 @@ void BoxDivider::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
-    shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uBorderColor", borderColor_);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
@@ -143,19 +143,21 @@ BoxDividerSepPtr BoxDivider::getSepatator(uint32_t sepNumber)
     return nullptr;
 }
 
-BoxDivider::Props& BoxDivider::setColor(const glm::vec4& color)
+BoxDivider& BoxDivider::setColor(const glm::vec4& color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-BoxDivider::Props& BoxDivider::setBorderColor(const glm::vec4& color)
+BoxDivider& BoxDivider::setBorderColor(const glm::vec4& color)
 {
-    props.borderColor = color;
-    return props;
+    borderColor_ = color;
+    return *this;
 }
 
-glm::vec4 BoxDivider::getColor() const { return props.color; }
+glm::vec4 BoxDivider::getColor() const { return color_; }
 
-glm::vec4 BoxDivider::getBorderColor() const { return props.borderColor; }
+glm::vec4 BoxDivider::getBorderColor() const { return borderColor_; }
+
+Listeners& BoxDivider::getListeners() { return listeners_; }
 } // msgui

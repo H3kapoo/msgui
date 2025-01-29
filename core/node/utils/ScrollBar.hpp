@@ -12,7 +12,6 @@ namespace msgui
 /* Manages scroll actions on an attached Box node */
 class ScrollBar : public AbstractNode
 {
-struct Props;
 public:
     enum class Orientation
     {
@@ -26,8 +25,8 @@ public:
     ScrollBar(const std::string& name, const Orientation orientation);
 
     bool setOverflow(const int32_t overflow);
-    Props& setColor(const glm::vec4& color);
-    Props& setScrollbarSize(const int32_t size);
+    ScrollBar& setColor(const glm::vec4& color);
+    ScrollBar& setScrollbarSize(const int32_t size);
 
     glm::vec4 getColor() const;
     int32_t getScrollbarSize() const;
@@ -47,14 +46,9 @@ private:
     void onMouseDragNotify() override;
 
 private:
-    struct Props
-    {
-        glm::vec4 color{Utils::hexToVec4("#ffffffff")};
-        int32_t sbSize{20};
-    };
-    Props props;
-
     Logger log_;
+    glm::vec4 color_{Utils::hexToVec4("#ffffffff")};
+    int32_t sbSize_{20};
     float knobOffset_{0};
     int32_t overflowSize_{0};
     glm::ivec2 mouseDistFromKnobCenter_{0};

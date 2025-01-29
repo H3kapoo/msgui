@@ -9,7 +9,6 @@ namespace msgui
 {
 class RecycleList : public AbstractNode
 {
-struct Props;
 public:
     RecycleList(const std::string& name);
 
@@ -17,13 +16,14 @@ public:
     void removeItem(const int32_t idx);
     void removeTailItems(const int32_t amount);
 
-    Props& setColor(const glm::vec4& color);
-    Props& setBorderColor(const glm::vec4& color);
-    Props& setRowSize(const int32_t rowSize);
+    RecycleList& setColor(const glm::vec4& color);
+    RecycleList& setBorderColor(const glm::vec4& color);
+    RecycleList& setRowSize(const int32_t rowSize);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
+    Listeners& getListeners();
 
 private: // friend
     friend WindowFrame;
@@ -38,17 +38,10 @@ private:
     void updateNodePositions();
     void setupLayoutReloadables();
 
-public:
-    Listeners listeners;
-
 private:
-    struct Props
-    {
-        glm::vec4 color{1.0f};
-        glm::vec4 borderColor{1.0f};
-        int32_t rowSize{20};
-    };
-    Props props;
+    glm::vec4 color_{1.0f};
+    glm::vec4 borderColor_{1.0f};
+    int32_t rowSize_{20};
     std::vector<glm::vec4> listItems_;
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
@@ -57,6 +50,7 @@ private:
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};
     float lastScaleY_{0};
+    Listeners listeners_;
 };
 using RecycleListPtr = std::shared_ptr<RecycleList>;
 } // namespace msgui

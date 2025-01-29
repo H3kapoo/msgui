@@ -8,19 +8,19 @@ namespace msgui
 {
 class Box : public AbstractNode
 {
-struct Props;
 public:
     Box(const std::string& name);
 
     bool isScrollBarActive(const ScrollBar::Orientation orientation);
 
-    Props& setColor(const glm::vec4& color);
-    Props& setBorderColor(const glm::vec4& color);
-    Props& setScrollbarSize(const int32_t size);
+    Box& setColor(const glm::vec4& color);
+    Box& setBorderColor(const glm::vec4& color);
+    Box& setScrollbarSize(const int32_t size);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getScrollbarSize() const;
+    Listeners& getListeners();
 
 private: // friend
     friend WindowFrame;
@@ -31,19 +31,12 @@ private:
     void onMouseButtonNotify() override;
     void onMouseDragNotify() override;
 
-public:
-    Listeners listeners;
-
 private:
-    struct Props
-    {
-        glm::vec4 color{1.0f};
-        glm::vec4 borderColor{1.0f};
-        int32_t scrollBarSize{20};
-    };
-
-    Props props;
+    glm::vec4 color_{1.0f};
+    glm::vec4 borderColor_{1.0f};
+    int32_t scrollBarSize_{20};
     glm::ivec2 overflow_{0, 0};
+    Listeners listeners_;
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
 };

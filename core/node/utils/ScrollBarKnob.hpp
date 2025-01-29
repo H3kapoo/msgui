@@ -8,12 +8,11 @@ namespace msgui
 /* The knob of the Scrollbar */
 class ScrollBarKnob : public AbstractNode
 {
-struct Props;
 public:
     ScrollBarKnob();
 
-    Props& setColor(const glm::vec4& color);
-    Props& setBorderColor(const glm::vec4& color);
+    ScrollBarKnob& setColor(const glm::vec4& color);
+    ScrollBarKnob& setBorderColor(const glm::vec4& color);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
@@ -24,14 +23,9 @@ private:
     void onMouseHoverNotify() override;
     void onMouseDragNotify() override;
 
-
 private:
-    struct Props
-    {
-        glm::vec4 color{Utils::hexToVec4("#000000ff")};
-        glm::vec4 borderColor{Utils::hexToVec4("#ff0000ff")};
-    };
-    Props props;
+    glm::vec4 color_{Utils::hexToVec4("#000000ff")};
+    glm::vec4 borderColor_{Utils::hexToVec4("#ff0000ff")};
     Logger log_{"ScrollBarKnob"};
 };
 using ScrollBarKnobPtr = std::shared_ptr<ScrollBarKnob>;

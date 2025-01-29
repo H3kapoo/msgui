@@ -62,7 +62,7 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     frameState_->requestNewFrameFunc = Window::requestEmptyEvent;
     frameState_->frameSize = {width, height};
 
-    frameBox_->props.color = Utils::hexToVec4("#cc338bff");
+    frameBox_->setColor(Utils::hexToVec4("#cc338bff"));
     frameBox_->transform_.pos = {0, 0, 1};
     frameBox_->transform_.scale = {width, height, 1};
     frameBox_->transform_.vPos = {frameBox_->getLayout().border.left, frameBox_->getLayout().border.top};

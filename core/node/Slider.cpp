@@ -26,8 +26,8 @@ void Slider::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
-    shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uBorderColor", borderColor_);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
@@ -47,9 +47,9 @@ void Slider::updateSliderValue()
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
 
-    props.slideValue = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
+    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
 
-    listeners.callOnSlide(props.slideValue);
+    listeners_.callOnSlide(slideValue_);
 }
 
 void Slider::onMouseButtonNotify()
@@ -89,51 +89,54 @@ void Slider::setupLayoutReloadables()
     // };
 }
 
-Slider::Props& Slider::setColor(const glm::vec4& color)
+Slider& Slider::setColor(const glm::vec4& color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-Slider::Props& Slider::setBorderColor(const glm::vec4& color)
+Slider& Slider::setBorderColor(const glm::vec4& color)
 {
-    props.borderColor = color;
-    return props;
+    borderColor_ = color;
+    return *this;
 }
 
-Slider::Props& Slider::setSlideFrom(const float value)
+Slider& Slider::setSlideFrom(const float value)
 {
-    props.slideFrom = value;
-    props.slideValue = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
+    slideFrom_ = value;
+    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    return props;
+    return *this;
 }
 
-Slider::Props& Slider::setSlideTo(const float value)
+Slider& Slider::setSlideTo(const float value)
 {
-    props.slideTo = value;
-    props.slideValue = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, props.slideFrom, props.slideTo);
+    slideTo_ = value;
+    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    return props;
+    return *this;
 }
 
-Slider::Props& Slider::setSlideCurrentValue(const float value)
+Slider& Slider::setSlideCurrentValue(const float value)
 {
-    props.slideValue = value;
-    knobOffsetPerc_ = Utils::remap(props.slideValue, props.slideFrom, props.slideTo, 0.0f, 1.0f);
+    slideValue_ = value;
+    knobOffsetPerc_ = Utils::remap(slideValue_, slideFrom_, slideTo_, 0.0f, 1.0f);
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    return props;
+    return *this;
 }
 
-glm::vec4 Slider::getColor() const { return props.color; }
+SliderListeners& Slider::getListeners() { return listeners_; }
 
-glm::vec4 Slider::getBorderColor() const { return props.borderColor; }
 
-float Slider::getSlideFrom() const { return props.slideFrom; }
+glm::vec4 Slider::getColor() const { return color_; }
 
-float Slider::getSlideTo() const { return props.slideTo; }
+glm::vec4 Slider::getBorderColor() const { return borderColor_; }
 
-float Slider::getSlideCurrentValue() const { return props.slideValue; }
+float Slider::getSlideFrom() const { return slideFrom_; }
+
+float Slider::getSlideTo() const { return slideTo_; }
+
+float Slider::getSlideCurrentValue() const { return slideValue_; }
 
 SliderKnobPtr Slider::getKnobRef() {return knobNode_; }
 

@@ -12,7 +12,6 @@ namespace msgui
 /* Sliding value node class */
 class Slider : public AbstractNode
 {
-struct Props;
 public:
     enum class Orientation
     {
@@ -23,17 +22,18 @@ public:
 public:
     Slider(const std::string& name);
 
-    Props& setColor(const glm::vec4& color);
-    Props& setBorderColor(const glm::vec4& color);
-    Props& setSlideFrom(const float value);
-    Props& setSlideTo(const float value);
-    Props& setSlideCurrentValue(const float value);
+    Slider& setColor(const glm::vec4& color);
+    Slider& setBorderColor(const glm::vec4& color);
+    Slider& setSlideFrom(const float value);
+    Slider& setSlideTo(const float value);
+    Slider& setSlideCurrentValue(const float value);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     float getSlideFrom() const;
     float getSlideTo() const;
     float getSlideCurrentValue() const;
+    SliderListeners& getListeners();
     SliderKnobPtr getKnobRef();
     float getOffsetPerc() const;
 
@@ -48,21 +48,15 @@ private: // friend
     void onMouseHoverNotify() override;
     void onMouseDragNotify() override;
 
-public:
-    Listeners listeners;
-
 private:
-    struct Props
-    {
-        glm::vec4 color{Utils::hexToVec4("#000000ff")};
-        glm::vec4 borderColor{Utils::hexToVec4("#ff0000ff")};
-        float slideFrom{0};
-        float slideTo{0};
-        float slideValue{0};
-        // float steps{0}; // Snapping TBA
-    };
-    Props props;
     Logger log_{"Slider"};
+
+    glm::vec4 color_{Utils::hexToVec4("#000000ff")};
+    glm::vec4 borderColor_{Utils::hexToVec4("#ff0000ff")};
+    float slideFrom_{0};
+    float slideTo_{0};
+    float slideValue_{0};
+    SliderListeners listeners_;
     glm::ivec2 mouseDistFromKnobCenter_{0};
     float knobOffsetPerc_{0};
     SliderKnobPtr knobNode_{nullptr};

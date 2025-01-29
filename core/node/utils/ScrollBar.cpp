@@ -14,11 +14,11 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
 {
     knob_ = std::make_shared<ScrollBarKnob>();
     layout_.borderRadius = Layout::TBLR{8};
-    props.color = Utils::hexToVec4("#eeffccff");
+    color_ = Utils::hexToVec4("#eeffccff");
 
     // Note: Current limitation is that H and V scrollbars will always have the same size.
     // Cannot do independent size based on orientation yet.
-    setScrollbarSize(props.sbSize);
+    setScrollbarSize(sbSize_);
 
     append(knob_);
 }
@@ -27,7 +27,7 @@ void ScrollBar::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
+    shader_->setVec4f("uColor", color_);
     // shader_->setVec4f("uBorderColor", props.borderColor);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
@@ -91,29 +91,29 @@ bool ScrollBar::setOverflow(const int32_t overflow)
     return true;
 }
 
-ScrollBar::Props& ScrollBar::setColor(const glm::vec4& color)
+ScrollBar& ScrollBar::setColor(const glm::vec4& color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-ScrollBar::Props& ScrollBar::setScrollbarSize(const int32_t size)
+ScrollBar& ScrollBar::setScrollbarSize(const int32_t size)
 {
-    props.sbSize = size;
+    sbSize_ = size;
     if (orientation_ == Orientation::HORIZONTAL)
     {
-        transform_.scale.y = props.sbSize;
+        transform_.scale.y = sbSize_;
     }
     else if (orientation_ == Orientation::VERTICAL)
     {
-        transform_.scale.x = props.sbSize;
+        transform_.scale.x = sbSize_;
     }
-    return props;
+    return *this;
 }
 
-glm::vec4 ScrollBar::getColor() const { return props.color; }
+glm::vec4 ScrollBar::getColor() const { return color_; }
 
-int32_t ScrollBar::getScrollbarSize() const { return props.sbSize; }
+int32_t ScrollBar::getScrollbarSize() const { return sbSize_; }
 
 
 float ScrollBar::getKnobOffset()

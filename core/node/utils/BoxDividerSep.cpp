@@ -20,7 +20,7 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
     //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 
-    props.color = Utils::hexToVec4("#52161bff");
+    color_ = Utils::hexToVec4("#52161bff");
     layout_.onTypeChange();
 }
 
@@ -28,8 +28,8 @@ void BoxDividerSep::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", props.color);
-    shader_->setVec4f("uBorderColor", props.borderColor);
+    shader_->setVec4f("uColor", color_);
+    shader_->setVec4f("uBorderColor", borderColor_);
     shader_->setVec4f("uBorderSize", layout_.border);
     shader_->setVec4f("uBorderRadii", layout_.borderRadius);
     shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
@@ -74,7 +74,7 @@ void BoxDividerSep::onMouseDragNotify()
         right.tempScale.y -= diff;
     }
 
-    props.isActiveSeparator = true;
+    isActiveSeparator_ = true;
     MAKE_LAYOUT_DIRTY
 }
 
@@ -103,22 +103,22 @@ void BoxDividerSep::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
 }
 
-BoxDividerSep::Props& BoxDividerSep::setColor(const glm::vec4 color)
+BoxDividerSep& BoxDividerSep::setColor(const glm::vec4 color)
 {
-    props.color = color;
-    return props;
+    color_ = color;
+    return *this;
 }
 
-BoxDividerSep::Props& BoxDividerSep::setBorderColor(const glm::vec4 color)
+BoxDividerSep& BoxDividerSep::setBorderColor(const glm::vec4 color)
 {
-    props.borderColor = color;
-    return props;
+    borderColor_ = color;
+    return *this;
 }
 
 bool BoxDividerSep::getIsActiveSeparator()
 {
-    bool val = props.isActiveSeparator;
-    props.isActiveSeparator = false;
+    bool val = isActiveSeparator_;
+    isActiveSeparator_ = false;
     return val;
 }
 
