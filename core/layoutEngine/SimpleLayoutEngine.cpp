@@ -613,18 +613,18 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
 void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const AbstractNodePtr& parent)
 {
     const AbstractNodePVec& children = parent->getChildren();
-    Layout::DistribRC& gridDistribRC = parent->getLayout().gridDistrib;
+    Layout::GridDistribRC& gridDistribRC = parent->getLayout().gridDistrib;
 
     /* Calculate total frac/abs */
     glm::ivec2 totalAbs{0, 0};
     glm::ivec2 totalFrac{0, 0};
     for (const auto& distribData : gridDistribRC.cols)
     {
-        if (distribData.type == Layout::Distrib::ABS)
+        if (distribData.type == Layout::GridDistrib::ABS)
         {
             totalAbs.x += distribData.value;
         }
-        else if (distribData.type == Layout::Distrib::FRAC)
+        else if (distribData.type == Layout::GridDistrib::FRAC)
         {
             totalFrac.x += distribData.value;
         }
@@ -632,11 +632,11 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
 
     for (const auto& distribData : gridDistribRC.rows)
     {
-        if (distribData.type == Layout::Distrib::ABS)
+        if (distribData.type == Layout::GridDistrib::ABS)
         {
             totalAbs.y += distribData.value;
         }
-        else if (distribData.type == Layout::Distrib::FRAC)
+        else if (distribData.type == Layout::GridDistrib::FRAC)
         {
             totalFrac.y += distribData.value;
         }
@@ -650,11 +650,11 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
     {
         distribData.computedStart = rollingX;
 
-        if (distribData.type == Layout::Distrib::Type::FRAC)
+        if (distribData.type == Layout::GridDistrib::Type::FRAC)
         {
             rollingX += distribData.value * wPerFrac;
         }
-        else if (distribData.type == Layout::Distrib::Type::ABS)
+        else if (distribData.type == Layout::GridDistrib::Type::ABS)
         {
             rollingX += distribData.value;
         }
@@ -665,11 +665,11 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
     {
         distribData.computedStart = rollingY;
 
-        if (distribData.type == Layout::Distrib::Type::FRAC)
+        if (distribData.type == Layout::GridDistrib::Type::FRAC)
         {
             rollingY += distribData.value * hPerFrac;
         }
-        else if (distribData.type == Layout::Distrib::Type::ABS)
+        else if (distribData.type == Layout::GridDistrib::Type::ABS)
         {
             rollingY += distribData.value;
         }

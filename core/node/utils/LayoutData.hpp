@@ -1,80 +1,68 @@
 #pragma once
 
-#include "core/Utils.hpp"
 #include <cstdint>
 #include <functional>
+
+#include <glm/glm.hpp>
 
 namespace msgui
 {
 struct Layout
 {
-    enum class Type : uint8_t
-    {
-        HORIZONTAL,
-        VERTICAL,
-        GRID // not supported yet
-    };
+    /* Defines how nodes will be arranged inside the parent. */
+    enum class Type : uint8_t { HORIZONTAL, VERTICAL, GRID };
 
+    /* Defines how nodes will be aligned inside the parent. */
     enum Align : uint8_t
     {
-        // H/V Type specific
-        TOP,
-        LEFT,
-        BOTTOM,
-        RIGHT,
-        // All Type specific
+        /* HORIZONTAL/VERTICAL Type specific */
+        TOP, LEFT, BOTTOM, RIGHT,
+        /* All Type specific */
         CENTER,
-        // Grid Type specific
-        TOP_LEFT,
-        TOP_RIGHT,
-        CENTER_LEFT,
-        CENTER_RIGHT,
-        CENTER_TOP,
-        CENTER_BOTTOM,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT
+        /* Grid Type specific */
+        TOP_LEFT, TOP_RIGHT, CENTER_LEFT, CENTER_RIGHT, CENTER_TOP, CENTER_BOTTOM, BOTTOM_LEFT, BOTTOM_RIGHT
     };
 
-    enum Spacing : uint8_t
+    /* Defines how nodes will be spaces from each other inside the parent. */
+    enum Spacing : uint8_t { TIGHT, EVEN_WITH_NO_START_GAP, EVEN_WITH_START_GAP };
+
+    /* Defines how nodes will be scaled. Absolute values (ABS) are exactly what you think they are while
+       relative values (REL 0 <= val <= 1) defines the node scale to be a fractional part of the parent's
+       total scale (minus padding + borders of parent). */
+    enum ScaleType : uint8_t { ABS, REL };
+
+    /* Scale type structure holding each axis. */
+    struct ScaleTypeXY { ScaleType x; ScaleType y; };
+
+    /* Align structure holding each axis. */
+    struct AlignXY { Align x{Align::LEFT}; Align y{Align::TOP}; };
+
+    /* Allow overflow structure holding each axis. */
+    struct AllowXY { bool x{false}; bool y{false}; };
+
+    /* Grid distribution details for the parent of type grid. */
+    struct GridDistrib
     {
-        TIGHT,
-        EVEN_WITH_NO_START_GAP,
-        EVEN_WITH_START_GAP
-    };
+        /* Note: ABS is the same as before but FRAC (1 <= FRAC <= max_int) here refers to a fractional
+           part just like in the CSS web grid mechanism. Parent padding and border sizes are taken into
+           account when calculating fract parts. */
+        enum Type { ABS, FRAC };
 
-    enum ScaleType : uint8_t
-    {
-        ABS,
-        REL
+        Type type{Type::ABS};
+        int32_t value{0};
+        int32_t computedStart{0};
     };
+    using DistribVec = std::vector<GridDistrib>;
 
-    struct ScaleTypeXY
-    {
-        ScaleType x;
-        ScaleType y;
-    };
+    /* Grid distribution details for each axis. */
+    struct GridDistribRC { DistribVec rows; DistribVec cols; };
 
-    struct AlignXY
-    {
-        Align x{Align::LEFT};
-        Align y{Align::TOP};
-    };
+    /* Grid row + col. Used to specify node grid position and span along cols and rows. */
+    struct GridRC { int32_t row{0}; int32_t col{0}; };
 
-    struct AllowXY
-    {
-        bool x{false};
-        bool y{false};
-    };
-
-    //TopBottomLeftRight
+    /* Easy structure for holding top/bot/left/right values for things like margins/paddings/borderSizes etc */
     struct TBLR
     {
-        // Using AR here increases memory usage by x2.5
-        // Maybe some ctors can be created to reload just on TBLR assignment?
-        // Maybe use "-1" as a way to say keep current value?
-        // = TBLR{-1, 40, -1, -1} // change Bot & leave the rest alone?
-        // This way we only use one AR, not 4.
-
         TBLR(float val) : top(val), bot(val), left(val), right(val) {}
         TBLR(float top_, float bot_, float left_, float right_)
             : top(top_), bot(bot_), left(left_), right(right_) {}
@@ -90,27 +78,9 @@ struct Layout
         float right{0};
     };
 
-    struct Distrib
-    {
-        enum Type { ABS, FRAC };
-        Type type{Type::ABS};
-        int32_t value{0};
-        int32_t computedStart{0};
-    };
-    using DistribVec = std::vector<Distrib>;
-
-    struct DistribRC
-    {
-        DistribVec rows;
-        DistribVec cols;
-    };
-
-    struct GridRC
-    {
-        int32_t row{0};
-        int32_t col{0};
-    };
-
+    /* Setters used due to potential layout recalc/custom logic execution needed after assignment.
+       Values can be retrieved by public means however direct assignment may lead to layout or
+       logic not taking effect right away. */
     Layout& setType(const Type valueIn);
     Layout& setAllowWrap(const bool valueIn);
     Layout& setAllowOverflow(const AllowXY valueIn);
@@ -123,31 +93,34 @@ struct Layout
     Layout& setSpacing(const Spacing valueIn);
     Layout& setScaleType(const ScaleTypeXY valueIn);
     Layout& setScaleType(const ScaleType valueIn);
-    Layout& setGridDistrib(const DistribRC valueIn);
+    Layout& setGridDistrib(const GridDistribRC valueIn);
     Layout& setGridStartRC(const GridRC valueIn);
     Layout& setGridSpanRC(const GridRC valueIn);
     Layout& setScale(const glm::vec2 valueIn);
     Layout& setMinScale(const glm::vec2 valueIn);
     Layout& setMaxScale(const glm::vec2 valueIn);
 
-    AllowXY allowOverflow {false};
-    bool allowWrap        {false};
-    Type type             {Type::HORIZONTAL};
-    TBLR margin           {TBLR{0}};
-    TBLR padding          {TBLR{0}};
-    TBLR border           {TBLR{0}};
-    TBLR borderRadius     {TBLR{0}};
-    Align alignSelf       {Align::TOP};
-    AlignXY alignChild    {Align::LEFT, Align::TOP};
-    Spacing spacing       {Spacing::TIGHT};
-    ScaleTypeXY scaleType {ScaleType::ABS, ScaleType::ABS};
-    DistribRC gridDistrib {DistribVec{Distrib{Distrib::Type::FRAC, 1}}, DistribVec{Distrib{Distrib::Type::FRAC, 1}}};
-    GridRC gridStartRC    {0, 0};
-    GridRC gridSpanRC     {1, 1};
-    glm::vec2 scale       {0, 0};
-    glm::vec2 minScale    {0, 0};
-    glm::vec2 maxScale    {10'000, 10'000};
+    AllowXY allowOverflow     {false};
+    bool allowWrap            {false};
+    Type type                 {Type::HORIZONTAL};
+    TBLR margin               {TBLR{0}};
+    TBLR padding              {TBLR{0}};
+    TBLR border               {TBLR{0}};
+    TBLR borderRadius         {TBLR{0}};
+    Align alignSelf           {Align::TOP};
+    AlignXY alignChild        {Align::LEFT, Align::TOP};
+    Spacing spacing           {Spacing::TIGHT};
+    ScaleTypeXY scaleType     {ScaleType::ABS, ScaleType::ABS};
+    GridDistribRC gridDistrib { DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}},
+                                DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}}};
+    GridRC gridStartRC        {0, 0};
+    GridRC gridSpanRC         {1, 1};
+    glm::vec2 scale           {0, 0};
+    glm::vec2 minScale        {0, 0};
+    glm::vec2 maxScale        {10'000, 10'000};
 
+    /* Functions that will be ran upon setting new values. Usually the nodes execute custom logic using
+       these but the user can also set them to do custom logic at their discretion. */
     std::function<void()> onAllowOverflowChange {[](){}};
     std::function<void()> onAllowWrapChange {[](){}};
     std::function<void()> onTypeChange {[](){}};
@@ -166,7 +139,7 @@ struct Layout
     std::function<void()> onMinScaleChange {[](){}};
     std::function<void()> onMaxScaleChange {[](){}};
 
-    // Used for BoxDivider calcs
+    /* Used for BoxDivider calcs. No ideea where to put it. Shall not be used by user. */
     glm::vec2 tempScale {0, 0};
 };
 

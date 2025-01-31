@@ -10,13 +10,13 @@
 namespace msgui
 {
 BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, const BoxPtr& secondBox)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        name, NodeType::BOX_DIVIDER_SEP)
+    : AbstractNode(name, NodeType::BOX_DIVIDER_SEP)
     , firstBox_(firstBox)
     , secondBox_(secondBox)
 {
     log_ = ("BoxDividerSep(" + name + ")");
-
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
     //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 
@@ -27,30 +27,31 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
 void BoxDividerSep::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void BoxDividerSep::onMouseButtonNotify()
 {
-    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
         if (layout_.type == Layout::Type::HORIZONTAL)
         {
-            state_->currentCursorId = GLFW_HRESIZE_CURSOR;
+            getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
         }
         else if (layout_.type == Layout::Type::VERTICAL)
         {
-            state_->currentCursorId = GLFW_VRESIZE_CURSOR;
+            getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
         }
     }
     else
     {
-        state_->currentCursorId = GLFW_ARROW_CURSOR;
+        getState()->currentCursorId = GLFW_ARROW_CURSOR;
     }
 }
 
@@ -63,13 +64,13 @@ void BoxDividerSep::onMouseDragNotify()
 
     if (layout_.type == Layout::Type::HORIZONTAL)
     {
-        float diff = state_->mouseX - state_->lastMouseX;
+        float diff = getState()->mouseX - getState()->lastMouseX;
         left.tempScale.x += diff;
         right.tempScale.x -= diff;
     }
     else if (layout_.type == Layout::Type::VERTICAL)
     {
-        float diff = state_->mouseY - state_->lastMouseY;
+        float diff = getState()->mouseY - getState()->lastMouseY;
         left.tempScale.y += diff;
         right.tempScale.y -= diff;
     }

@@ -2,7 +2,6 @@
 
 #include <string>
 #include <random>
-#include <functional>
 
 #include <glm/glm.hpp>
 
@@ -69,6 +68,12 @@ public:
 
         const float t = (value - startA) / (endA - startA);
         return (1.0f - t) * startB + t * endB;
+    }
+
+    static void fatalExit(const std::string& reason)
+    {
+        Logger("Utils").errorLn("Fatal exit from: %s", reason.c_str());
+        exit(2);
     }
 };
 } // namespace msgui

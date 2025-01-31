@@ -7,11 +7,13 @@
 namespace msgui
 {
 ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orientation)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        name, NodeType::SCROLL)
+    : AbstractNode(name, NodeType::SCROLL)
     , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
 {
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
+
     knob_ = std::make_shared<ScrollBarKnob>();
     layout_.borderRadius = Layout::TBLR{8};
     color_ = Utils::hexToVec4("#eeffccff");
@@ -26,12 +28,12 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
 void ScrollBar::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    // shader_->setVec4f("uBorderColor", props.borderColor);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void ScrollBar::updateKnobOffset()
@@ -39,13 +41,13 @@ void ScrollBar::updateKnobOffset()
     glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
     if (orientation_ == Orientation::VERTICAL)
     {
-        knobOffset_ = Utils::remap(state_->mouseY - mouseDistFromKnobCenter_.y,
+        knobOffset_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
     else if (orientation_ == Orientation::HORIZONTAL)
     {
         // log_.debugLn("diff is %d", diff);
-        knobOffset_ = Utils::remap(state_->mouseX - mouseDistFromKnobCenter_.x,
+        knobOffset_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
 }
@@ -55,19 +57,19 @@ void ScrollBar::onMouseButtonNotify()
     glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
     glm::vec2 kPos = knob_->getTransform().pos;
 
-    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
         // Compute distance offset to the knob center for more natural knob dragging behavior.
-        mouseDistFromKnobCenter_.x = state_->mouseX - (kPos.x + knobHalf.x);
+        mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
         mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
             ? 0 : mouseDistFromKnobCenter_.x;
-        mouseDistFromKnobCenter_.y = state_->mouseY - (kPos.y + knobHalf.y);
+        mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
         mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
             ? 0 : mouseDistFromKnobCenter_.y;
     }
 
     updateKnobOffset();
-    state_->isLayoutDirty = true;
+    getState()->isLayoutDirty = true;
 }
 
 void ScrollBar::onMouseHoverNotify()
@@ -76,7 +78,7 @@ void ScrollBar::onMouseHoverNotify()
 void ScrollBar::onMouseDragNotify()
 {
     updateKnobOffset();
-    state_->isLayoutDirty = true;
+    getState()->isLayoutDirty = true;
 }
 
 bool ScrollBar::setOverflow(const int32_t overflow)

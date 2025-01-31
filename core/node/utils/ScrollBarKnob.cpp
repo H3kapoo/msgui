@@ -8,10 +8,11 @@
 
 namespace msgui
 {
-ScrollBarKnob::ScrollBarKnob()
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        "ScrollBarKnob", NodeType::SCROLL_KNOB)
+ScrollBarKnob::ScrollBarKnob() : AbstractNode("ScrollBarKnob", NodeType::SCROLL_KNOB)
 {
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
+
     getLayout().border = Layout::TBLR{4};
     getLayout().borderRadius = Layout::TBLR{8};
 }
@@ -19,12 +20,13 @@ ScrollBarKnob::ScrollBarKnob()
 void ScrollBarKnob::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", getLayout().border);
-    shader_->setVec4f("uBorderRadii", getLayout().borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", getLayout().border);
+    shader->setVec4f("uBorderRadii", getLayout().borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void ScrollBarKnob::onMouseButtonNotify()

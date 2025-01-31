@@ -5,16 +5,14 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/FrameState.hpp"
 #include "core/node/utils/ScrollBar.hpp"
-#include <GLFW/glfw3.h>
 
 namespace msgui
 {
-Box::Box(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"), name, NodeType::BOX)
+Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
 {
     log_ = Logger("Box(" + name +")");
-    // transform_.scale = {100, 100, 1};
-    // transform_.pos = {100, 100, 2};
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
 }
 
 bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
@@ -68,34 +66,36 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     // Update with the new overflow value
     if (hScrollBar_)
     {
-        state_->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
+        getState()->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
     }
 
     if (vScrollBar_)
     {
-        state_->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
+        getState()->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
     }
 }
 
 void Box::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void Box::onMouseButtonNotify()
 {
     listeners_.callOnMouseButton(
-        state_->lastMouseButtonTriggeredIdx,
-        state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
-        state_->mouseX,
-        state_->mouseY);
-    // log_.infoLn("I was clicked at %d %d", state_->mouseX, state_->mouseY);
+        getState()->lastMouseButtonTriggeredIdx,
+        getState()->mouseButtonState[getState()->lastMouseButtonTriggeredIdx],
+        getState()->mouseX,
+        getState()->mouseY);
+    // log_.infoLn("I was clicked at %d %d", getState()->mouseX, getState()->mouseY);
 }
 
 void Box::onMouseDragNotify()

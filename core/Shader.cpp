@@ -29,7 +29,7 @@ Shader::~Shader()
 
 // ---- Normal ---- //
 void Shader::bind() const
-{   
+{
     if (shaderId_ == boundShaderId_) { return; }
     boundShaderId_ = shaderId_;
     glUseProgram(boundShaderId_);

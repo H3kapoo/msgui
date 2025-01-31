@@ -9,10 +9,11 @@
 
 namespace msgui
 {
-Slider::Slider(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        name, NodeType::SLIDER)
+Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 {
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
+
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
     // knobNode_->getTransform().scale = glm::vec3(50, 50, 1);
@@ -25,12 +26,13 @@ Slider::Slider(const std::string& name)
 void Slider::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void Slider::updateSliderValue()
@@ -38,12 +40,12 @@ void Slider::updateSliderValue()
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     if (layout_.type == Layout::Type::VERTICAL)
     {
-        knobOffsetPerc_ = Utils::remap(state_->mouseY - mouseDistFromKnobCenter_.y,
+        knobOffsetPerc_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
     else if (layout_.type == Layout::Type::HORIZONTAL)
     {
-        knobOffsetPerc_ = Utils::remap(state_->mouseX - mouseDistFromKnobCenter_.x,
+        knobOffsetPerc_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
 
@@ -56,13 +58,13 @@ void Slider::onMouseButtonNotify()
 {
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     glm::vec2 kPos = knobNode_->getTransform().pos;
-    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
         // Compute distance offset to the knob center for more natural knob dragging behavior.
-        mouseDistFromKnobCenter_.x = state_->mouseX - (kPos.x + knobHalf.x);
+        mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
         mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
             ? 0 : mouseDistFromKnobCenter_.x;
-        mouseDistFromKnobCenter_.y = state_->mouseY - (kPos.y + knobHalf.y);
+        mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
         mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
             ? 0 : mouseDistFromKnobCenter_.y;
 

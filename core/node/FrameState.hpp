@@ -8,15 +8,15 @@
 
 namespace msgui
 {
-#define MAKE_LAYOUT_DIRTY      if (state_) { state_->isLayoutDirty = true; };
-#define REQUEST_STORE_RECREATE if (state_) { state_->layoutStoreNeedsRecreate = true; };
-#define REQUEST_NEW_FRAME      if (state_) { state_->requestNewFrameFunc(); };
+#define MAKE_LAYOUT_DIRTY      if (getState()) { getState()->isLayoutDirty = true; };
+#define REQUEST_STORE_RECREATE if (getState()) { getState()->layoutStoreNeedsRecreate = true; };
+#define REQUEST_NEW_FRAME      if (getState()) { getState()->requestNewFrameFunc(); };
 #define MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME\
     MAKE_LAYOUT_DIRTY \
     REQUEST_STORE_RECREATE\
     REQUEST_NEW_FRAME\
 
-// Cannot include AbstractNode.hpp due to imminent gl/glfw conflicts
+/* Cannot include AbstractNode.hpp due to imminent gl/glfw conflicts */
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
 

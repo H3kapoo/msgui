@@ -21,7 +21,7 @@ int main()
     {
         return -1;
     }
-
+    
     Logger mainLog{"MainLog"};
     // Debug& dbg = Debug::get();
 
@@ -29,20 +29,20 @@ int main()
     frame->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
         .setAllowOverflow({true, true})
         // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
-        .setAlignChild({Layout::Align::LEFT, Layout::Align::BOTTOM})
+        .setAlignChild({Layout::Align::LEFT, Layout::Align::CENTER})
         .setPadding({0});
     frame->getRoot()->getLayout().setGridDistrib({
         .rows = Layout::DistribVec{
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
+            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
             // Layout::Distrib{Layout::Distrib::Type::ABS, 300}
             },
         .cols = Layout::DistribVec{
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
+            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
             // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
             // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::Distrib{Layout::Distrib::Type::ABS, 250},
-            Layout::Distrib{Layout::Distrib::Type::FRAC, 1}},
+            Layout::GridDistrib{Layout::GridDistrib::Type::ABS, 250},
+            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1}},
     });
 
     // Get to this ideally:

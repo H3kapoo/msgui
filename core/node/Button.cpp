@@ -5,12 +5,14 @@
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
 #include "core/TextureLoader.hpp"
+#include "core/Utils.hpp"
 
 namespace msgui
 {
-Button::Button(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"), name, NodeType::BUTTON)
+Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
 {
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
     log_ = ("Button(" + name + ")");
 
     setupLayoutReloadables();
@@ -24,6 +26,7 @@ Button::Button(const std::string& name)
 void Button::setShaderAttributes()
 {
     transform_.computeModelMatrix();
+    auto shader = getShader();
     // if (btnTex_)
     // {
     //     shader_->setTexture2D("uTexture", GL_TEXTURE0, btnTex_->getId());
@@ -32,23 +35,23 @@ void Button::setShaderAttributes()
     // {
     //     shader_->setTexture2D("uTexture", GL_TEXTURE0, 0);
     // }
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void Button::onMouseButtonNotify()
 {
     // Predefined behavior
-    if (state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
         // layout_.border = Layout::TBLR{5, 2, 5, 2};
         // props.borderColor = Utils::hexToVec4("#dd0000ff");
     }
-    else if (!state_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    else if (!getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
     {
         // layout_.border = Layout::TBLR{2, 5, 2, 5};
         // props.borderColor = Utils::hexToVec4("#55bbbbff");
@@ -56,10 +59,10 @@ void Button::onMouseButtonNotify()
 
     // User custom behavior
     listeners_.callOnMouseButton(
-        state_->lastMouseButtonTriggeredIdx,
-        state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
-        state_->mouseX,
-        state_->mouseY);
+        getState()->lastMouseButtonTriggeredIdx,
+        getState()->mouseButtonState[getState()->lastMouseButtonTriggeredIdx],
+        getState()->mouseX,
+        getState()->mouseY);
 }
 
 void Button::setupLayoutReloadables()

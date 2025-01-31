@@ -9,10 +9,10 @@
 
 namespace msgui
 {
-RecycleList::RecycleList(const std::string& name)
-    : AbstractNode(MeshLoader::loadQuad(), ShaderLoader::load("assets/shader/sdfRect.glsl"),
-        name, NodeType::RECYCLE_LIST)
+RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
 {
+    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setMesh(MeshLoader::loadQuad());
     log_ = ("RecycleList(" + name + ")");
 
     layout_.setAllowOverflow({true, true})
@@ -43,20 +43,6 @@ RecycleList::RecycleList(const std::string& name)
     boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
     // append(slider_);
     append(boxCont_);
-
-    // int32_t elNo = 1'000'000;
-    // int32_t elNo = 3000;
-    // listItems_.reserve(elNo);
-    // for (int32_t i = 0; i < elNo; i++)
-    // {
-    //     if (i + 1 == elNo)
-    //     {
-    //         listItems_.push_back(glm::vec4(0, 0, 1, 1));
-    //         continue;
-    //     }
-    //     // listItems_.push_back(glm::vec4(0, 1, 1, 1));
-    //     listItems_.emplace_back(Utils::randomRGB());
-    // }
 }
 
 void RecycleList::addItem(const glm::vec4& color)
@@ -87,12 +73,13 @@ void RecycleList::removeTailItems(const int32_t amount)
 void RecycleList::setShaderAttributes()
 {
     transform_.computeModelMatrix();
-    shader_->setMat4f("uModelMat", transform_.modelMatrix);
-    shader_->setVec4f("uColor", color_);
-    shader_->setVec4f("uBorderColor", borderColor_);
-    shader_->setVec4f("uBorderSize", layout_.border);
-    shader_->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader_->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void RecycleList::onLayoutUpdateNotify()

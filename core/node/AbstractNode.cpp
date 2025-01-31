@@ -1,22 +1,19 @@
 #include "AbstractNode.hpp"
+
 #include <algorithm>
+
+#include "core/node/FrameState.hpp"
+#include "core/Utils.hpp"
 
 namespace msgui
 {
-AbstractNode::AbstractNode(Mesh* mesh, Shader* shader, const std::string& name, const NodeType nodeType)
-        : name_(name)
-        , id_(genetateNextId())
-        , mesh_(mesh)
-        , shader_(shader)
+AbstractNode::AbstractNode(const std::string& name, const NodeType nodeType)
+        : id_(genetateNextId())
+        , name_(name)
         , nodeType_(nodeType)
 {}
 
-void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
-{
-    appendAt(node, children_.size());
-}
-
-void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const uint32_t idx)
+void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const int32_t idx)
 {
     if (!node)
     {
@@ -30,11 +27,10 @@ void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const uin
         return;
     }
 
-    // isParented_ is used as a quick mean to check even before all the layout "stabilization"
-    // if this node has been parented already so that we can avoid "double parenting" this node
-    // to yet another node.
-    // Only when the layout will be calculated again (next frame) will the parentNode & state be
-    // populated accordingly if absent.
+    /* isParented_ is used as a quick mean to check even before all the layout "stabilization" if this node has been
+       parented already so that we can avoid "double parenting" to yet another node.
+       Only when the layout will be calculated again (next frame) will the parentNode & state be
+       populated accordingly if absent. */
     node->isParented_ = true;
 
     children_.insert(children_.begin() + idx, node);
@@ -43,6 +39,11 @@ void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const uin
         state_->isLayoutDirty = true;
         state_->layoutStoreNeedsRecreate = true;
     }
+}
+
+void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
+{
+    appendAt(node, children_.size());
 }
 
 void AbstractNode::appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes)
@@ -101,7 +102,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
 
     resetNodeToDefaults(*it);
 
-    // Transfer ownership out of the vector and erase remaining iterator
+    /* Transfer ownership out of the vector and erase remaining iterator */
     std::shared_ptr<AbstractNode> returned = std::move(*it);
     children_.erase(it);
 
@@ -151,7 +152,7 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
 
     resetNodeToDefaults(*it);
 
-    // Transfer ownership out of the vector and erase remaining iterator
+    /* Transfer ownership out of the vector and erase remaining iterator */
     std::shared_ptr<AbstractNode> returned = std::move(*it);
     children_.erase(it);
 
@@ -207,14 +208,12 @@ void AbstractNode::printTree(uint32_t currentDepth)
 
 void AbstractNode::setShader(Shader* shader)
 {
-    // Used for runtime shader reassign
-    if (shader->getShaderId() == 0)
-    {
-        log_.warnLn("Shader reassign failed. Keeping old shader id. New reassignment needed.");
-        return;
-    }
-
     shader_ = shader;
+}
+
+void AbstractNode::setMesh(Mesh* mesh)
+{
+    mesh_ = mesh;
 }
 
 Transform& AbstractNode::getTransform()
@@ -222,14 +221,21 @@ Transform& AbstractNode::getTransform()
     return transform_;
 }
 
-Shader& AbstractNode::getShader()
+Shader* AbstractNode::getShader()
 {
-    return *shader_;
+    if (!shader_) { Utils::fatalExit(std::string{__PRETTY_FUNCTION__} + std::string{"::"} + name_ ); }
+    return shader_;
 }
 
-Mesh& AbstractNode::getMesh()
+Mesh* AbstractNode::getMesh()
 {
-    return *mesh_;
+    if (!mesh_) { Utils::fatalExit(std::string{__PRETTY_FUNCTION__} + std::string{"::"} + name_ ); }
+    return mesh_;
+}
+
+FrameStatePtr AbstractNode::getState()
+{
+    return state_;
 }
 
 std::weak_ptr<AbstractNode> AbstractNode::getParent()
@@ -239,23 +245,13 @@ std::weak_ptr<AbstractNode> AbstractNode::getParent()
 
 AbstractNode* AbstractNode::getParentRaw()
 {
-    // To be used ONLY by critical paths
+    /* To be used ONLY by critical paths */
     return parentRaw_;
 }
 
 const Transform& AbstractNode::getTransform() const
 {
     return transform_;
-}
-
-const Shader& AbstractNode::getShader() const
-{
-    return *shader_;
-}
-
-const Mesh& AbstractNode::getMesh() const
-{
-    return *mesh_;
 }
 
 const std::string& AbstractNode::getName() const
@@ -289,8 +285,11 @@ Layout& AbstractNode::getLayout()
 }
 
 void AbstractNode::onMouseButtonNotify() {}
+
 void AbstractNode::onMouseHoverNotify() {}
+
 void AbstractNode::onMouseDragNotify() {}
+
 void AbstractNode::onWindowResizeNotify() {}
 
 uint32_t AbstractNode::genetateNextId() const
@@ -301,14 +300,13 @@ uint32_t AbstractNode::genetateNextId() const
 
 void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
 {
-    // Notify layout
+    /* Notify layout */
     if (node->state_)
     {
-        node->state_->isLayoutDirty = true;
-        node->state_->layoutStoreNeedsRecreate = true;
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     }
 
-    // Reset to defaults
+    /* Reset to defaults */
     node->state_ = nullptr;
     node->isParented_ = false;
     node->parent_.reset();
