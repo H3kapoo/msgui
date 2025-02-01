@@ -16,6 +16,26 @@ Almost no dependencies to use the library dynamically.
 | Slider       | Mouse draggable slider for selecting values |
 | OtherNodes   | TBA                                          |
 
+
+### In Project usage:
+All you need to do to use the library is link against it: ```msguilib.so```
+
+Obviously basic stuff like OpenGL needs to be installed on your system.
+
+### Build from source
+For Linux at least:
+```bash
+    chmod +x ./build.sh
+    ./build.sh
+```
+```bash
+    Build dependencies: GLFW glew freetype
+```
+
+For Windows:
+```bash
+    Should normally be the same, but with Windows CMD shenenigans.
+```
 ### Usage
 
 Just drag&drop the zip containing the traces and press ```Extract```. Output will be created in ```output/``` folder
