@@ -7,7 +7,7 @@ Pretty simple to use. No deep OOP hierarchies. No abstraction madness. Straight 
 Almost no dependencies to use the library dynamically.
 
 ##### Currently available UI elements include:
-| Node         | Details                                      |
+| UI Element         | Details                                      |
 | --------     | -------------------------------------------- |
 | Box          | Box container holding elements horizontally/vertically/in a grid manner |
 | BoxDivider   | Box containers that can be resized by mouse click & drag |
@@ -16,6 +16,17 @@ Almost no dependencies to use the library dynamically.
 | Slider       | Mouse draggable slider for selecting values |
 | OtherNodes   | TBA                                          |
 
+
+### Exmples
+There's a directory with examples you can explore. You need to go in the ```examples``` directory and run:
+```bash
+    chmod +x ./build.sh
+```
+and then:
+```bash
+    ./build.sh <exampleName>
+```
+For a list of available examples, leave the .sh argument empty.
 
 ### In Project usage:
 All you need to do to use the library is link against it: ```msguilib.so```
@@ -38,4 +49,5 @@ For Windows:
 ```bash
     Should normally be the same, but with Windows CMD shenenigans.
 ```
-### Notes
+### Notes & Disclaimers
+ - UI Element or UI widget or nodes are used interchangeably and mean the same thing in this project.
