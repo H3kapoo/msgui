@@ -23,6 +23,8 @@ All you need to do to use the library is link against it: ```msguilib.so```
 Obviously basic stuff like OpenGL needs to be installed on your system.
 
 ### Build from source
+⚠️ **Note** : Project was compiled using C++23 but currently nothing uses any functionality above C++17 so you can go ahead and use c++17 to compile if you want.
+
 For Linux at least:
 ```bash
     chmod +x ./build.sh
@@ -36,7 +38,4 @@ For Windows:
 ```bash
     Should normally be the same, but with Windows CMD shenenigans.
 ```
-### Usage
-
-Just drag&drop the zip containing the traces and press ```Extract```. Output will be created in ```output/``` folder
-in the same directory as the dragged zip.
+### Notes
