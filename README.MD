@@ -59,3 +59,4 @@ For Windows:
 ```
 ### Notes & Disclaimers
  - UI Element or UI widget or nodes are used interchangeably and mean the same thing in this project.
+ - UI Elements are not native to the operating system. They are created from scratch so if you want the native feel then it is not available out of the box. However you could maybe try to style things until it looks native.
