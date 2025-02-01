@@ -6,7 +6,7 @@ Pronounced "miss gui" is a lightweight C++ GUI library build using OpenGL.
     - [Features](#features)
         - [Currently available UI elements include:](#currently-available-ui-elements-include)
     - [Exmples](#exmples)
-    - [In Project usage:](#in-project-usage)
+    - [In Project usage](#in-project-usage)
     - [Build from source](#build-from-source)
     - [Notes \& Disclaimers](#notes--disclaimers)
 
@@ -36,7 +36,7 @@ and then:
 ```
 For a list of available examples, leave the .sh argument empty.
 
-### In Project usage:
+### In Project usage
 All you need to do to use the library is link against it: ```msguilib.so```
 
 Obviously basic stuff like OpenGL needs to be installed on your system.
