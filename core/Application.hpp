@@ -11,33 +11,68 @@ namespace msgui
 class Application
 {
 public:
-    enum class PollMode
-    {
-        ON_EVENT   = 0,
-        CONTINUOUS = 1
-    };
-
-    enum class Toggle
-    {
-        OFF = 0,
-        ON  = 1
-    };
+    /* Poll mode for the application. App can run the redering logic CONTINOUSLY or only ON_EVENT triggered by user
+       such as mose movement, window resizing, etc. It's recommended to use ON_EVENT to prevent busy looping. */
+    enum class PollMode { ON_EVENT   = 0, CONTINUOUS = 1 };
 
 public:
+    /**
+        Initializes application dependencies.
+        Note: Mandatory function to be called before doing ANYTHING!
 
+        @return True on success and False on failure
+    */
     bool init();
+
+    /**
+        Runs the application loop.
+        Note: Blocking operation. This will return only on main window close request.
+     */
     void run();
-    WindowFramePtr& createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
-        const bool isPrimary = false);
 
+    /**
+        Create a window frame to append elements into.
+
+        @param windowName Name of the window
+        @param width Desired window width
+        @param height Desired window height
+
+        @return Reference to the created window frame
+     */
+    WindowFramePtr& createFrame(const std::string& windowName, const uint32_t width, const uint32_t height);
+
+    /**
+        Sets the poll mode of the application.
+
+        @param Poll mode
+    */
     void setPollMode(const PollMode mode);
-    void setVSync(const Toggle toggle);
 
+    /**
+        Sets vsync to enabled or disabled.
+
+        @param vsyncValue True for ON, False for OFF
+    */
+    void setVSync(const bool vsyncValue);
+
+    /**
+        Find and return window frame with specific id.
+
+        @param id Id of the window root box
+
+        @return Pointer to the window frame
+     */
     WindowFramePtr getFrameId(const uint32_t id);
 
+    /**
+        Get Application instace.
+
+        @return Reference to application instace
+     */
     static Application& get();
 
 private:
+    /* No copies or moves allowed. */
     Application() = default;
     Application(Application&&) = delete;
     Application(const Application&) = delete;
@@ -46,9 +81,6 @@ private:
 
     Logger log_{"Application"};
     WindowPtr initializationWindow_;
-
-    // List references remain valid even after addition/removal and in this case, because of that, it is
-    // better to use lists instead of vectors.
     std::list<WindowFramePtr> frames_;
     bool shouldAppClose_{false};
     int32_t FPS_{0};

@@ -10,7 +10,7 @@ namespace msgui
 {
 SliderKnob::SliderKnob(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 }
 

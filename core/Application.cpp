@@ -39,7 +39,7 @@ bool Application::init()
         return false;
     }
 
-    // Dummy context is made current by default.
+    /* Dummy context is made current by default. */
     if (glewInit() != GLEW_OK)
     {
         return false;
@@ -57,7 +57,7 @@ void Application::run()
     static double currentTime = glfwGetTime();
     static double delta = currentTime - previousTime;
 
-    // Only close the App if the primary window is closed.
+    /* Only close the App if the primary window is closed. */
     while (!shouldAppClose_)
     {
         std::erase_if(frames_,
@@ -70,7 +70,6 @@ void Application::run()
                 if (frame->isPrimary() && delta > 1.0f)
                 {
                     FPS_ = frameCount / delta;
-                    // frame->window_.setTitle("FPS: " + std::to_string(FPS_));
                     frame->window_.setTitle(std::to_string(FPS_));
 
                     frameCount = 0;
@@ -91,15 +90,14 @@ void Application::run()
             break;
         }
 
-        // Note: Event solvers (like callbacks) are processed before rendering & updating the layout
-        // at least for ON_EVENT polling.
+        /* Note: Event solvers (like callbacks) are processed before rendering & updating the layout */
         pollMode_ == PollMode::ON_EVENT ? Window::waitEvents() : Window::pollEvents();
     }
 }
 
-WindowFramePtr& Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height,
-    const bool isPrimary)
+WindowFramePtr& Application::createFrame(const std::string& windowName, const uint32_t width, const uint32_t height)
 {
+    const bool isPrimary = frames_.empty();
     auto newFrame = std::make_shared<WindowFrame>(windowName, width, height, isPrimary);
     return frames_.emplace_back(newFrame);
 }
@@ -109,9 +107,9 @@ void Application::setPollMode(const PollMode mode)
     pollMode_ = mode;
 }
 
-void Application::setVSync(const Application::Toggle toggle)
+void Application::setVSync(const bool vsyncValue)
 {
-    Window::setVSync(static_cast<int32_t>(toggle));
+    Window::setVSync(vsyncValue);
 }
 
 WindowFramePtr Application::getFrameId(const uint32_t id)
@@ -135,5 +133,4 @@ Application& Application::get()
     static Application app;
     return app;
 }
-
 } // namespace msgui

@@ -10,7 +10,7 @@ namespace msgui
 {
 ScrollBarKnob::ScrollBarKnob() : AbstractNode("ScrollBarKnob", NodeType::SCROLL_KNOB)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 
     getLayout().border = Layout::TBLR{4};

@@ -11,7 +11,7 @@ namespace msgui
 {
 BoxDivider::BoxDivider(const std::string& name) : AbstractNode(name, NodeType::BOX_DIVIDER)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
     log_ = ("BoxDivider(" + name + ")");
 

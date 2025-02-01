@@ -35,13 +35,5 @@ void Mesh::unbind() const
    glBindVertexArray(0);
 }
 
-uint32_t Mesh::getVaoId() const
-{
-    return vaoId_;
-}
-
-uint32_t Mesh::getVaoId()
-{
-    return vaoId_;
-}
+uint32_t Mesh::getVaoId() { return vaoId_; }
 } // namespace msgui

@@ -11,7 +11,7 @@ namespace msgui
 {
 Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
     log_ = ("Button(" + name + ")");
 
@@ -19,8 +19,6 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
 
     color_ = Utils::hexToVec4("#bbbbbbff");
     borderColor_ = Utils::hexToVec4("#55bbbbff");
-    // layout_.border = Layout::TBLR{5, 2, 5, 2};
-    // layout_.border = Layout::TBLR{2, 5, 2, 5};
 }
 
 void Button::setShaderAttributes()

@@ -39,14 +39,6 @@ Mesh* MeshLoader::loadQuad()
 
 Mesh MeshLoader::loadInternalQuad()
 {
-    // static std::vector<float> vertices = {
-    //      // positions        // texture coords
-    //      0.5f,  0.5f, 0.0f,  1.0f, 1.0f, // top right
-    //      0.5f, -0.5f, 0.0f,  1.0f, 0.0f, // bottom right
-    //     -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, // bottom left
-    //     -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, // top left 
-    // };
-
     static std::vector<float> vertices = {
          // positions        // texture coords
          1.0f,  1.0f, 0.0f,  1.0f, 1.0f, // top right
@@ -114,8 +106,6 @@ void MeshLoader::buildAttribLayers(std::vector<Layer>& layers)
     uint64_t offset{0};
     for (const auto& layer : layers)
     {
-        // log_.debug("Layer %d: %-20s | Size %d | Offset %2ldb | Stride %ldb", layer.index, layer.name.c_str(),
-        //     layer.count, offset, stride);
         glVertexAttribPointer(layer.index, layer.count, GL_FLOAT, false, stride, (void*)offset);
         glEnableVertexAttribArray(layer.index);
         offset += layer.count * sizeof(float);

@@ -25,7 +25,7 @@ int main()
     Logger mainLog{"MainLog"};
     // Debug& dbg = Debug::get();
 
-    WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H, true);
+    WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
     frame->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
         .setAllowOverflow({true, true})
         // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
@@ -44,6 +44,8 @@ int main()
             Layout::GridDistrib{Layout::GridDistrib::Type::ABS, 250},
             Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1}},
     });
+
+    frame->saveBufferToFile("");
 
     // Get to this ideally:
     // frame->getRoot()->getLayout().setGridDistr({1_fr, 1_fr, 10_abs}, {1_fr, 1_fr, 10_abs});
@@ -183,7 +185,7 @@ int main()
     // app.setVSync(Application::Toggle::OFF);
     app.setPollMode(Application::PollMode::ON_EVENT);
     // app.setPollMode(Application::PollMode::CONTINUOUS);
-    app.setVSync(Application::Toggle::ON);
+    app.setVSync(true);
     app.run();
     return 0;
 }

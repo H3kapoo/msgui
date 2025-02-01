@@ -8,13 +8,21 @@
 
 namespace msgui
 {
+/* Class that loads a texture and stores it uniquely accross windows */
 class TextureLoader
 {
 public:
+    /**
+        Load a texture from path.
+
+        @param resPath Path to resource to load from
+        @return Textuure pointer
+    */
     static TexturePtr loadTexture(const std::string& resPath,
         const Texture::Params& params = Texture::Params{});
 
 private:
+    /* Cannot be copied or moved */
     TextureLoader() = default;
     TextureLoader(const TextureLoader&);
     TextureLoader& operator=(const TextureLoader&);

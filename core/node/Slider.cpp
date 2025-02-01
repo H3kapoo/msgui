@@ -11,7 +11,7 @@ namespace msgui
 {
 Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 
     knobNode_ = std::make_shared<SliderKnob>("Knob");

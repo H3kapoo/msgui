@@ -15,7 +15,7 @@ glm::mat4& Transform::computeModelMatrix()
 
 void Transform::computeViewableArea(const Transform& otherTrans, const Layout::TBLR& otherBorder)
 {
-    // Available viewing space shinks with parent's border
+    /* Available viewing space shinks with parent's border */
     const glm::vec2 posScale = pos + scale;
     const glm::ivec2 newVscale = otherTrans.vScale
         - glm::ivec2{otherBorder.left + otherBorder.right, otherBorder.top + otherBorder.bot};

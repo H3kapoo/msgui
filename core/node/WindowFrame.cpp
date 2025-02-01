@@ -71,12 +71,11 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
         height - frameBox_->getLayout().border.top - frameBox_->getLayout().border.bot};
     frameBox_->state_ = frameState_;
 
-    // Init cursors
+    /* Init cursors */
     if (initCursors)
     {
         standardCursors_ =
         {
-            // They shouldn't fail really
             glfwCreateStandardCursor(GLFW_ARROW_CURSOR),
             glfwCreateStandardCursor(GLFW_IBEAM_CURSOR),
             glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR),
@@ -120,6 +119,7 @@ void WindowFrame::saveBufferToFile(const std::string& filePath, const int32_t qu
     std::unique_ptr<uint8_t[]> store(new uint8_t[w * h * comps]);
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, store.get());
     stbi_flip_vertically_on_write(true);
+
     int32_t res = stbi_write_jpg(filePath.c_str(), w, h, comps, store.get(), quality);
     if (res != 0)
     {
@@ -143,7 +143,7 @@ bool WindowFrame::isPrimary() const
 
 bool WindowFrame::run()
 {
-    // See if cursor needs changing
+    /* See if cursor needs changing */
     if (frameState_->currentCursorId != frameState_->prevCursorId)
     {
         frameState_->prevCursorId = frameState_->currentCursorId;
@@ -151,40 +151,30 @@ bool WindowFrame::run()
         glfwSetCursor(window_.getHandle(), standardCursors_[idx]);
     }
 
-    // layout pass
+    /* Layout pass */
     if (frameState_->isLayoutDirty)
     {
-        // It's important for the variable to be reset before the layout update is called as layoutUpdate
-        // can SET the variable to true again if it decides the layout got dirty.
+        /* It's important for the variable to be reset before the layout update is called as layoutUpdate
+           can SET the variable to true again if it decides the layout got dirty. */
         frameState_->isLayoutDirty = false;
         updateLayout();
 
-        // If the layout got dirty again we need to simulate a new frame RUN request.
+        /* If the layout got dirty again we need to simulate a new frame RUN request. */
         if (frameState_->isLayoutDirty)
         {
             Window::requestEmptyEvent();
             return false; // do not render yet, go away.
-            //TODO: Theoretically it's better to use run() here but it can get stuck in an infinite
-            // layout calculation loop if we mess pretty hard with the window size.
-            // Calling requestEmptyEvent is a bit slower because it needs to also render the frame but maybe
-            // in practice there's not a big penalty.
-            // See in the future if infinite looping can be mitigated.
-            // run();
         }
     }
 
-    // render pass
+    /* Render pass */
     window_.setContextCurrent();
     window_.setCurrentViewport();
     window_.setCurrentScissorArea();
     Window::clearColor(glm::vec4{0.0, 1.0, 0.0, 1.0f});
     Window::clearBits(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     renderLayout();
-    
     window_.swap();
-
-    // log_.debugLn("exit? %d", window_.shouldClose());
 
     return shouldWindowClose_ || window_.shouldClose();
 }
@@ -193,11 +183,11 @@ void WindowFrame::renderLayout()
 {
     const auto pMat = window_.getProjectionMat();
 
-    // Currently we need front to back to minimize overdraw by making use of the depth buffer.
-    // Not sure how this will work when we need alpha blending between nodes. Maybe we will need
-    // to render back to front in that case and take overdrawing as a compromise.
-    // TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
-    // transparent objects.
+    /* Currently we render front to back to minimize overdraw by making use of the depth buffer.
+       Not sure how this will work when we need alpha blending between nodes. Maybe we will need
+       to render back to front in that case and take overdrawing as a compromise. */
+    /* TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
+       transparent objects. */
     // for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
     for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
@@ -207,31 +197,31 @@ void WindowFrame::renderLayout()
 
 void WindowFrame::updateLayout()
 {
-    // Must redo internal vector structure if something was added/removed.
+    /* Must redo internal vector structure if something was added/removed. */
     if (frameState_->layoutStoreNeedsRecreate)
     {
         resolveNodeRelations();
     }
 
-    // Iterate from lowest depth to highest
+    /* Iterate from lowest depth to highest */
     for (auto& node : allFrameChildNodes_ | std::views::reverse)
     {
         glm::ivec2 overflow = layoutEngine_->process(node);
 
-        // Currently only BOX type nodes support overflow handling
+        /* Currently only BOX type nodes support overflow handling */
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
             static_cast<Box*>(node.get())->updateOverflow(overflow);
         }
 
-        // After updating the node layout, we need to update the viewable area of the node based on the parent's
-        // viewable area. Raw parent is used for better performance (compared to locking each time).
-        // TODO: This shall be moved into layout process().
+        /* After updating the node layout, we need to update the viewable area of the node based on the parent's
+           viewable area. Raw parent is used for better performance (compared to locking each time). */
+        /* TODO: This shall be moved into layout process(). */
         if (auto p = node->getParentRaw())
         {
-            // RecyleList being the king it is, requires that we tell it that the layout pass for it had finished.
-            // Note that we do this on the parent of the current BOX node because we need to notify it AFTER the
-            // item containing BOX inside it finished the layout pass.
+            /* RecyleList, being the king it is, requires that we tell it that the layout pass for it had finished.
+               Note that we do this on the parent of the current BOX node because we need to notify it AFTER the
+               item containing BOX inside it finished the layout pass. */
             if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
                 node->getType() == AbstractNode::NodeType::BOX)
             {
@@ -259,7 +249,7 @@ void WindowFrame::resolveNodeRelations()
 
         for (auto& ch : node->getChildren())
         {
-            // Set children's frameState and depth if needed
+            /* Set children's frameState and depth if needed */
             if (!ch->state_)
             {
                 bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
@@ -273,7 +263,7 @@ void WindowFrame::resolveNodeRelations()
         }
     }
 
-    // Sort nodes from high to low depth
+    /* Sort nodes from high to low depth */
     std::ranges::sort(allFrameChildNodes_,
         [](const AbstractNodePtr a, const AbstractNodePtr b)
         {
@@ -283,7 +273,6 @@ void WindowFrame::resolveNodeRelations()
 
 void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t action)
 {
-    // log_.debug("button is %d action %d", btn, action);
     frameState_->mouseButtonState[btn] = action;
     frameState_->lastMouseButtonTriggeredIdx = btn;
 
@@ -302,7 +291,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 clickedIsAlsoHovered = true;
             }
 
-            // If we got here by pressing the mouse button, this is the new selected node.
+            /* If we got here by pressing the mouse button, this is the new selected node. */
             if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
                 frameState_->clickedNodePtr = node;
@@ -313,7 +302,6 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 if (!clickedIsAlsoHovered && frameState_->clickedNodePtr)
                 {
                     frameState_->clickedNodePtr->onMouseButtonNotify();
-                    // break;
                 }
                 frameState_->clickedNodePtr = NO_PTR;
             }
@@ -331,7 +319,6 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->mouseX = x;
     frameState_->mouseY = y;
 
-    // Resolve hovered item
     frameState_->hoveredNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
@@ -346,7 +333,7 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
         }
     }
 
-    // Having a selectedNodeId && currently holding down left click means we want to drag only.
+    /* Having a selectedNodeId && currently holding down left click means we want to drag only. */
     if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
     {
         frameState_->clickedNodePtr->onMouseDragNotify();

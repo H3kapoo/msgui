@@ -25,6 +25,11 @@ private:
 public:
     SimpleLayoutEngine() = default;
 
+    /**
+        Process the layour for the current node.
+
+        @param node Node on which the layour calculations will be performed
+     */
     glm::vec2 process(const AbstractNodePtr& node) override;
 
 private:

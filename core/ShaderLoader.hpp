@@ -13,14 +13,30 @@ namespace msgui
 {
 using ShaderPartType = uint32_t;
 
+/* Class that loads a shader and stores it uniquely accross windows */
 class ShaderLoader
 {
 public:
-    // Statics
-    static Shader* load(const std::string& shaderPath);
+
+    /**
+        Load a shader glsl file from path.
+        Note: Vertex and Fragment shader are combined inside one file, not separated.
+
+        @param shaderPath Path to load shader from
+        @return Shader pointer
+    */
+    static Shader* loadShader(const std::string& shaderPath);
+
+    /**
+        Runtime reload a shader given a path to it.
+
+        @param shaderPath Path to load shader from
+        @return Shader pointer
+    */
     static void reload(const std::string& shaderPath);
 
 private:
+    /* Cannot be copied or moved */
     ShaderLoader() = default;
     ~ShaderLoader();
     ShaderLoader(const ShaderLoader&);
@@ -28,13 +44,11 @@ private:
     ShaderLoader& operator=(const ShaderLoader&);
     ShaderLoader& operator=(ShaderLoader&&);
 
-    // Normal
     uint32_t loadInternal(const std::string& shaderPath);
     uint32_t loadInternal(const std::string& vertCode, const std::string& fragCode);
     uint32_t linkShaders(int vertShaderId, int fragShaderId);
     uint32_t compileShaderData(const std::string& data, const ShaderPartType shaderType);
 
-    // Statics
     static ShaderLoader& get();
 
 private:

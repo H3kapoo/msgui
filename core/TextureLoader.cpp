@@ -56,7 +56,7 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     glTexParameterfv(params.target, GL_TEXTURE_BORDER_COLOR, borderColor);
     glTexParameterf(params.target, GL_TEXTURE_MAX_ANISOTROPY, params.anisotropicFiltering);
 
-    // or 1D/3D.. to be adapted later
+    /* TODO: or 1D/3D.. to be adapted later */
     glTexImage2D(params.target, 0, glColorFormat, width, height, 0, glColorFormat,
         GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(params.target);

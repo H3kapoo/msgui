@@ -15,7 +15,7 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
     , secondBox_(secondBox)
 {
     log_ = ("BoxDividerSep(" + name + ")");
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
     //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();

@@ -7,9 +7,17 @@
 
 namespace msgui
 {
+/* Class responsible for simple rendering of any node */
 class Renderer
 {
 public:
+    /**
+        Render the current node.
+
+        @param node Node to be rendered
+        @param projMat Orthographic projection matrix to be used
+        @param frameSizeY Vetical size of the frame (window)
+    */
     static void render(AbstractNodePtr node, const glm::mat4& projMat, int32_t frameSizeY)
     {
         auto& t = node->getTransform();

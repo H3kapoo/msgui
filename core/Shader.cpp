@@ -14,20 +14,17 @@ Shader::Shader(const uint32_t shaderId, const std::string& shaderName)
 
 Shader& Shader::operator=(Shader&& other)
 {
-    // Used for hot reloading code
+    /* Used for hot reloading code */
     shaderId_ = other.shaderId_;
     other.shaderId_ = 0;
-    // log_.info("Moved assign");
     return *this;
 }
 
 Shader::~Shader()
 {
     glDeleteProgram(shaderId_);
-    // log_.info("Deleted shader");
 }
 
-// ---- Normal ---- //
 void Shader::bind() const
 {
     if (shaderId_ == boundShaderId_) { return; }
@@ -160,7 +157,7 @@ void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, co
         return;
     }
 
-    // Shader needs texture unit location in range from [0..maxUnits], not from [GL_TEXTURE0..maxGL_TEXTURE]
+    /* Shader needs texture unit location in range from [0..maxUnits], not from [GL_TEXTURE0..maxGL_TEXTURE] */
     setInt(name, texUnit - GL_TEXTURE0);
     glActiveTexture(texUnit);
 

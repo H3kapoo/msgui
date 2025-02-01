@@ -12,16 +12,31 @@ namespace msgui
 class Utils
 {
 public:
+    /**
+        Generates a random RGB color.
+
+        @return Random color computed
+     */
     static inline glm::vec4 randomRGB()
     {
         return {random01(), random01(), random01(), 1.0f};
     }
 
+    /**
+        Generates a random RGBA color.
+
+        @return Random color computed
+     */
     static inline glm::vec4 randomRGBA()
     {
         return {random01(), random01(), random01(), random01()};
     }
 
+    /**
+        Generates a random value between 0 and 1.
+
+        @return Random value computed
+     */
     static inline float random01()
     {
         static std::random_device rd;
@@ -31,9 +46,16 @@ public:
         return distance(generator);
     }
 
+    /**
+        Convert a hex string to a normalized RGBA vector.
+
+        @param hexColor Hex color to convert (#RRGGBBAA)
+
+        @return Normalized color vector
+    */
     static inline glm::vec4 hexToVec4(const std::string& hexColor)
     {
-        // A bit restrictive but good enough for now 
+        /* A bit restrictive but good enough for now */
         if ((hexColor.size() != 7 && hexColor.size() != 9) || hexColor[0] != '#')
         {
             fprintf(stderr, "Invalid hex color format!\n");
@@ -53,6 +75,17 @@ public:
         return normalizedColor;
     }
 
+    /**
+        Remamps a value that is normally between A and B to a value between C and D linearly.
+
+        @param value Value to remap
+        @param startA Value range start before remap
+        @param startB Value range end before remap
+        @param endA Value range start after remap
+        @param endB Value range end after remap
+
+        @return Remapped value
+    */
     static inline float remap(float value, const float startA, const float endA,
         const float startB, const float endB)
     {
@@ -70,6 +103,11 @@ public:
         return (1.0f - t) * startB + t * endB;
     }
 
+    /**
+        Fatally exit because of specific reason.
+
+        @param Reason for exit
+     */
     static void fatalExit(const std::string& reason)
     {
         Logger("Utils").errorLn("Fatal exit from: %s", reason.c_str());

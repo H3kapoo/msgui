@@ -9,17 +9,14 @@
 
 namespace msgui
 {
+/* Class that loads a mesh and stores it uniquely accross windows */
 class MeshLoader
 {
+/* Custom key for a simple quad */
 const static constexpr std::string INTERNAL_QUAD_KEY{"//iQuadMesh"};
 
 private:
-    enum BufferType : uint8_t
-    {
-        STATIC,
-        DYNAMIC,
-        STREAM
-    };
+    enum BufferType : uint8_t { STATIC, DYNAMIC, STREAM };
 
     struct Layer
     {
@@ -29,9 +26,15 @@ private:
     };
 
 public:
+    /**
+        Specifically load the quad mesh type.
+
+        @return Mesh pointer
+    */
     static Mesh* loadQuad();
 
 private:
+    /* Cannot be copied or moved */
     MeshLoader() = default;
     ~MeshLoader();
     MeshLoader(const MeshLoader&);
@@ -50,7 +53,6 @@ private:
     static MeshLoader& get();
 
 private:
-    //TODO: Maybe no need for these to be static
     static Logger log_;
     static std::unordered_map<std::string, Mesh*> meshPathToObject_;
 };

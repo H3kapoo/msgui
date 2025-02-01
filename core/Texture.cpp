@@ -11,7 +11,6 @@ Texture::Texture(const uint32_t id, const uint32_t width, const uint32_t height,
     , params_(params)
 {}
 
-// ---- Getters ---- //
 uint32_t Texture::getId() const
 {
     return id_;

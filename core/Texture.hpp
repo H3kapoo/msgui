@@ -8,6 +8,8 @@
 
 namespace msgui
 {
+
+/* Holder for texture related information */
 struct Texture
 {
     struct Params
@@ -21,10 +23,18 @@ struct Texture
         float anisotropicFiltering {8.0f};
     };
 
+    /**
+        Creates a new texture structure. To be used by texture loader.
+
+        @param id Loaded texture id
+        @param width Texture width
+        @param height Texture height
+        @param numChannels Texture channels (3 for JPG, 4 for PNG, etc)
+        @param params Texture configuration params
+    */
     explicit Texture(const uint32_t id, const uint32_t width, const uint32_t height, const uint32_t numChannels,
         const Params& params);
 
-    // Getters
     uint32_t getId() const;
     int32_t getWidth() const;
     int32_t getHeight() const;

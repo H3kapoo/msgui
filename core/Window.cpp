@@ -71,12 +71,12 @@ void Window::onResizeEvent(const uint32_t width, const uint32_t height)
     width_ = width;
     height_ = height;
 
-    // Normally the Z axis in opengl points to the negative Z (into the screen).
-    // Reverse & flip sign of Z_near and Z_Far so that elements can be placed from
-    // [+Z_near, +Z_far] which lower Z appearing further into the camera and higher Z
-    // closer to the camera, mimicing layers.
-    // If not for this, we would of had to place elements with a negative Z and the highest Z
-    // (e.g -1) would of appeared in front of lowest Z (e.g -100) which is not what we want.
+    /* Normally the Z axis in opengl points to the negative Z (into the screen).
+       Reverse & flip sign of Z_near and Z_Far so that elements can be placed from
+       [+Z_near, +Z_far] which lower Z appearing further into the camera and higher Z
+       closer to the camera, mimicing layers.
+       If not for this, we would of had to place elements with a negative Z and the highest Z
+       (e.g -1) would of appeared in front of lowest Z (e.g -100) which is not what we want. */
     projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -(float)MAX_LAYERS, 0.0f);
 
     setContextCurrent();
@@ -87,7 +87,7 @@ void Window::onResizeEvent(const uint32_t width, const uint32_t height)
 void Window::setTitle(const std::string& title)
 {
     glfwSetWindowTitle(windowHandle_, title.c_str());
-    windowName_ = title; // this doesn't update the logger
+    windowName_ = title; /* Note: this doesn't update the logger */
 }
 
 void Window::setContextCurrent() const
@@ -137,7 +137,7 @@ bool Window::initGlfwWindowing()
 
 void Window::setBlending(const bool state)
 {
-    // Note: A context needs to be bound for this to work
+    /* Note: A context needs to be bound for this to work */
     state ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -205,12 +205,12 @@ void Window::clearBits(const uint32_t bits)
 
 void Window::maskUnnecessaryEvents()
 {
-    // On X11 systems when we have ONE context shared among MANY windows, the WM will spam out PropertyNotify
-    // events endlessly. This messes with glfwWaitEvents() blocking nature and behaves just like a
-    // glfwPollEvents() instead which is not what we want from a GUI app.
-    // The way around this is to tell the WM to not generate PropertyNotify events anymore by masking the
-    // attribute associated with that event.
-    // Not sure if the behavior is similar on Windows/MacOS.
+    /* On X11 systems when we have ONE context shared among MANY windows, the WM will spam out PropertyNotify
+       events endlessly. This messes with glfwWaitEvents() blocking nature and behaves just like a
+       glfwPollEvents() instead which is not what we want from a GUI app.
+       The way around this is to tell the WM to not generate PropertyNotify events anymore by masking the
+       attribute associated with that event.
+       Not sure if the behavior is similar on Windows/MacOS. */
 
 // #define PLATFORM_LINUX
     XWindowAttributes attributes;

@@ -11,48 +11,22 @@ Input::Input(const Window* window)
     log_.infoLn("Callback slots have been initialized");
 }
 
-// ---- Event receiver callbacks ---- //
-void Input::onMouseMove(const MouseMoveCallback& callback)
-{
-    mouseMoveCb_ = callback;
-}
+void Input::onMouseMove(const MouseMoveCallback& callback) { mouseMoveCb_ = callback; }
 
-void Input::onMouseButton(const MouseClickCallback& callback)
-{
-    mouseClickCb_ = callback;
-}
+void Input::onMouseButton(const MouseClickCallback& callback) { mouseClickCb_ = callback; }
 
-void Input::onWindowResize(const WindowResizeCallback& callback)
-{
-    winResizeCb_ = callback;
-}
+void Input::onWindowResize(const WindowResizeCallback& callback) { winResizeCb_ = callback; }
 
-void Input::onKeyPress(const KeyCallback& callback)
-{
-    keyPressCb_ = callback;
-}
+void Input::onKeyPress(const KeyCallback& callback) { keyPressCb_ = callback; }
 
-void Input::onKeyRelease(const KeyCallback& callback)
-{
-    keyReleaseCb_ = callback;
-}
+void Input::onKeyRelease(const KeyCallback& callback) { keyReleaseCb_ = callback; }
 
-void Input::onKeyHold(const KeyCallback& callback)
-{
-    keyHoldCb_ = callback;
-}
+void Input::onKeyHold(const KeyCallback& callback) { keyHoldCb_ = callback; }
 
-void Input::onKeyPressAndHold(const KeyCallback& callback)
-{
-    keyPressAndHoldCb_ = callback;
-}
+void Input::onKeyPressAndHold(const KeyCallback& callback) { keyPressAndHoldCb_ = callback; }
 
-void Input::onRefresh(const RefreshCallback& callback)
-{
-    refreshCb_ = callback;
-}
+void Input::onRefresh(const RefreshCallback& callback) { refreshCb_ = callback; }
 
-// ---- Normal Private ---- //
 void Input::setupEventCallbacks()
 {
     GLFWwindow* windowHandle = window_->getHandle();
@@ -84,11 +58,6 @@ void Input::setupEventCallbacks()
             (void)button;
             (void)mods;
 
-            // if (action != GLFW_RELEASE)
-            // {
-            //     return;
-            // }
-
             Input* input =  static_cast<Input*>(glfwGetWindowUserPointer(win));
             if (input->mouseClickCb_)
             {
@@ -104,9 +73,6 @@ void Input::setupEventCallbacks()
             {
                 input->winResizeCb_(width, height);
             }
-
-            // shall be removed from here
-            glViewport(0, 0, width, height);
         });
 
     glfwSetKeyCallback(windowHandle,

@@ -11,7 +11,7 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orien
     , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
 {
-    setShader(ShaderLoader::load("assets/shader/sdfRect.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 
     knob_ = std::make_shared<ScrollBarKnob>();
