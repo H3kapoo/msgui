@@ -16,9 +16,9 @@ int main()
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
 
     app.setPollMode(Application::PollMode::ON_EVENT);
-    app.setVSync(Application::Toggle::ON);
+    app.setVSync(true);
 
-    // Blocks from here on
+    /* Blocks from here on */
     app.run();
 
     return 0;

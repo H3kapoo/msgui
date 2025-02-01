@@ -20,7 +20,7 @@ ShaderLoader::~ShaderLoader()
     log_.infoLn("Unloaded all shader programs!");
 }
 
-Shader* ShaderLoader::load(const std::string& shaderPath)
+Shader* ShaderLoader::loadShader(const std::string& shaderPath)
 {
     if (shaderPathToObject_.count(shaderPath))
     {

@@ -1,11 +1,16 @@
+#!/bin/bash
+
 set -xe
 
 cd ..
 ./build.sh
 cd -
 
+
 if [[ -z $1 ]]; then
-    echo "[ERROR] No main file provided."
+    set +x
+    echo "[ERROR] No main file provided. Available examples:"
+    echo "[INFO ] simpleWindow"
     exit
 fi
 

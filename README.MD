@@ -42,7 +42,7 @@ All you need to do to use the library is link against it: ```msguilib.so```
 Obviously basic stuff like OpenGL needs to be installed on your system.
 
 ### Build from source
-⚠️ **Note** : Project was compiled using C++23 but currently nothing uses any functionality above C++17 so you can go ahead and use c++17 to compile if you want.
+⚠️ **Note** : Project was compiled using GCC C++23. If you want to add modifications be sure to have the correct version.
 
 For Linux at least:
 ```bash

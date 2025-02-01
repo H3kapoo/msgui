@@ -23,6 +23,7 @@ int main()
     }
     
     Logger mainLog{"MainLog"};
+    mainLog.debugLn("%lu", __cplusplus);
     // Debug& dbg = Debug::get();
 
     WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
