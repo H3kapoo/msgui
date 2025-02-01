@@ -33,6 +33,8 @@ public:
     /**
         Create a window frame to append elements into.
 
+        @note Do not store it as a pointer. Store and use it as a reference.
+
         @param windowName Name of the window
         @param width Desired window width
         @param height Desired window height
@@ -57,6 +59,8 @@ public:
 
     /**
         Find and return window frame with specific id.
+
+        @note Do not store it. Use it and let go.
 
         @param id Id of the window root box
 

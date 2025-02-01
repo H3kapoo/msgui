@@ -11,9 +11,13 @@ int main()
     if (!app.init()) { return 1; }
 
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
+    WindowFramePtr& window2 = app.createFrame("MainWindow2", 800, 600);
 
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
+
+    BoxPtr rootBox2 = window2->getRoot();
+    rootBox2->setColor(Utils::hexToVec4("#4aabebff"));
 
     app.setPollMode(Application::PollMode::ON_EVENT);
     app.setVSync(true);

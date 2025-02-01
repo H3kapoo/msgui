@@ -11,6 +11,7 @@ if [[ -z $1 ]]; then
     set +x
     echo "[ERROR] No main file provided. Available examples:"
     echo "[INFO ] simpleWindow"
+    echo "[INFO ] multiWindow"
     exit
 fi
 
