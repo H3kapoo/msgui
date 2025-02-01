@@ -2,6 +2,14 @@
 
 Pronounced "miss gui" is a lightweight C++ GUI library build using OpenGL.
 
+- [Msgui](#msgui)
+    - [Features](#features)
+        - [Currently available UI elements include:](#currently-available-ui-elements-include)
+    - [Exmples](#exmples)
+    - [In Project usage:](#in-project-usage)
+    - [Build from source](#build-from-source)
+    - [Notes \& Disclaimers](#notes--disclaimers)
+
 ### Features
 Pretty simple to use. No deep OOP hierarchies. No abstraction madness. Straight to the point. Very few external dependencies to build.
 Almost no dependencies to use the library dynamically.
