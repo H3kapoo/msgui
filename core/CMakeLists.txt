@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(core)
+project(msgui)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     #Linux-specific code or configuration here

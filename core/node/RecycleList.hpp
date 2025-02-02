@@ -42,6 +42,7 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
     int32_t rowSize_{20};
+    int32_t rowMargin_{4};
     std::vector<glm::vec4> listItems_;
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};

@@ -46,7 +46,7 @@ void AbstractNode::append(const std::shared_ptr<AbstractNode>& node)
     appendAt(node, children_.size());
 }
 
-void AbstractNode::appendMany(const std::vector<std::shared_ptr<AbstractNode>>& nodes)
+void AbstractNode::appendMany(const AbstractNodePVec& nodes)
 {
     for (const auto& node : nodes)
     {
@@ -109,9 +109,9 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)
     return returned;
 }
 
-std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(const std::initializer_list<uint32_t>& nodeIds)
+AbstractNodePVec AbstractNode::removeMany(const std::initializer_list<uint32_t>& nodeIds)
 {
-    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    AbstractNodePVec removedNodes;
     for (const auto& nodeId : nodeIds)
     {
         if (const auto it = remove(nodeId))
@@ -123,9 +123,9 @@ std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(const std::i
     return removedNodes;
 }
 
-std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(const std::vector<uint32_t>& nodeIds)
+AbstractNodePVec AbstractNode::removeMany(const std::vector<uint32_t>& nodeIds)
 {
-    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    AbstractNodePVec removedNodes;
     for (const auto& nodeId : nodeIds)
     {
         if (const auto it = remove(nodeId))
@@ -159,10 +159,10 @@ std::shared_ptr<AbstractNode> AbstractNode::remove(const std::string& nodeName)
     return returned;
 }
 
-std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
+AbstractNodePVec AbstractNode::removeMany(
     const std::initializer_list<std::string>& nodeNames)
 {
-    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    AbstractNodePVec removedNodes;
     for (const auto& nodeName : nodeNames)
     {
         if (const auto it = remove(nodeName))
@@ -174,10 +174,10 @@ std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
     return removedNodes;
 }
 
-std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
+AbstractNodePVec AbstractNode::removeMany(
     const std::vector<std::string>& nodeNames)
 {
-    std::vector<std::shared_ptr<AbstractNode>> removedNodes;
+    AbstractNodePVec removedNodes;
     for (const auto& nodeName : nodeNames)
     {
         if (const auto it = remove(nodeName))
@@ -187,6 +187,13 @@ std::vector<std::shared_ptr<AbstractNode>> AbstractNode::removeMany(
     }
 
     return removedNodes;
+}
+
+AbstractNodePtr AbstractNode::findOneBy(std::function<bool(AbstractNodePtr)> pred)
+{
+    const auto it = std::find_if(children_.begin(), children_.end(), pred);
+    if (it == children_.end()) { return nullptr; }
+    return *it;
 }
 
 void AbstractNode::printTree(uint32_t currentDepth)
@@ -274,7 +281,7 @@ AbstractNode::NodeType AbstractNode::getType() const
     return nodeType_;
 }
 
-std::vector<std::shared_ptr<AbstractNode>>& AbstractNode::getChildren()
+AbstractNodePVec& AbstractNode::getChildren()
 {
     return children_;
 }

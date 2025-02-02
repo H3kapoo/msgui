@@ -29,7 +29,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     # Link libraries
     # target_link_libraries(${PROJECT_NAME} glfw GL GLEW X11)
-    target_link_libraries(${PROJECT_NAME} core GL GLEW)
+    target_link_libraries(${PROJECT_NAME} msgui GL GLEW)
 
 # If the operating system is not recognized
 else()

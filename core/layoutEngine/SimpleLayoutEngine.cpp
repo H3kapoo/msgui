@@ -422,7 +422,8 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     bool bothSbOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
-        Box* castBox = static_cast<Box*>(parent.get());
+        // Box* castBox = static_cast<Box*>(parent.get());
+        BoxPtr castBox = Utils::as<Box>(parent);
         if (castBox->isScrollBarActive(ScrollBar::Orientation::NONE))
         {
             return ScrollBarsData{};
@@ -443,7 +444,8 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         // Ignore non-Scrollbar elements
         if (ch->getType() != AbstractNode::NodeType::SCROLL) { continue; }
 
-        ScrollBar* sb = static_cast<ScrollBar*>(ch.get());
+        // ScrollBar* sb = static_cast<ScrollBar*>(ch.get());
+        ScrollBarPtr sb = Utils::as<ScrollBar>(ch);
         if (!sb)
         {
             log_.errorLn("Failed to cast to ScrollBar!");
@@ -516,30 +518,32 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
 {
     /* Assuming parent node is Slider node, it will always have a SliderKnob child. */
-    Slider* sliderRawPtr = static_cast<Slider*>(node.get());
-    SliderKnob* knobRawPtr = static_cast<SliderKnob*>(node->getChildren()[0].get());
+    // Slider* sliderRawPtr = static_cast<Slider*>(node.get());
+    SliderPtr sliderPtr = Utils::as<Slider>(node);
+    // SliderKnob* knobRawPtr = static_cast<SliderKnob*>(node->getChildren()[0].get());
+    SliderKnobPtr knobPtr = Utils::as<SliderKnob>(node->getChildren()[0]);
 
-    if (!sliderRawPtr || !knobRawPtr)
+    if (!sliderPtr || !knobPtr)
     {
         log_.errorLn("Couldn't cast to Slider or SliderKnob for %s", node->getCName());
         return;
     }
 
-    auto& nPos = sliderRawPtr->getTransform().pos;
-    auto& pScale = sliderRawPtr->getTransform().scale;
-    auto& kPos = knobRawPtr->getTransform().pos;
-    auto& kScale = knobRawPtr->getTransform().scale;
+    auto& nPos = sliderPtr->getTransform().pos;
+    auto& pScale = sliderPtr->getTransform().scale;
+    auto& kPos = knobPtr->getTransform().pos;
+    auto& kScale = knobPtr->getTransform().scale;
 
     /* Knob positioning */
-    float sliderOffset = sliderRawPtr->getOffsetPerc();
-    if (sliderRawPtr->getLayout().type == Layout::Type::HORIZONTAL)
+    float sliderOffset = sliderPtr->getOffsetPerc();
+    if (sliderPtr->getLayout().type == Layout::Type::HORIZONTAL)
     {
         float newX = Utils::remap(sliderOffset,
             0.0f, 1.0f, nPos.x + kScale.x / 2, nPos.x + pScale.x - kScale.x / 2);
         kPos.y = nPos.y;
         kPos.x = newX - kScale.x / 2;
     }
-    else if (sliderRawPtr->getLayout().type == Layout::Type::VERTICAL)
+    else if (sliderPtr->getLayout().type == Layout::Type::VERTICAL)
     {
         float newY = Utils::remap(sliderOffset,
             0.0f, 1.0f, nPos.y + kScale.y / 2, nPos.y + pScale.y - kScale.y / 2);
@@ -570,11 +574,14 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
         if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
         {   
             /* Only handle active separator (the one the user is currently dragging) */
-            BoxDividerSep* sep = static_cast<BoxDividerSep*>(ch.get());
+            // BoxDividerSep* sep = static_cast<BoxDividerSep*>(ch.get());
+            BoxDividerSepPtr sep = Utils::as<BoxDividerSep>(ch);
             if (!sep->getIsActiveSeparator()) { continue; }
 
-            auto firstBox = static_cast<Box*>(sep->getFirstBox().get());
-            auto secondBox = static_cast<Box*>(sep->getSecondBox().get());
+            // auto firstBox = static_cast<Box*>(sep->getFirstBox().get());
+            auto firstBox = Utils::as<Box>(sep->getFirstBox());
+            // auto secondBox = static_cast<Box*>(sep->getSecondBox().get());
+            auto secondBox = Utils::as<Box>(sep->getSecondBox());
 
             if (sep->getLayout().type == Layout::Type::HORIZONTAL)
             {

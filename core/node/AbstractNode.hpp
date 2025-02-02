@@ -145,6 +145,15 @@ public:
     AbstractNodePVec removeMany(const std::vector<std::string>& nodeNames);
 
     /**
+        Finds first children that satisfies provided predicate.
+
+        @param pred Predicate used for checking
+
+        @return Pointer to found node. Nullptr if not found 
+     */
+    AbstractNodePtr findOneBy(std::function<bool(AbstractNodePtr)> pred);
+
+    /**
         Prints a tree view of the current's node children.
 
         @param currentDepth Specifies at what depth should the printing start from the parent
@@ -204,4 +213,6 @@ protected:
     AbstractNodePVec children_;
     Logger log_;
 };
+
+
 } // namespace msgui

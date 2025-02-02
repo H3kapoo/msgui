@@ -15,13 +15,9 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     setMesh(MeshLoader::loadQuad());
     log_ = ("RecycleList(" + name + ")");
 
-    layout_.setAllowOverflow({true, true})
-        // .setPadding({10, 10, 10, 10})
-        .setType(Layout::Type::HORIZONTAL);
-
-    //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 
+    layout_.setType(Layout::Type::HORIZONTAL);
 
     slider_ = std::make_shared<Slider>("RLSlider");
     slider_->getLayout()
@@ -85,13 +81,15 @@ void RecycleList::setShaderAttributes()
 void RecycleList::onLayoutUpdateNotify()
 {
     // Setting the overflow if none
+    int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
     if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
     {
         int32_t totalElements = listItems_.size();
-        slider_->setSlideTo(std::max(totalElements * rowSize_ - transform_.scale.y, 0.0f));
+        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - transform_.scale.y, 0.0f));
 
         if (slider_->getSlideTo() == 0 && children_.size() == 2)
         {
+            slider_->setSlideCurrentValue(0);
             remove(slider_->getId());
         }
         else if (slider_->getSlideTo() > 0 && children_.size() == 1)
@@ -100,8 +98,8 @@ void RecycleList::onLayoutUpdateNotify()
         }
     }
 
-    int32_t maxDisplayAmt = transform_.scale.y / rowSize_ + 1;
-    int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSize_;
+    int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
+    int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
     int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
     int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
 
@@ -110,13 +108,14 @@ void RecycleList::onLayoutUpdateNotify()
     if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
     {
         listIsDirty_ = false;
+        int32_t itemSize = listItems_.size();
         boxCont_->removeAll();
         for (int32_t i = 0; i < visibleNodes; i++)
         {
-            if (topOfListIdx + i < (int32_t)listItems_.size())
+            if (topOfListIdx + i < itemSize)
             {
-                auto ref = std::make_shared<Button>("ListBtn2222");
-                ref->getLayout().setMargin({4, 0, 5, 5})
+                auto ref = std::make_shared<Button>("ListItem");
+                ref->getLayout().setMargin({(float)rowMargin_, 0, 5, 5})
                     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
                     .setScale({1.0f, rowSize_});
                 ref->setColor(listItems_[topOfListIdx + i]);
@@ -146,9 +145,10 @@ void RecycleList::updateNodePositions()
 
     auto& children = boxCont_->getChildren();
     uint32_t size = children.size();
+    int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
     for (uint32_t i = 0; i < size; i++)
     {
-        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSize_;
+        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
     }
 }
 
@@ -171,6 +171,7 @@ void RecycleList::setupLayoutReloadables()
 RecycleList& RecycleList::setColor(const glm::vec4& color)
 {
     color_ = color;
+    boxCont_->setColor(color);
     return *this;
 }
 

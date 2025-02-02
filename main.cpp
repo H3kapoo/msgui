@@ -27,7 +27,7 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
-    frame->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
+    frame->getRoot()->getLayout().setType(Layout::Type::GRID)
         .setAllowOverflow({true, true})
         // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
         .setAlignChild({Layout::Align::LEFT, Layout::Align::CENTER})
@@ -45,8 +45,6 @@ int main()
             Layout::GridDistrib{Layout::GridDistrib::Type::ABS, 250},
             Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1}},
     });
-
-    frame->saveBufferToFile("");
 
     // Get to this ideally:
     // frame->getRoot()->getLayout().setGridDistr({1_fr, 1_fr, 10_abs}, {1_fr, 1_fr, 10_abs});
@@ -78,15 +76,16 @@ int main()
             // Layout::Align align{Layout::Align::BOTTOM_RIGHT};
 
             BoxPtr ref = std::make_shared<Box>("Boxy");
-            ref->setBorderColor(Utils::hexToVec4("#ffffffff"));
+            ref->setBorderColor(Utils::hexToVec4("#7e0202ff"));
             ref->getLayout()
-                // .setBorder({10, 10, 10, 10})
+                .setBorder({10, 10, 10, 10})
                 // .setBorderRadius({10, 10, 10, 10})
                 // .setAlignSelf(align)
-                .setScaleType(Layout::ScaleType::ABS)
-                .setScale({100, 100})
+                .setScaleType(Layout::ScaleType::REL)
+                // .setScale({100, 100})
+                .setScale({1.0f, 1.0f})
                 .setGridStartRC({i, j})
-                // .setMargin({10, 10, 10, 10})
+                .setMargin({10, 10, 10, 10})
                 ;
 
             // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
@@ -95,9 +94,45 @@ int main()
             nodes.emplace_back(ref);
         }
     }
+    frame->getRoot()->appendMany(nodes);
+
+    AbstractNodePtr first = frame->getRoot()->findOneBy([](const auto&) -> bool { return true; });
+    if (first)
+    {
+        BoxPtr box = Utils::as<Box>(first);
+        box->setColor(Utils::hexToVec4("#ff0000ff"));
+
+        RecycleListPtr list = std::make_shared<RecycleList>("myRec");
+        list->setColor(Utils::hexToVec4("#ffffffff"));
+        list->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+
+        for (int32_t i = 0; i < 21; i++)
+        {
+            list->addItem(Utils::randomRGB());
+        }
+
+        box->append(list);
+    }
+
+    // AbstractNodePtr sixth = frame->getRoot()->getChildren().at(5);
+    // if (sixth)
+    // {
+    //     BoxPtr box = Utils::as<Box>(sixth);
+    //     box->setColor(Utils::hexToVec4("#ff0000ff"));
+
+    //     RecycleListPtr list = std::make_shared<RecycleList>("myRec");
+    //     list->setColor(Utils::hexToVec4("#ffffffff"));
+    //     list->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+
+    //     for (int32_t i = 0; i < 21; i++)
+    //     {
+    //         list->addItem(Utils::randomRGB());
+    //     }
+
+    //     box->append(list);
+    // }
 
     // frame->getRoot()->appendMany({bd});
-    frame->getRoot()->appendMany(nodes);
 
     // frame->getRoot()->setColor(Utils::randomRGB());
     // frame2->getRoot()->setColor(Utils::randomRGB());

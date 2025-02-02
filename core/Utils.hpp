@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "Logger.hpp"
+#include "core/node/AbstractNode.hpp"
 
 namespace msgui
 {
@@ -98,6 +99,7 @@ public:
         */
         if (value > endA) { return endB; }
         if (value < startA) { return startB; }
+        if (endA - startA < 0.001f) {return startA;}
 
         const float t = (value - startA) / (endA - startA);
         return (1.0f - t) * startB + t * endB;
@@ -113,5 +115,20 @@ public:
         Logger("Utils").errorLn("Fatal exit from: %s", reason.c_str());
         exit(2);
     }
+
+    /**
+        Cast an AbstractNodePtr as a templated type Type.
+
+        @param node Node to be cast
+
+        @return Type as shared pointer
+    */
+    template<typename Type>
+    static std::shared_ptr<Type> as(AbstractNodePtr node)
+    {
+        if (!node) { Logger().errorLn("Cast to type of null node!"); }
+        return std::static_pointer_cast<Type>(node);
+    }
+
 };
 } // namespace msgui
