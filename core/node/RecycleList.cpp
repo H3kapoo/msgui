@@ -23,7 +23,8 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     slider_->getLayout()
         .setType(Layout::Type::VERTICAL)
         .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({50, 1.0f});
+        .setScale({20 /* Default but you should use setGirth instead */, 1.0f});
+    slider_->setGirth(20);
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
     slider_->getListeners().setOnSlideValueChanged(
@@ -31,13 +32,12 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
 
     boxCont_ = std::make_shared<Box>("RLBox");
     boxCont_->getLayout()
-        .setAllowOverflow({false, false}) // In this context, it shall never have overflow enabled
+        .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
         .setType(Layout::Type::VERTICAL)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
     boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
-    // append(slider_);
     append(boxCont_);
 }
 
@@ -80,7 +80,6 @@ void RecycleList::setShaderAttributes()
 
 void RecycleList::onLayoutUpdateNotify()
 {
-    // Setting the overflow if none
     int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
     if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
     {
@@ -103,8 +102,6 @@ void RecycleList::onLayoutUpdateNotify()
     int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
     int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
 
-    // log_.debugLn("list dirty: %d", listIsDirty_);
-    // log_.debugLn("top: %d bot %d vis %d", topOfListIdx, botOfListIdx, visibleNodes);
     if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
     {
         listIsDirty_ = false;
@@ -183,7 +180,11 @@ RecycleList& RecycleList::setBorderColor(const glm::vec4& color)
 
 RecycleList& RecycleList::setRowSize(const int32_t rowSize)
 {
+    if (rowSize < 2 || rowSize > 200) { return *this ; }
+
     rowSize_ = rowSize;
+    listIsDirty_ = true;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     return *this;
 }
 
@@ -192,6 +193,8 @@ glm::vec4 RecycleList::getColor() const { return color_; }
 glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 
 int32_t RecycleList::getRowSize() const { return rowSize_; }
+
+SliderPtr RecycleList::getSlider() { return slider_; }
 
 Listeners& RecycleList::getListeners() { return listeners_; }
 } // msgui

@@ -16,11 +16,12 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
-    // knobNode_->getTransform().scale = glm::vec3(50, 50, 1);
-    knobNode_->getLayout().setScale({50, 50});
+    // knobNode_->getLayout().setScale({20, 20});
+
     append(knobNode_);
 
     setupLayoutReloadables();
+    // layout_.onScaleChange();
 }
 
 void Slider::setShaderAttributes()
@@ -84,11 +85,18 @@ void Slider::onMouseDragNotify()
 
 void Slider::setupLayoutReloadables()
 {
-    // props.orientType.onReload = [this]()
-    // {
-    //     std::swap(transform_.scale.x, transform_.scale.y);
-    //     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    // };
+    layout_.onScaleChange = [this]()
+    {
+        if (layout_.type == Layout::Type::HORIZONTAL)
+        {
+            knobNode_->getLayout().setScale({layout_.scale.y, layout_.scale.y});
+        }
+        else if (layout_.type == Layout::Type::VERTICAL)
+        {
+            knobNode_->getLayout().setScale({layout_.scale.x, layout_.scale.x});
+        }
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    };
 }
 
 Slider& Slider::setColor(const glm::vec4& color)
@@ -127,8 +135,20 @@ Slider& Slider::setSlideCurrentValue(const float value)
     return *this;
 }
 
-SliderListeners& Slider::getListeners() { return listeners_; }
+Slider& Slider::setGirth(const int32_t value)
+{
+    if (layout_.type == Layout::Type::HORIZONTAL)
+    {
+        layout_.setScale({layout_.scale.x, value});
+    }
+    else if (layout_.type == Layout::Type::VERTICAL)
+    {
+        layout_.setScale({value, layout_.scale.y});
+    }
+    return *this;
+}
 
+SliderListeners& Slider::getListeners() { return listeners_; }
 
 glm::vec4 Slider::getColor() const { return color_; }
 

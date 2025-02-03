@@ -27,12 +27,14 @@ public:
     Slider& setSlideFrom(const float value);
     Slider& setSlideTo(const float value);
     Slider& setSlideCurrentValue(const float value);
+    Slider& setGirth(const int32_t value);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     float getSlideFrom() const;
     float getSlideTo() const;
     float getSlideCurrentValue() const;
+    int32_t getGirth() const;
     SliderListeners& getListeners();
     SliderKnobPtr getKnobRef();
     float getOffsetPerc() const;

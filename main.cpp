@@ -8,6 +8,8 @@
 #include "core/node/RecycleList.hpp"
 #include "core/node/WindowFrame.hpp"
 #include "core/node/utils/LayoutData.hpp"
+#include <chrono>
+#include <thread>
 
 using namespace msgui;
 
@@ -97,12 +99,13 @@ int main()
     frame->getRoot()->appendMany(nodes);
 
     AbstractNodePtr first = frame->getRoot()->findOneBy([](const auto&) -> bool { return true; });
+    RecycleListPtr list;
     if (first)
     {
         BoxPtr box = Utils::as<Box>(first);
         box->setColor(Utils::hexToVec4("#ff0000ff"));
 
-        RecycleListPtr list = std::make_shared<RecycleList>("myRec");
+         list = std::make_shared<RecycleList>("myRec");
         list->setColor(Utils::hexToVec4("#ffffffff"));
         list->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
 
@@ -112,8 +115,22 @@ int main()
         }
 
         box->append(list);
-    }
 
+    }
+    std::thread t([mainLog, list]()
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        for (int32_t i = 20; i <= 45; i++)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            list->setRowSize(i);
+
+            if (i <= 34)
+            {
+                list->getSlider()->setGirth(i);
+            }
+        }
+    });
     // AbstractNodePtr sixth = frame->getRoot()->getChildren().at(5);
     // if (sixth)
     // {
@@ -223,5 +240,6 @@ int main()
     // app.setPollMode(Application::PollMode::CONTINUOUS);
     app.setVSync(true);
     app.run();
+    t.join();
     return 0;
 }

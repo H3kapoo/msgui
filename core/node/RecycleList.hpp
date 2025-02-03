@@ -23,6 +23,7 @@ public:
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
+    SliderPtr getSlider();
     Listeners& getListeners();
 
 private: // friend
