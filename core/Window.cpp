@@ -81,7 +81,7 @@ void Window::onResizeEvent(const uint32_t width, const uint32_t height)
        (e.g -1) would of appeared in front of lowest Z (e.g -100) which is not what we want. */
     projMat_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -(float)MAX_LAYERS, 0.0f);
 
-    setContextCurrent();
+    // setContextCurrent();
     setCurrentViewport();
     setCurrentScissorArea();
 }
@@ -175,13 +175,9 @@ void Window::setVSync(const int32_t internal)
 #endif
 }
 
-void Window::setSharedContexCurrent()
+GLFWwindow* Window::getSharedContexWindowHandle()
 {
-    if (sharedWindowHandle_)
-    {
-        Logger("name").debugLn("handle is here");
-    }
-    glfwMakeContextCurrent(sharedWindowHandle_);
+    return sharedWindowHandle_;
 }
 
 void Window::terminate()

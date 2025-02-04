@@ -37,24 +37,28 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
 {
     log_ = Logger("TextureLoader(" + resPath + ")");
 
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    /* Details:
+        When a new thread is created and we try to load a texture from inside it, operation will fail and
+        return garbage texture id.
+        This is because glfw contexts are thread based so even if in the main thread we had a context to 
+        work with (sharedWindowHandle_), in this new thread we dont have one to work with.
+       Current solution:
+        Solution for now is to create a new "dummy" hidden window and make it share it's context with the
+        main thread's contex (sharedWindowHandle_). That way whatever this new thread loads in in terms
+        of textures, the main thread will know and make use of.
+        We can safely get rid of this new window afterwards.
+       Concerns:
+        - Static windowHandle inside here ain't optimal but we need it.
 
-    // GLFWwindow* windowHandle = glfwCreateWindow(200, 200, "dummy", NULL, Window::sharedWindowHandle_);
-    // glfwMakeContextCurrent(windowHandle);
+    */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-    // GLFWwindow* win = glfwGetCurrentContext();
-    // if (win)
-    // {
-    //     log_.debugLn("window is here");
-    // }
-    // else
-    // {
-    //     log_.debugLn("window is NOT here");
-    //     // Window::setSharedContexCurrent();
-    // }
+    static GLFWwindow* windowHandle = glfwCreateWindow(2, 2, "dummy", NULL, Window::getSharedContexWindowHandle());
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwMakeContextCurrent(windowHandle);
 
     uint32_t id;
     int32_t width, height, numChannels;
@@ -82,7 +86,8 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
         GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(params.target);
 
-    // glfwMakeContextCurrent(nullptr);
+    glfwMakeContextCurrent(nullptr);
+    glfwDestroyWindow(windowHandle);
 
     stbi_image_free(data);
 

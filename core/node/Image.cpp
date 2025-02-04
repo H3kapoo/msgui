@@ -29,7 +29,7 @@ void Image::setShaderAttributes()
     auto shader = getShader();
     int32_t texId = btnTex_ ? btnTex_->getId() : 0;
 
-    log_.debugLn("Texid %d", texId);
+    // log_.debugLn("Texid %d", texId);
     shader->setMat4f("uModelMat", transform_.modelMatrix);
     shader->setVec4f("uColor", color_);
     shader->setTexture2D("uTexture", GL_TEXTURE0, texId);

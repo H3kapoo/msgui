@@ -81,7 +81,7 @@ public:
     static void setScissorTest(const bool state);
     static void setScissorArea(const int32_t x, const int32_t y, const int32_t width, const int32_t height);
     static void setVSync(const int32_t interval);
-    static void setSharedContexCurrent();
+    static GLFWwindow* getSharedContexWindowHandle();
 
     /**
         Terminate GLFW library
@@ -117,7 +117,6 @@ public:
     */
     static void clearBits(const uint32_t bits);
 
-    static GLFWwindow* sharedWindowHandle_;
 private:
     void setupEventCallbacks();
     void maskUnnecessaryEvents();
@@ -130,6 +129,7 @@ private:
     uint32_t height_{0};
     glm::mat4 projMat_{glm::mat4(1.0f)};
 
+    static GLFWwindow* sharedWindowHandle_;
     static GLXContext sharedContext_;
     static Display* sharedDisplay_;
     static bool uniqueContextAquired;
