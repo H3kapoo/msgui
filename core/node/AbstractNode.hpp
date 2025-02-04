@@ -185,6 +185,9 @@ private: // friend
 
     AbstractNode* getParentRaw();
 
+    // /* Special for notifying nodes (RecycleList mostly) of layout update */
+    // virtual void onLayoutUpdateNotify();
+
     /* Event consumers */
     virtual void onMouseButtonNotify();
     virtual void onMouseHoverNotify();
@@ -213,6 +216,4 @@ protected:
     AbstractNodePVec children_;
     Logger log_;
 };
-
-
 } // namespace msgui

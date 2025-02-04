@@ -130,5 +130,19 @@ public:
         return std::static_pointer_cast<Type>(node);
     }
 
+    /**
+        Easier variant to create a new node instead of std::make_shared each time.
+
+        @param Type Type of node supplied as template argument
+        @param args Type constructor arguments
+
+        @return New shared pointer of specified type
+    */
+    template<typename Type, typename... Args>
+    static std::shared_ptr<Type> make(Args... args)
+    {
+        return std::make_shared<Type>(std::forward<Args>(args)...);
+    }
+
 };
 } // namespace msgui

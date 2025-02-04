@@ -5,6 +5,7 @@
 
 namespace msgui
 {
+GLFWwindow* Window::sharedWindowHandle_ = nullptr;
 GLXContext Window::sharedContext_ = {};
 Display* Window::sharedDisplay_ = nullptr;
 bool Window::uniqueContextAquired = false;
@@ -30,6 +31,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
 
     if (!uniqueContextAquired)
     {
+        sharedWindowHandle_ = windowHandle_;
         glfwMakeContextCurrent(windowHandle_);
         setVSync(1);
         setDepthTest(true);
@@ -171,6 +173,15 @@ void Window::setVSync(const int32_t internal)
 #else
     glfwSwapInterval(internal);
 #endif
+}
+
+void Window::setSharedContexCurrent()
+{
+    if (sharedWindowHandle_)
+    {
+        Logger("name").debugLn("handle is here");
+    }
+    glfwMakeContextCurrent(sharedWindowHandle_);
 }
 
 void Window::terminate()

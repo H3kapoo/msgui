@@ -1,5 +1,7 @@
 #include "TextureLoader.hpp"
 #include "Logger.hpp"
+#include "core/Window.hpp"
+#include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
@@ -35,6 +37,25 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
 {
     log_ = Logger("TextureLoader(" + resPath + ")");
 
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+    // GLFWwindow* windowHandle = glfwCreateWindow(200, 200, "dummy", NULL, Window::sharedWindowHandle_);
+    // glfwMakeContextCurrent(windowHandle);
+
+    // GLFWwindow* win = glfwGetCurrentContext();
+    // if (win)
+    // {
+    //     log_.debugLn("window is here");
+    // }
+    // else
+    // {
+    //     log_.debugLn("window is NOT here");
+    //     // Window::setSharedContexCurrent();
+    // }
+
     uint32_t id;
     int32_t width, height, numChannels;
     unsigned char* data = stbi_load(resPath.c_str(), &width, &height, &numChannels, 0);
@@ -60,6 +81,8 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
     glTexImage2D(params.target, 0, glColorFormat, width, height, 0, glColorFormat,
         GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(params.target);
+
+    // glfwMakeContextCurrent(nullptr);
 
     stbi_image_free(data);
 

@@ -81,6 +81,7 @@ public:
     static void setScissorTest(const bool state);
     static void setScissorArea(const int32_t x, const int32_t y, const int32_t width, const int32_t height);
     static void setVSync(const int32_t interval);
+    static void setSharedContexCurrent();
 
     /**
         Terminate GLFW library
@@ -116,6 +117,7 @@ public:
     */
     static void clearBits(const uint32_t bits);
 
+    static GLFWwindow* sharedWindowHandle_;
 private:
     void setupEventCallbacks();
     void maskUnnecessaryEvents();

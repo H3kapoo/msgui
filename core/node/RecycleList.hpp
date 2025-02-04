@@ -13,6 +13,14 @@ public:
     RecycleList(const std::string& name);
 
     void addItem(const glm::vec4& color);
+
+    // template<typename T>
+    // void addItemCustom(const T item)
+    // {
+    //     listItems_
+    // }
+
+
     void removeItem(const int32_t idx);
     void removeTailItems(const int32_t amount);
 
@@ -54,5 +62,6 @@ private:
     float lastScaleY_{0};
     Listeners listeners_;
 };
+
 using RecycleListPtr = std::shared_ptr<RecycleList>;
 } // namespace msgui

@@ -17,8 +17,6 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
 
     setupLayoutReloadables();
 
-    layout_.setType(Layout::Type::HORIZONTAL);
-
     slider_ = std::make_shared<Slider>("RLSlider");
     slider_->getLayout()
         .setType(Layout::Type::VERTICAL)
@@ -197,4 +195,5 @@ int32_t RecycleList::getRowSize() const { return rowSize_; }
 SliderPtr RecycleList::getSlider() { return slider_; }
 
 Listeners& RecycleList::getListeners() { return listeners_; }
+
 } // msgui

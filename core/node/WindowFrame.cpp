@@ -1,4 +1,5 @@
 #include "WindowFrame.hpp"
+#include "core/node/Button.hpp"
 #include "core/node/RecycleList.hpp"
 
 #include <algorithm>
