@@ -1,7 +1,38 @@
 #include "BELoadingQueue.hpp"
 
+#include "core/Window.hpp"
+
 namespace msgui
 {
-// uint64_t BELoadingQueue::mainThreadId_ = std::hash<std::thread::id>{}(std::this_thread::get_id());
-// std::queue<FSTextureTask> BELoadingQueue::textureTasks_ = {};
+BELoadingQueue& BELoadingQueue::get()
+{
+    static BELoadingQueue instance;
+    return instance;
 }
+
+void BELoadingQueue::executeTasks()
+{
+    while (!intTasks_.empty())
+    {
+        auto& task = intTasks_.front();
+        if (task.valid())
+        {
+            task();
+            task.reset();
+        }
+        intTasks_.pop();
+    }
+}
+
+void BELoadingQueue::pushTask(UIntTask&& task)
+{
+    std::unique_lock lock{mtx};
+    intTasks_.emplace(std::move(task));
+    Window::requestEmptyEvent();
+}
+
+bool BELoadingQueue::isMainThread(const uint64_t threadId)
+{
+    return mainThreadId_ == threadId;
+}
+} // namespace msgui

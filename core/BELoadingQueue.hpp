@@ -3,73 +3,44 @@
 #include <future>
 #include <mutex>
 #include <queue>
-#include <type_traits>
-
-#include "core/Texture.hpp"
-#include "core/Window.hpp"
 
 namespace msgui
 {
-using FSTextureTask = std::packaged_task<TexturePtr()>;
 using UIntTask = std::packaged_task<uint32_t()>;
 
 /* Class used to load backend resources from the main thread when loading was requested
-   from secondary threads. */
+   from secondary threads.
+   Note: Currently meshes haven't been included into this as we only use quads for now.
+         As long as the main window is created in the main thread, it all shall go well.
+*/
 class BELoadingQueue
 {
 public:
-    static BELoadingQueue& get()
-    {
-        static BELoadingQueue instance;
-        return instance;
-    }
+    /**
+        Get instance of this.
 
-    void executeTasks()
-    {
-        while (!textureTasks_.empty())
-        {
-            auto& ptTex = textureTasks_.front();
-            if (ptTex.valid())
-            {
-                ptTex();
-                ptTex.reset();
-            }
-            textureTasks_.pop();
-        }
+        @return Instance of this
+    */
+    static BELoadingQueue& get();
 
-        while (!intTasks_.empty())
-        {
-            auto& task = intTasks_.front();
-            if (task.valid())
-            {
-                task();
-                task.reset();
-            }
-            intTasks_.pop();
-        }
-    }
+    /**
+        Execute all pushed tasks in the main UI thread.
+    */
+    void executeTasks();
 
-    template <typename T>
-    // requires (std::is_same_v<T, FSTextureTask> || std::is_same_v<T, UIntTask>)
-    // requires (std::is_same_v<T, FSTextureTask>)
-    requires (std::is_same_v<T, UIntTask>)
-    void pushTask(T&& task)
-    {
-        std::unique_lock lock{mtx};
+    /**
+        Push task that will return unsigned integer as a promise.
 
-        // if (std::is_same_v<T, UIntTask>)
-        {
-            intTasks_.emplace(std::move(task));
-        }
-        // else
-        // {
-        //     textureTasks_.emplace(std::move(task));
-        // }
+        @param task Task function to be executed
+    */
+    void pushTask(UIntTask&& task);
 
-        Window::requestEmptyEvent();
-    }
+    /**
+        Check if the calling thread is the main UI one.
 
-    bool isMainThread(const uint64_t threadId) { return mainThreadId_ == threadId; }
+        @return True is the thread is the main one
+    */
+    bool isMainThread(const uint64_t threadId);
 
 private:
     /* Cannot be copied or moved */
@@ -80,8 +51,7 @@ private:
     BELoadingQueue& operator=(BELoadingQueue&&) = delete;
 
     uint64_t mainThreadId_{std::hash<std::thread::id>{}(std::this_thread::get_id())};
-    std::queue<FSTextureTask> textureTasks_;
     std::queue<UIntTask> intTasks_;
     std::mutex mtx;
 };
-}
+} // namespace msgui
