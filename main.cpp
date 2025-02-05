@@ -1,6 +1,7 @@
 #include "core/Application.hpp"
 #include "core/Logger.hpp"
 #include "core/Utils.hpp"
+#include "core/Window.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/BoxDivider.hpp"
@@ -17,6 +18,7 @@ using namespace msgui;
 constexpr uint32_t WINDOW_H = 720;
 constexpr uint32_t WINDOW_W = 1280;
 
+bool trigger = false;
 int main()
 {
     Application& app = Application::get();
@@ -30,159 +32,66 @@ int main()
     // Debug& dbg = Debug::get();
 
     WindowFramePtr& frame = app.createFrame("WindowPrimary", WINDOW_W, WINDOW_H);
-    frame->getRoot()->getLayout().setType(Layout::Type::GRID)
+    frame->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
         .setAllowOverflow({true, true})
         // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
         .setAlignChild({Layout::Align::LEFT, Layout::Align::CENTER})
         .setPadding({0});
-    frame->getRoot()->getLayout().setGridDistrib({
-        .rows = Layout::DistribVec{
-            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-            // Layout::Distrib{Layout::Distrib::Type::ABS, 300}
-            },
-        .cols = Layout::DistribVec{
-            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-            // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            // Layout::Distrib{Layout::Distrib::Type::FRAC, 1},
-            Layout::GridDistrib{Layout::GridDistrib::Type::ABS, 250},
-            Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1}},
-    });
 
-    AbstractNodePVec nodes;
-    for (int32_t i = 0; i < 2; i++)
+    // AbstractNodePVec nodes;
+    // ImagePtr img = Utils::make<Image>("Img");
+    // img->getLayout()
+    //     .setScaleType(Layout::ScaleType::REL)
+    //     .setScale({1.0f, 1.0f})
+    //     .setMargin({10, 10, 10, 10})
+    //     ;
+    // img->setImage("assets/textures/container.jpg");
+
+    // nodes.emplace_back(img);
+    // frame->getRoot()->appendMany(nodes);
+    // AbstractNodePtr first = frame->getRoot()->findOneBy([](const auto&) -> bool { return true; });
+
+    std::thread t([mainLog, &app]()
     {
-        for (int32_t j = 0; j < 3; j++)
-        {
-            // Layout::Align align{Layout::Align::BOTTOM_RIGHT};
+        // std::this_thread::sleep_for(std::chrono::seconds(2));
+        // img->setImage("assets/textures/wall.jpg");
+        // img->setImage("assets/textures/awesomeface.png");
 
-            // BoxPtr ref = std::make_shared<Box>("Boxy");
-
-            if (i == 0 && j == 0)
-            {
-                ImagePtr img = Utils::make<Image>("Img");
-                img->getLayout()
-                    .setScaleType(Layout::ScaleType::REL)
-                    .setScale({1.0f, 1.0f})
-                    .setGridStartRC({i, j})
-                    .setMargin({10, 10, 10, 10})
-                    ;
-                // img->setImage("assets/textures/container.jpg");
-
-                nodes.emplace_back(img);
-            }
-            else
-            {
-                BoxPtr ref = Utils::make<Box>("Boxy");
-                ref->setBorderColor(Utils::hexToVec4("#7e0202ff"));
-                ref->getLayout()
-                    .setBorder({10, 10, 10, 10})
-                    // .setBorderRadius({10, 10, 10, 10})
-                    // .setAlignSelf(align)
-                    .setScaleType(Layout::ScaleType::REL)
-                    // .setScale({100, 100})
-                    .setScale({1.0f, 1.0f})
-                    .setGridStartRC({i, j})
-                    .setMargin({10, 10, 10, 10})
-                    ;
-
-                // ref->getLayout().setScale({200, 100 * Utils::random01() + 20});
-                // ref->getLayout().setAlignSelf(Layout::Align::CENTER);
-                ref->setColor(Utils::randomRGB());
-                nodes.emplace_back(ref);
-
-            }
-        }
-    }
-    frame->getRoot()->appendMany(nodes);
-
-    AbstractNodePtr first = frame->getRoot()->findOneBy([](const auto&) -> bool { return true; });
-    // if (first)
-    // {
-    //     BoxPtr box = Utils::as<Box>(first);
-    //     box->setColor(Utils::hexToVec4("#ff0000ff"));
-
-    //     RecycleListPtr list = std::make_shared<RecycleList>("myRec");
-    //     list->setColor(Utils::hexToVec4("#ffffffff"));
-    //     list->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
-
-    //     for (int32_t i = 0; i < 21; i++)
-    //     {
-    //         list->addItem(Utils::randomRGB());
-    //     }
-
-    //     box->append(list);
-
-    std::thread t([mainLog, &app, first]()
-    {
-
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    
-        // return;
         WindowFramePtr& fr = app.createFrame("WindowPrimary2", WINDOW_W, WINDOW_H);
-
-        fr->getRoot()->getLayout().setType(Layout::Type::GRID)
+        fr->getRoot()->getLayout().setType(Layout::Type::HORIZONTAL)
             .setAllowOverflow({true, true})
             // .setSpacing(Layout::Spacing::EVEN_WITH_START_GAP)
             .setAlignChild({Layout::Align::LEFT, Layout::Align::CENTER})
             .setPadding({0});
-        fr->getRoot()->getLayout().setGridDistrib({
-            .rows = Layout::DistribVec{
-                Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-                Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-                },
-            .cols = Layout::DistribVec{
-                Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1},
-                Layout::GridDistrib{Layout::GridDistrib::Type::ABS, 250},
-                Layout::GridDistrib{Layout::GridDistrib::Type::FRAC, 1}},
-        });
+
+        mainLog.debugLn("id is %u", fr->getRoot()->getId());
 
         AbstractNodePVec nodes;
-        for (int32_t i = 0; i < 2; i++)
-        {
-            for (int32_t j = 0; j < 3; j++)
-            {
-                if (i == 0 && j == 0)
-                {
-                    ImagePtr img = Utils::make<Image>("Img");
-                    img->getLayout()
-                        .setScaleType(Layout::ScaleType::REL)
-                        .setScale({1.0f, 1.0f})
-                        .setGridStartRC({i, j})
-                        .setMargin({10, 10, 10, 10})
-                        ;
-                    img->setImage("assets/textures/container.jpg");
+        // ImagePtr img = Utils::make<Image>("Img");
+        // img->getLayout()
+        //     .setScaleType(Layout::ScaleType::REL)
+        //     .setScale({1.0f, 1.0f})
+        //     .setMargin({10, 10, 10, 10})
+        //     ;
+        // img->setImage("assets/textures/container.jpg");
 
-                    nodes.emplace_back(img);
-                }
-                else
-                {
-                    BoxPtr ref = Utils::make<Box>("Boxy");
-                    ref->setBorderColor(Utils::hexToVec4("#7e0202ff"));
-                    ref->getLayout()
-                        .setBorder({10, 10, 10, 10})
-                        // .setBorderRadius({10, 10, 10, 10})
-                        // .setAlignSelf(align)
-                        .setScaleType(Layout::ScaleType::REL)
-                        // .setScale({100, 100})
-                        .setScale({1.0f, 1.0f})
-                        .setGridStartRC({i, j})
-                        .setMargin({10, 10, 10, 10})
-                        ;
-
-                    ref->setColor(Utils::randomRGB());
-                    nodes.emplace_back(ref);
-                }
-            }
-        }
-        fr->getRoot()->appendMany(nodes);
+        // nodes.emplace_back(img);
+        // fr->getRoot()->appendMany(nodes);
     });
 
-    std::thread t2([mainLog, first]()
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(4));
-        Utils::as<Image>(first)->setImage("assets/textures/container.jpg");
+    std::thread t2([mainLog, frame]()
+    {   
+        Application& ap = Application::get();
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        ImagePtr img = Utils::make<Image>("Img");
+        img->getLayout()
+            .setScaleType(Layout::ScaleType::REL)
+            .setScale({1.0f, 1.0f})
+            .setMargin({10, 10, 10, 10})
+            ;
+        img->setImage("assets/textures/container.jpg");
+        ap.getFrameId(2)->getRoot()->append(img);
+        // Utils::as<Image>(first)->setImage("assets/textures/wall.jpg");
     });
 
     app.setPollMode(Application::PollMode::ON_EVENT);

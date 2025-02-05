@@ -2,6 +2,7 @@
 #include "core/node/Button.hpp"
 #include "core/node/RecycleList.hpp"
 
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <memory>
 #include <ranges>

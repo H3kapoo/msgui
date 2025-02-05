@@ -2,7 +2,9 @@
 
 #include <GLFW/glfw3.h>
 
+#include "core/BELoadingQueue.hpp"
 #include "core/Window.hpp"
+#include "core/node/FrameState.hpp"
 #include "core/node/WindowFrame.hpp"
 
 namespace msgui
@@ -60,6 +62,14 @@ void Application::run()
     /* Only close the App if the primary window is closed. */
     while (!shouldAppClose_)
     {
+        /* This queue will be populated with opengl resource load tasks from other threads and they will be
+           resolved here in the main thread. This is because loading resources from different threads in
+           opengl breaks the context they get assigned to. Delegating loading to the main thread bypasses
+           any context invalidation shenenigans. Thread that requested resource loading will block until
+           main thread finishes loading the resource in. If the resource is already in memory or trying to be
+           loaded from the main thread, we will not reach this. */
+        BELoadingQueue::get().executeTasks();
+
         std::erase_if(frames_,
             [this](const WindowFramePtr& frame)
             {

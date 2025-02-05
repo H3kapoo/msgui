@@ -1,6 +1,8 @@
 #include "Image.hpp"
 
 #include <GLFW/glfw3.h>
+#include <chrono>
+#include <thread>
 
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
@@ -66,7 +68,6 @@ Image& Image::setImage(const std::string& imagePath)
 {
     imagePath_ = imagePath;
     btnTex_ = TextureLoader::loadTexture(imagePath_);
-    // REQUEST_NEW_FRAME
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     return *this;
 }

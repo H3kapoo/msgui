@@ -43,6 +43,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         TextureLoader.cpp
         Texture.cpp
         Listeners.cpp
+        BELoadingQueue.cpp
         node/AbstractNode.cpp
         node/Button.cpp
         node/WindowFrame.cpp

@@ -1,7 +1,9 @@
+#include <future>
+
 #include "TextureLoader.hpp"
 #include "Logger.hpp"
-#include "core/Window.hpp"
-#include <GLFW/glfw3.h>
+#include "core/BELoadingQueue.hpp"
+#include "core/Texture.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
@@ -17,19 +19,19 @@ TexturePtr TextureLoader::loadTexture(const std::string& resPath,
         return instance.texPathToObject_.at(resPath);
     }
 
+    /* Textures will always be loaded from the main (UI) thread as to not break opengl internals. */
     TexturePtr texturePtr = std::make_shared<Texture>(instance.loadTextureInternal(resPath, params));
     if (texturePtr->getId() != 0)
     {
         instance.texPathToObject_[resPath] = texturePtr;
-        instance.log_.infoLn("Loaded! ( %dx%dx%d )", texturePtr->getWidth(),texturePtr->getHeight(),
-            texturePtr->getNumChannels());
+        instance.log_.infoLn("Loaded! ( %dx%dx%d  id: %u)", texturePtr->getWidth(),texturePtr->getHeight(),
+            texturePtr->getNumChannels(), texturePtr->getId());
     }
     else
     {
         instance.log_.errorLn("Load failed! Returning zero texture!");
     }
-
-    return texturePtr;
+    return TextureLoader::loadTexture(resPath, params);
 }
 
 Texture TextureLoader::loadTextureInternal(const std::string& resPath,
@@ -37,58 +39,45 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
 {
     log_ = Logger("TextureLoader(" + resPath + ")");
 
-    /* Details:
-        When a new thread is created and we try to load a texture from inside it, operation will fail and
-        return garbage texture id.
-        This is because glfw contexts are thread based so even if in the main thread we had a context to 
-        work with (sharedWindowHandle_), in this new thread we dont have one to work with.
-       Current solution:
-        Solution for now is to create a new "dummy" hidden window and make it share it's context with the
-        main thread's contex (sharedWindowHandle_). That way whatever this new thread loads in in terms
-        of textures, the main thread will know and make use of.
-        We can safely get rid of this new window afterwards.
-       Concerns:
-        - Static windowHandle inside here ain't optimal but we need it.
-
-    */
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-
-    static GLFWwindow* windowHandle = glfwCreateWindow(2, 2, "dummy", NULL, Window::getSharedContexWindowHandle());
-    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-    glfwMakeContextCurrent(windowHandle);
-
-    uint32_t id;
     int32_t width, height, numChannels;
     unsigned char* data = stbi_load(resPath.c_str(), &width, &height, &numChannels, 0);
     if (!data)
     {
         log_.errorLn("Cannot load texture. Check path correctness!");
-        return Texture(0, -1, -1, -1, params);
+        return Texture(-1, 0, 0, 0, params);
     }
 
-    uint32_t glColorFormat = resPath.ends_with(".png") ? GL_RGBA : GL_RGB;
-    float borderColor[] = {params.borderColor.r, params.borderColor.g, params.borderColor.b, params.borderColor.a};
+    std::packaged_task<uint32_t()> task([this, resPath, params, data, width, height]() -> uint32_t
+    {
+        uint32_t id;
+        uint32_t glColorFormat = resPath.ends_with(".png") ? GL_RGBA : GL_RGB;
+        float borderColor[] = {params.borderColor.r, params.borderColor.g, params.borderColor.b, params.borderColor.a};
 
-    glGenTextures(1, &id);
-    glBindTexture(params.target, id);
-    glTexParameteri(params.target, GL_TEXTURE_WRAP_S, params.uWrap);
-    glTexParameteri(params.target, GL_TEXTURE_WRAP_T, params.vWrap);
-    glTexParameteri(params.target, GL_TEXTURE_MIN_FILTER, params.minFilter);
-    glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.magFilter);
-    glTexParameterfv(params.target, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexParameterf(params.target, GL_TEXTURE_MAX_ANISOTROPY, params.anisotropicFiltering);
+        glGenTextures(1, &id);
+        glBindTexture(params.target, id);
+        glTexParameteri(params.target, GL_TEXTURE_WRAP_S, params.uWrap);
+        glTexParameteri(params.target, GL_TEXTURE_WRAP_T, params.vWrap);
+        glTexParameteri(params.target, GL_TEXTURE_MIN_FILTER, params.minFilter);
+        glTexParameteri(params.target, GL_TEXTURE_MAG_FILTER, params.magFilter);
+        glTexParameterfv(params.target, GL_TEXTURE_BORDER_COLOR, borderColor);
+        glTexParameterf(params.target, GL_TEXTURE_MAX_ANISOTROPY, params.anisotropicFiltering);
 
-    /* TODO: or 1D/3D.. to be adapted later */
-    glTexImage2D(params.target, 0, glColorFormat, width, height, 0, glColorFormat,
-        GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(params.target);
+        /* TODO: or 1D/3D.. to be adapted later */
+        glTexImage2D(params.target, 0, glColorFormat, width, height, 0, glColorFormat,
+            GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(params.target);
 
-    glfwMakeContextCurrent(nullptr);
-    glfwDestroyWindow(windowHandle);
+        return id;
+    });
 
+    auto futureTask = task.get_future();
+
+    uint64_t threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    if (BELoadingQueue::get().isMainThread(threadId)) { task(); }
+    /* This is not the main thread */
+    else { BELoadingQueue::get().pushTask(std::move(task)); }
+
+    uint32_t id = futureTask.get();
     stbi_image_free(data);
 
     return Texture(id, width, height, numChannels, params);

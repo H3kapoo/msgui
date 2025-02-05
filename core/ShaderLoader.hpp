@@ -1,10 +1,11 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <future>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <unordered_map>
 
 #include "Shader.hpp"
 #include "Logger.hpp"
@@ -17,6 +18,8 @@ using ShaderPartType = uint32_t;
 class ShaderLoader
 {
 public:
+
+    static std::future<Shader*> loadShaderFut(const std::string& shaderPath);
 
     /**
         Load a shader glsl file from path.

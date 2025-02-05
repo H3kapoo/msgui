@@ -3,6 +3,11 @@
 #include <cstdint>
 #include <fstream>
 #include <sstream>
+#include <future>
+
+#include <GLFW/glfw3.h>
+
+#include "core/BELoadingQueue.hpp"
 
 namespace msgui
 {
@@ -26,7 +31,6 @@ Shader* ShaderLoader::loadShader(const std::string& shaderPath)
     {
         return shaderPathToObject_.at(shaderPath);
     }
-
     log_ = Logger("ShaderLoader(" + shaderPath + ")");
 
     Shader* shaderPtr = new Shader(get().loadInternal(shaderPath), shaderPath);
@@ -68,30 +72,44 @@ void ShaderLoader::reload(const std::string& shaderPath)
 
 uint32_t ShaderLoader::loadInternal(const std::string& shaderPath)
 {
-    std::ifstream shaderFile(shaderPath);
-    if (!shaderFile)
+    std::packaged_task<uint32_t()> task([shaderPath]() -> uint32_t
     {
-        log_.errorLn("Could not open shader file at %s", shaderPath.c_str());
-        return 0;
-    }
+        ShaderLoader& instance = get();
 
-    std::stringstream stream;
-    stream << shaderFile.rdbuf();
-    std::string content = stream.str();
-    shaderFile.close();
+        std::ifstream shaderFile(shaderPath);
+        if (!shaderFile)
+        {
+            log_.errorLn("Could not open shader file at %s", shaderPath.c_str());
+            return 0;
+        }
 
-    const size_t fragCutoff = content.find("/// frag ///\n"); /* WRN: LF ending handled only */
-    if (fragCutoff == std::string::npos)
-    {
-        log_.errorLn("Couldn't find FRAG start tag");
-        return 0;
-    }
+        std::stringstream stream;
+        stream << shaderFile.rdbuf();
+        std::string content = stream.str();
+        shaderFile.close();
 
-    std::string vertData{content.begin(), content.begin() + fragCutoff};
-    std::string fragData{content.begin() + fragCutoff, content.end()};
+        const size_t fragCutoff = content.find("/// frag ///\n"); /* WRN: LF ending handled only */
+        if (fragCutoff == std::string::npos)
+        {
+            log_.errorLn("Couldn't find FRAG start tag");
+            return 0;
+        }
 
-    uint32_t shaderId = loadInternal(vertData, fragData);
-    return shaderId;
+        std::string vertData{content.begin(), content.begin() + fragCutoff};
+        std::string fragData{content.begin() + fragCutoff, content.end()};
+
+        uint32_t shaderId = instance.loadInternal(vertData, fragData);
+        return shaderId;
+    });
+
+    auto futureTask = task.get_future();
+
+    uint64_t threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    if (BELoadingQueue::get().isMainThread(threadId)) { task(); }
+    /* This is not the main thread */
+    else { BELoadingQueue::get().pushTask(std::move(task)); }
+
+    return futureTask.get();
 }
 
 uint32_t ShaderLoader::loadInternal(const std::string& vertCode, const std::string& fragCode)

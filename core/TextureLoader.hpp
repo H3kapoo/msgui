@@ -15,6 +15,8 @@ public:
     /**
         Load a texture from path.
 
+        @note If called from secondary thread, this call will block until resource is loaded
+
         @param resPath Path to resource to load from
         @return Textuure pointer
     */
