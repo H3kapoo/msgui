@@ -11,11 +11,11 @@ class Image : public AbstractNode
 public:
     Image(const std::string& name);
 
-    // Image& setColor(const glm::vec4& color);
+    Image& setTint(const glm::vec4& color);
     // Image& setBorderColor(const glm::vec4& color);
     Image& setImage(const std::string& imagePath);
 
-    // glm::vec4 getColor() const;
+    glm::vec4 getTint() const;
     // glm::vec4 getBorderColor() const;
     std::string getImagePath() const;
     Listeners& getListeners();

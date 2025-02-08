@@ -128,6 +128,14 @@ glm::vec4 Box::getBorderColor() const { return borderColor_; }
 
 int32_t Box::getScrollbarSize() const { return scrollBarSize_; }
 
+ScrollBarPtr Box::getScrollBar(const ScrollBar::Orientation orientation)
+{
+    if (orientation == ScrollBar::Orientation::HORIZONTAL) { return hScrollBar_; }
+    if (orientation == ScrollBar::Orientation::VERTICAL) { return vScrollBar_; }
+
+    return nullptr;
+}
+
 Listeners& Box::getListeners() { return listeners_; }
 
 } // namespace msgui

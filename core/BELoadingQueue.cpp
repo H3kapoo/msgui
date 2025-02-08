@@ -12,22 +12,24 @@ BELoadingQueue& BELoadingQueue::get()
 
 void BELoadingQueue::executeTasks()
 {
-    while (!intTasks_.empty())
+    while (!tasks_.empty())
     {
-        auto& task = intTasks_.front();
+        auto& task = tasks_.front();
         if (task.valid())
         {
             task();
             task.reset();
         }
-        intTasks_.pop();
+        tasks_.pop();
     }
 }
 
 void BELoadingQueue::pushTask(UIntTask&& task)
 {
-    std::unique_lock lock{mtx};
-    intTasks_.emplace(std::move(task));
+    std::unique_lock lock{mtx_};
+    tasks_.emplace(std::move(task));
+
+    /* We need to notify main thread to run it's UI loop */
     Window::requestEmptyEvent();
 }
 

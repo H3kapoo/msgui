@@ -27,6 +27,7 @@ public:
     bool setOverflow(const int32_t overflow);
     ScrollBar& setColor(const glm::vec4& color);
     ScrollBar& setScrollbarSize(const int32_t size);
+    ScrollBar& setScrollCurrentValue(const float value);
 
     glm::vec4 getColor() const;
     int32_t getScrollbarSize() const;

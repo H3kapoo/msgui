@@ -32,6 +32,7 @@ public:
         BOX_DIVIDER,
         BOX_DIVIDER_SEP,
         RECYCLE_LIST,
+        DROPDOWN,
         SCROLL,
         SCROLL_KNOB
     };

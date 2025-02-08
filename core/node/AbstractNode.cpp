@@ -307,6 +307,11 @@ uint32_t AbstractNode::genetateNextId() const
 
 void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
 {
+    // TODO: Very important => reset the state_ of the childen nodes recursively
+    // as they are no longer part of the frame. Not resetting the state will mean
+    // that on re-addition (potentially on another parent) might cause invalid parents
+    // or invalid depths.
+
     /* Notify layout */
     if (node->state_)
     {

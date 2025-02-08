@@ -2,6 +2,7 @@
 
 #include "core/MeshLoader.hpp"
 #include "core/ShaderLoader.hpp"
+#include "core/node/FrameState.hpp"
 #include "core/node/utils/LayoutData.hpp"
 
 namespace msgui
@@ -46,7 +47,6 @@ void ScrollBar::updateKnobOffset()
     }
     else if (orientation_ == Orientation::HORIZONTAL)
     {
-        // log_.debugLn("diff is %d", diff);
         knobOffset_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
     }
@@ -69,7 +69,7 @@ void ScrollBar::onMouseButtonNotify()
     }
 
     updateKnobOffset();
-    getState()->isLayoutDirty = true;
+    MAKE_LAYOUT_DIRTY
 }
 
 void ScrollBar::onMouseHoverNotify()
@@ -78,7 +78,7 @@ void ScrollBar::onMouseHoverNotify()
 void ScrollBar::onMouseDragNotify()
 {
     updateKnobOffset();
-    getState()->isLayoutDirty = true;
+    MAKE_LAYOUT_DIRTY
 }
 
 bool ScrollBar::setOverflow(const int32_t overflow)
@@ -110,6 +110,14 @@ ScrollBar& ScrollBar::setScrollbarSize(const int32_t size)
     {
         transform_.scale.x = sbSize_;
     }
+    return *this;
+}
+
+ScrollBar& ScrollBar::setScrollCurrentValue(const float value)
+{
+    // slideValue_ = value;
+    knobOffset_ = Utils::remap(value, 0, overflowSize_, 0.0f, 1.0f);
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     return *this;
 }
 

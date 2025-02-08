@@ -49,6 +49,25 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     /* Useless to compute further if node is a scroll node type. We compute these separately */
     if (node->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
 
+    if (node->getType() == AbstractNode::NodeType::DROPDOWN)
+    {
+        auto& children = node->getChildren();
+        if (children.size())
+        {
+            computeNodeScale({0, 0}, children);
+        
+            auto& nPos = node->getTransform().pos;
+            auto& nScale = node->getTransform().scale;
+            auto& childPos = children[0]->getTransform().pos;
+            auto& childScale = children[0]->getTransform().scale;
+
+            childPos.x = nPos.x;
+            childPos.y = nPos.y + nScale.y + 10;
+        }
+
+        return {0, 0}; /* Dropdown will not generate overflow by itself */
+    }
+
     const Layout& layout = node->getLayout();
     const glm::vec2 pbScale = getPaddedAndBorderedNodeScale(node);
     if (layout.type == Layout::Type::GRID)
@@ -242,7 +261,7 @@ void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const Abstrac
     glm::vec2 newParentScale = pScale - getTotalChildrenAbsScale(children);
     for (auto& ch : children)
     {
-        // Shall not be taken into consideration as these are calculated differently
+        /* Shall not be taken into consideration as these are calculated differently */
         IGNORE_SCROLLBAR
 
         const Layout& chLayout = ch->getLayout();
@@ -331,7 +350,7 @@ glm::vec2 SimpleLayoutEngine::computeOverflow(const glm::vec2& pScale, const Abs
     glm::vec2 currentScale{0, 0};
     for (auto& ch : children)
     {
-        // Shall not be taken into consideration for overflow
+        /* Shall not be taken into consideration for overflow */
         IGNORE_SCROLLBAR
 
         const Layout& chLayout = ch->getLayout();
@@ -416,13 +435,12 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 
     const Layout& layout = parent->getLayout();
 
-    // Return by how much should the parent "shrink" to fit scrollbars
+    /* Return by how much should the parent "shrink" to fit scrollbars */
     ScrollBarsData data;
 
     bool bothSbOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
-        // Box* castBox = static_cast<Box*>(parent.get());
         BoxPtr castBox = Utils::as<Box>(parent);
         if (castBox->isScrollBarActive(ScrollBar::Orientation::NONE))
         {
@@ -438,13 +456,12 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     auto& nPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;
 
-    // Dealing with scrollbars, if any
+    /* Dealing with scrollbars, if any */
     for (auto& ch : children)
     {   
-        // Ignore non-Scrollbar elements
+        /* Ignore non-Scrollbar elements */
         if (ch->getType() != AbstractNode::NodeType::SCROLL) { continue; }
 
-        // ScrollBar* sb = static_cast<ScrollBar*>(ch.get());
         ScrollBarPtr sb = Utils::as<ScrollBar>(ch);
         if (!sb)
         {
@@ -456,14 +473,14 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 
         if (sb->getOrientation() == ScrollBar::Orientation::VERTICAL)
         {
-            // Scrollbar positioning
+            /* Scrollbar positioning */
             pos.x = nPos.x + pScale.x - scale.x - layout.border.right;
             pos.y = nPos.y + layout.border.top;
             scale.y = pScale.y - (bothSbOn ? scale.x : 0)
              - (layout.border.top + layout.border.bot);
 
-            // Knob positioning
-            AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
+            /* Knob positioning */
+            AbstractNodePtr knob = sb->getChildren()[0]; /* Always exists */
             auto& kScale = knob->getTransform().scale;
             auto& kPos = knob->getTransform().pos;
             float sbOffset = sb->getKnobOffset();
@@ -478,19 +495,19 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             kPos.x = pos.x;
             kPos.y = newY - kScale.y / 2;
 
-            // Horizontal available space needs to decrease & current offset in px
+            /* Horizontal available space needs to decrease & current offset in px */
             data.shrinkBy.x = scale.x;
             data.offsetPx.y = sb->geOverflowOffset();
         }
         else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
         {
-            // Scrollbar positioning
+            /* Scrollbar positioning */
             pos.y = nPos.y + pScale.y - scale.y - layout.border.bot;
             pos.x = nPos.x + layout.border.left;
             scale.x = pScale.x - (bothSbOn ? scale.y : 0)
                 - (layout.border.left + layout.border.right);
 
-            // Knob positioning
+            /* Knob positioning */
             AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
             auto& kScale = knob->getTransform().scale;
             auto& kPos = knob->getTransform().pos;
@@ -506,7 +523,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             kPos.y = pos.y;
             kPos.x = newX - kScale.x / 2;
 
-            // Vertical available space needs to decrease & current offset in px
+            /* Vertical available space needs to decrease & current offset in px */
             data.shrinkBy.y = scale.y;
             data.offsetPx.x = sb->geOverflowOffset();
         }
@@ -518,9 +535,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
 void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
 {
     /* Assuming parent node is Slider node, it will always have a SliderKnob child. */
-    // Slider* sliderRawPtr = static_cast<Slider*>(node.get());
     SliderPtr sliderPtr = Utils::as<Slider>(node);
-    // SliderKnob* knobRawPtr = static_cast<SliderKnob*>(node->getChildren()[0].get());
     SliderKnobPtr knobPtr = Utils::as<SliderKnob>(node->getChildren()[0]);
 
     if (!sliderPtr || !knobPtr)
@@ -574,13 +589,10 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
         if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
         {   
             /* Only handle active separator (the one the user is currently dragging) */
-            // BoxDividerSep* sep = static_cast<BoxDividerSep*>(ch.get());
             BoxDividerSepPtr sep = Utils::as<BoxDividerSep>(ch);
             if (!sep->getIsActiveSeparator()) { continue; }
 
-            // auto firstBox = static_cast<Box*>(sep->getFirstBox().get());
             auto firstBox = Utils::as<Box>(sep->getFirstBox());
-            // auto secondBox = static_cast<Box*>(sep->getSecondBox().get());
             auto secondBox = Utils::as<Box>(sep->getSecondBox());
 
             if (sep->getLayout().type == Layout::Type::HORIZONTAL)
@@ -791,7 +803,7 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
     /* Compute real (not planned) total scale of children */
     glm::vec2 totalChildSize = computeTotalRealNodesScale(children);
 
-    // Compute ZERO relative position of objects PASS
+    /* Compute ZERO relative position of objects PASS */
     float startX{0};
     float startY{0};
     int32_t startIdx{0};
@@ -800,7 +812,7 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
     {
         /* Dealing with layout spacing */
         const glm::vec2 spacing = computeSpacing(node, nScale.x, totalChildSize.x);
-        startX += spacing.y; // additionalPush
+        startX += spacing.y; /* additionalPush */
 
         float rollingX = startX;
         float maxY{0};
@@ -845,7 +857,7 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
     {
         /* Dealing with layout spacing */
         const glm::vec2 spacing = computeSpacing(node, nScale.y, totalChildSize.y);
-        startY += spacing.y; // additionalPush
+        startY += spacing.y; /* additionalPush */
 
         float rollingY = startY;
         float maxX{0};

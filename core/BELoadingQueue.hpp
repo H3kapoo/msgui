@@ -51,7 +51,7 @@ private:
     BELoadingQueue& operator=(BELoadingQueue&&) = delete;
 
     uint64_t mainThreadId_{std::hash<std::thread::id>{}(std::this_thread::get_id())};
-    std::queue<UIntTask> intTasks_;
-    std::mutex mtx;
+    std::queue<UIntTask> tasks_;
+    std::mutex mtx_;
 };
 } // namespace msgui

@@ -20,6 +20,7 @@ public:
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getScrollbarSize() const;
+    ScrollBarPtr getScrollBar(const ScrollBar::Orientation orientation);
     Listeners& getListeners();
 
 private: // friend

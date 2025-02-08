@@ -216,9 +216,9 @@ void WindowFrame::updateLayout()
             static_cast<Box*>(node.get())->updateOverflow(overflow);
         }
 
+        /* TODO: This shall be moved into layout process(). */
         /* After updating the node layout, we need to update the viewable area of the node based on the parent's
            viewable area. Raw parent is used for better performance (compared to locking each time). */
-        /* TODO: This shall be moved into layout process(). */
         if (auto p = node->getParentRaw())
         {
             /* RecyleList, being the king it is, requires that we tell it that the layout pass for it had finished.
@@ -230,8 +230,18 @@ void WindowFrame::updateLayout()
                 static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
             }
 
-            const Layout& pLayout = p->getLayout();
-            node->transform_.computeViewableArea(p->transform_, pLayout.border);
+            /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
+               the area of the window itself instead. */
+            if (p->getType() == AbstractNode::NodeType::DROPDOWN)
+            {
+                auto frameBoxIdx = allFrameChildNodes_.size() - 1;
+                node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, Layout::TBLR{0});
+            }
+            /* Otherwise just compute viewable area as normal. */
+            else
+            {
+                node->transform_.computeViewableArea(p->transform_, p->getLayout().border);
+            }
         }
     }
 }
@@ -255,6 +265,8 @@ void WindowFrame::resolveNodeRelations()
             if (!ch->state_)
             {
                 bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
+                bool isDropdownNodeBox = ch->getType() == AbstractNode::NodeType::BOX &&
+                    node->getType() == AbstractNode::NodeType::DROPDOWN;
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
                 ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
