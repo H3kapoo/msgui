@@ -11,7 +11,7 @@ class Box : public AbstractNode
 public:
     Box(const std::string& name);
 
-    bool isScrollBarActive(const ScrollBar::Orientation orientation);
+    bool isScrollBarActive(const ScrollBar::Type orientation);
 
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
@@ -20,7 +20,7 @@ public:
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getScrollbarSize() const;
-    ScrollBarPtr getScrollBar(const ScrollBar::Orientation orientation);
+    ScrollBarPtr getScrollBar(const ScrollBar::Type orientation);
     Listeners& getListeners();
 
 private: // friend

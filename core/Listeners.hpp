@@ -37,8 +37,8 @@ public:
     void callOnMouseButton(int32_t btn, int32_t action, int32_t x, int32_t y);
 
 private:
-    MouseButtonCallback mouseButtonCallback_{nullptr};
     MouseButtonSimpleCallback mouseButtonSimpleCallback_{nullptr};
+    MouseButtonCallback mouseButtonCallback_{nullptr};
 };
 
 class SliderListeners : public Listeners

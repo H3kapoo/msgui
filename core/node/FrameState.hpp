@@ -33,8 +33,9 @@ struct FrameState
     int32_t mouseY                                  {NO_VALUE};
     int32_t lastMouseX                              {NO_VALUE};
     int32_t lastMouseY                              {NO_VALUE};
-    glm::ivec2 frameSize                             {NO_VALUE, NO_VALUE};
+    glm::ivec2 frameSize                            {NO_VALUE, NO_VALUE};
     AbstractNodePtr clickedNodePtr                  {NO_PTR};
+    AbstractNodePtr prevClickedNodePtr              {NO_PTR};
     AbstractNodePtr hoveredNodePtr                  {NO_PTR};
     std::function<void()> requestNewFrameFunc       {nullptr};
     bool isLayoutDirty                              {true};

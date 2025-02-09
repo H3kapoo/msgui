@@ -41,44 +41,111 @@ int main()
 
     AbstractNodePVec nodes;
 
-    DropdownPtr bx = Utils::make<Dropdown>("Drop");
-    bx->setColor(Utils::hexToVec4("#ffaa00ff"));
-    bx->getLayout()
-        .setScaleType(Layout::ScaleType::ABS)
-        .setScale({200, 200})
-        .setMargin({10, 10, 60, 10});
-    nodes.emplace_back(bx);
-
-    for (int32_t i = 0; i < 3; i++)
     {
-        ButtonPtr butt = Utils::make<Button>("Btn");
-        butt->setColor(Utils::randomRGB());
-        butt->getLayout()
+        DropdownPtr bx = Utils::make<Dropdown>("Drop");
+        bx->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx->getLayout()
+            .setScaleType(Layout::ScaleType::ABS)
+            .setScale({200, 50})
+            .setMargin({10, 10, 10, 200});
+        nodes.emplace_back(bx);
+
+        for (int32_t i = 0; i < 3; i++)
+        {
+            bx->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button");
+            });
+        }
+
+        DropdownPtr bx2 = Utils::make<Dropdown>("Drop");
+        bx2->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx2->getLayout()
             .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
             .setScale({1.0f, 20})
-            .setMargin({1, 1, 0, 0})
+            // .setMargin({1, 1, 0, 0})
             ;
-        bx->addMenuItem(butt);
+
+        for (int32_t i = 0; i < 6; i++)
+        {
+            bx2->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button two");
+            });
+        }
+
+        DropdownPtr bx3 = Utils::make<Dropdown>("Drop");
+        bx3->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx3->getLayout()
+            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+            .setScale({1.0f, 20})
+            // .setMargin({1, 1, 0, 0})
+            ;
+
+        for (int32_t i = 0; i < 6; i++)
+        {
+            bx3->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button three");
+            });
+        }
+
+        bx->addMenuItem(bx2);
+        bx->addMenuItem(bx3);
+        // bx2->addMenuItem(bx3);
     }
 
-    DropdownPtr bx2 = Utils::make<Dropdown>("Drop");
-    bx2->setColor(Utils::hexToVec4("#ffaa00ff"));
-    bx2->getLayout()
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-        .setScale({1.0f, 20})
-        .setMargin({1, 1, 0, 0});
-    bx->addMenuItem(bx2);
-
-    for (int32_t i = 0; i < 6; i++)
     {
-        ButtonPtr butt = Utils::make<Button>("Btn");
-        butt->setColor(Utils::randomRGB());
-        butt->getLayout()
+        DropdownPtr bx = Utils::make<Dropdown>("Drop");
+        bx->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx->getLayout()
+            .setScaleType(Layout::ScaleType::ABS)
+            .setScale({200, 50})
+            .setMargin({10, 10, 60, 10});
+        nodes.emplace_back(bx);
+
+        for (int32_t i = 0; i < 3; i++)
+        {
+            bx->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button");
+            });
+        }
+
+        DropdownPtr bx2 = Utils::make<Dropdown>("Drop");
+        bx2->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx2->getLayout()
             .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
             .setScale({1.0f, 20})
-            .setMargin({1, 1, 0, 0})
+            // .setMargin({1, 1, 0, 0})
             ;
-        bx2->addMenuItem(butt);
+
+        for (int32_t i = 0; i < 6; i++)
+        {
+            bx2->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button two");
+            });
+        }
+
+        DropdownPtr bx3 = Utils::make<Dropdown>("Drop");
+        bx3->setColor(Utils::hexToVec4("#ffaa00ff"));
+        bx3->getLayout()
+            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+            .setScale({1.0f, 20})
+            // .setMargin({1, 1, 0, 0})
+            ;
+
+        for (int32_t i = 0; i < 6; i++)
+        {
+            bx3->addMenuItem(Utils::randomRGB(), [mainLog]()
+            {
+                mainLog.debugLn("called me button three");
+            });
+        }
+
+        bx->addMenuItem(bx2);
+        bx2->addMenuItem(bx3);
     }
     /*
         -- DropDown (custom node type that will position holding box as it wants)

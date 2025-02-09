@@ -15,17 +15,17 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     setMesh(MeshLoader::loadQuad());
 }
 
-bool Box::isScrollBarActive(const ScrollBar::Orientation orientation)
+bool Box::isScrollBarActive(const ScrollBar::Type orientation)
 {
     switch (orientation)
     {
-        case ScrollBar::Orientation::HORIZONTAL:
+        case ScrollBar::Type::HORIZONTAL:
             return hScrollBar_ ? true : false;
-        case ScrollBar::Orientation::VERTICAL:
+        case ScrollBar::Type::VERTICAL:
             return vScrollBar_ ? true : false;
-        case ScrollBar::Orientation::ALL:
+        case ScrollBar::Type::ALL:
             return (hScrollBar_ && vScrollBar_);
-        case ScrollBar::Orientation::NONE:
+        case ScrollBar::Type::NONE:
             return (!hScrollBar_ && !vScrollBar_);
         default:
             log_.errorLn("Invalid orientation!");
@@ -41,7 +41,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     // Handle horizontal OF
     if (overflow.x > 0 && !hScrollBar_ && layout_.allowOverflow.x)
     {
-        hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Orientation::HORIZONTAL);
+        hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Type::HORIZONTAL);
         hScrollBar_->setScrollbarSize(scrollBarSize_);
         append(hScrollBar_);
     }
@@ -53,7 +53,7 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     // Handle vertical OF
     else if (overflow.y > 0 && !vScrollBar_ && layout_.allowOverflow.y)
     {
-        vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Orientation::VERTICAL);
+        vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Type::VERTICAL);
         vScrollBar_->setScrollbarSize(scrollBarSize_);
         append(vScrollBar_);
     }
@@ -128,10 +128,10 @@ glm::vec4 Box::getBorderColor() const { return borderColor_; }
 
 int32_t Box::getScrollbarSize() const { return scrollBarSize_; }
 
-ScrollBarPtr Box::getScrollBar(const ScrollBar::Orientation orientation)
+ScrollBarPtr Box::getScrollBar(const ScrollBar::Type orientation)
 {
-    if (orientation == ScrollBar::Orientation::HORIZONTAL) { return hScrollBar_; }
-    if (orientation == ScrollBar::Orientation::VERTICAL) { return vScrollBar_; }
+    if (orientation == ScrollBar::Type::HORIZONTAL) { return hScrollBar_; }
+    if (orientation == ScrollBar::Type::VERTICAL) { return vScrollBar_; }
 
     return nullptr;
 }

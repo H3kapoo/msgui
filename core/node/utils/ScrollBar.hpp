@@ -13,7 +13,7 @@ namespace msgui
 class ScrollBar : public AbstractNode
 {
 public:
-    enum class Orientation
+    enum class Type
     {
         HORIZONTAL,
         VERTICAL,
@@ -22,7 +22,7 @@ public:
     };
 
 public:
-    ScrollBar(const std::string& name, const Orientation orientation);
+    ScrollBar(const std::string& name, const Type orientation);
 
     bool setOverflow(const int32_t overflow);
     ScrollBar& setColor(const glm::vec4& color);
@@ -34,7 +34,7 @@ public:
     float getKnobOffset();
     int32_t geOverflowOffset();
     int32_t getOverflowSize();
-    Orientation getOrientation();
+    Type getOrientation();
 
 private:
     void updateKnobOffset();
@@ -53,7 +53,7 @@ private:
     float knobOffset_{0};
     int32_t overflowSize_{0};
     glm::ivec2 mouseDistFromKnobCenter_{0};
-    Orientation orientation_{Orientation::VERTICAL};
+    Type orientation_{Type::VERTICAL};
     ScrollBarKnobPtr knob_{nullptr};
 };
 using ScrollBarPtr = std::shared_ptr<ScrollBar>;

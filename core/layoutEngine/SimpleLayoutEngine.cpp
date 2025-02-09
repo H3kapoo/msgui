@@ -2,6 +2,7 @@
 
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/Dropdown.hpp"
 #include "core/node/Slider.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
 #include "core/node/utils/LayoutData.hpp"
@@ -51,18 +52,44 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
 
     if (node->getType() == AbstractNode::NodeType::DROPDOWN)
     {
+        /* Don't compute anything if the dropdown isn't even visible. */
+        if (!Utils::as<Dropdown>(node)->isDropdownOpen()) { return {0, 0}; }
+
         auto& children = node->getChildren();
         if (children.size())
         {
+            /* Figure out how big the elements are on the vertical axis in order to set a size for the dropdown. */
+            float boxContElementsRollingY{0};
+            for (const auto& ch : children[0]->getChildren())
+            {
+                boxContElementsRollingY += ch->getLayout().scale.y;
+            }
+
+            /* Compute and sets it's scale. */
+            children[0]->getLayout().scale = {node->getTransform().scale.x, boxContElementsRollingY};
             computeNodeScale({0, 0}, children);
-        
+
+            /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
+               be positioned to the bottom, right, top, left. */
+            // TODO: User should be able to have a prefered open direction.
             auto& nPos = node->getTransform().pos;
             auto& nScale = node->getTransform().scale;
-            auto& childPos = children[0]->getTransform().pos;
-            auto& childScale = children[0]->getTransform().scale;
+            auto& contBoxPos = children[0]->getTransform().pos;
+            auto& contBoxScale = children[0]->getTransform().scale;
 
-            childPos.x = nPos.x;
-            childPos.y = nPos.y + nScale.y + 10;
+            const auto& frameState = node->getState();
+            /* Try to fit underneath the parent as long as the dropdown would not exit the screen.*/
+            // if (frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y)
+            // {
+            //     contBoxPos.x = nPos.x;
+            //     contBoxPos.y = nPos.y + nScale.y;
+            // }
+            // else
+             if (frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x)
+            {
+                contBoxPos.x = nPos.x + nScale.x;
+                contBoxPos.y = nPos.y;
+            }
         }
 
         return {0, 0}; /* Dropdown will not generate overflow by itself */
@@ -442,12 +469,12 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
         BoxPtr castBox = Utils::as<Box>(parent);
-        if (castBox->isScrollBarActive(ScrollBar::Orientation::NONE))
+        if (castBox->isScrollBarActive(ScrollBar::Type::NONE))
         {
             return ScrollBarsData{};
         }
 
-        if (castBox->isScrollBarActive(ScrollBar::Orientation::ALL))
+        if (castBox->isScrollBarActive(ScrollBar::Type::ALL))
         {
             bothSbOn = true;
         }
@@ -471,7 +498,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
 
-        if (sb->getOrientation() == ScrollBar::Orientation::VERTICAL)
+        if (sb->getOrientation() == ScrollBar::Type::VERTICAL)
         {
             /* Scrollbar positioning */
             pos.x = nPos.x + pScale.x - scale.x - layout.border.right;
@@ -499,7 +526,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
             data.shrinkBy.x = scale.x;
             data.offsetPx.y = sb->geOverflowOffset();
         }
-        else if (sb->getOrientation() == ScrollBar::Orientation::HORIZONTAL)
+        else if (sb->getOrientation() == ScrollBar::Type::HORIZONTAL)
         {
             /* Scrollbar positioning */
             pos.y = nPos.y + pScale.y - scale.y - layout.border.bot;

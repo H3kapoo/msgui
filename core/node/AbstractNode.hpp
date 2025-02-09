@@ -154,6 +154,8 @@ public:
      */
     AbstractNodePtr findOneBy(std::function<bool(AbstractNodePtr)> pred);
 
+    bool isDeepChildOfThis(const AbstractNodePtr& node);
+
     /**
         Prints a tree view of the current's node children.
 

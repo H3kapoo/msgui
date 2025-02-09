@@ -143,6 +143,5 @@ public:
     {
         return std::make_shared<Type>(std::forward<Args>(args)...);
     }
-
 };
 } // namespace msgui

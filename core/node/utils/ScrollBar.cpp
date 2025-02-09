@@ -7,7 +7,7 @@
 
 namespace msgui
 {
-ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Orientation orientation)
+ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Type orientation)
     : AbstractNode(name, NodeType::SCROLL)
     , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
@@ -40,12 +40,12 @@ void ScrollBar::setShaderAttributes()
 void ScrollBar::updateKnobOffset()
 {
     glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
-    if (orientation_ == Orientation::VERTICAL)
+    if (orientation_ == Type::VERTICAL)
     {
         knobOffset_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
-    else if (orientation_ == Orientation::HORIZONTAL)
+    else if (orientation_ == Type::HORIZONTAL)
     {
         knobOffset_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
@@ -102,11 +102,11 @@ ScrollBar& ScrollBar::setColor(const glm::vec4& color)
 ScrollBar& ScrollBar::setScrollbarSize(const int32_t size)
 {
     sbSize_ = size;
-    if (orientation_ == Orientation::HORIZONTAL)
+    if (orientation_ == Type::HORIZONTAL)
     {
         transform_.scale.y = sbSize_;
     }
-    else if (orientation_ == Orientation::VERTICAL)
+    else if (orientation_ == Type::VERTICAL)
     {
         transform_.scale.x = sbSize_;
     }
@@ -147,7 +147,7 @@ int32_t ScrollBar::getOverflowSize()
     return overflowSize_;
 }
 
-ScrollBar::Orientation ScrollBar::getOrientation()
+ScrollBar::Type ScrollBar::getOrientation()
 {
     return orientation_;
 }

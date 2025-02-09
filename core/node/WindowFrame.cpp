@@ -299,28 +299,27 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
-            bool clickedIsAlsoHovered{false};
-            if (frameState_->clickedNodePtr == frameState_->hoveredNodePtr)
-            {
-                clickedIsAlsoHovered = true;
-            }
-
             /* If we got here by pressing the mouse button, this is the new selected node. */
             if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
+                /* Notify this is the clicked node. */
                 frameState_->clickedNodePtr = node;
-            }
+                node->onMouseButtonNotify();
 
-            if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-            {
-                if (!clickedIsAlsoHovered && frameState_->clickedNodePtr)
+                /* Notify the previously clicked node that it had lost focus basically. */
+                if (frameState_->prevClickedNodePtr && frameState_->prevClickedNodePtr != frameState_->clickedNodePtr)
                 {
-                    frameState_->clickedNodePtr->onMouseButtonNotify();
+                    frameState_->prevClickedNodePtr->onMouseButtonNotify();
                 }
+            }
+            else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+            {
+                /* Save who's the previous clicked node. Notify this is NOT the clicked node anymore. */
+                frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
                 frameState_->clickedNodePtr = NO_PTR;
+                node->onMouseButtonNotify();
             }
 
-            node->onMouseButtonNotify();
             break; // event was consumed
         }
     }
