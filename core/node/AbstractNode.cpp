@@ -196,11 +196,6 @@ AbstractNodePtr AbstractNode::findOneBy(std::function<bool(AbstractNodePtr)> pre
     return *it;
 }
 
-bool AbstractNode::isDeepChildOfThis(const AbstractNodePtr& node)
-{
-    return false;
-}
-
 void AbstractNode::printTree(uint32_t currentDepth)
 {
     currentDepth ? log_.raw("") : log_.infoLn("");
@@ -296,9 +291,9 @@ Layout& AbstractNode::getLayout()
     return layout_;
 }
 
-void AbstractNode::onMouseButtonNotify() {}
+NodeEventManager& AbstractNode::getEvents() { return eventManager_; }
 
-void AbstractNode::onMouseHoverNotify() {}
+bool AbstractNode::isParented() const { return isParented_; }
 
 void AbstractNode::onMouseDragNotify() {}
 

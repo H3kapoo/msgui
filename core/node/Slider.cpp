@@ -55,27 +55,24 @@ void Slider::updateSliderValue()
     listeners_.callOnSlide(slideValue_);
 }
 
-void Slider::onMouseButtonNotify()
-{
-    glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
-    glm::vec2 kPos = knobNode_->getTransform().pos;
-    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-    {
-        // Compute distance offset to the knob center for more natural knob dragging behavior.
-        mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
-        mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
-            ? 0 : mouseDistFromKnobCenter_.x;
-        mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
-        mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
-            ? 0 : mouseDistFromKnobCenter_.y;
+// void Slider::onMouseButtonNotify()
+// {
+//     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
+//     glm::vec2 kPos = knobNode_->getTransform().pos;
+//     if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+//     {
+//         // Compute distance offset to the knob center for more natural knob dragging behavior.
+//         mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
+//         mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
+//             ? 0 : mouseDistFromKnobCenter_.x;
+//         mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
+//         mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
+//             ? 0 : mouseDistFromKnobCenter_.y;
 
-        updateSliderValue();
-        MAKE_LAYOUT_DIRTY
-    }
-}
-
-void Slider::onMouseHoverNotify()
-{}
+//         updateSliderValue();
+//         MAKE_LAYOUT_DIRTY
+//     }
+// }
 
 void Slider::onMouseDragNotify()
 {

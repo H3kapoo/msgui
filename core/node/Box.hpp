@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/Listeners.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/utils/ScrollBar.hpp"
 
@@ -15,13 +14,11 @@ public:
 
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
-    Box& setScrollbarSize(const int32_t size);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
-    int32_t getScrollbarSize() const;
-    ScrollBarPtr getScrollBar(const ScrollBar::Type orientation);
-    Listeners& getListeners();
+    ScrollBarWPtr getHBar();
+    ScrollBarWPtr getVBar();
 
 private: // friend
     friend WindowFrame;
@@ -29,15 +26,12 @@ private: // friend
 
 private:
     void setShaderAttributes() override;
-    void onMouseButtonNotify() override;
-    void onMouseDragNotify() override;
+    void setupReloadables();
 
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
-    int32_t scrollBarSize_{20};
     glm::ivec2 overflow_{0, 0};
-    Listeners listeners_;
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
 };

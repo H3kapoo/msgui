@@ -20,7 +20,6 @@ namespace msgui
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
 
-
 static constexpr int32_t NO_ID = 0;
 static constexpr int32_t NO_VALUE = 0;
 static const AbstractNodePtr NO_PTR = nullptr;

@@ -1,6 +1,11 @@
 #include "WindowFrame.hpp"
 #include "core/node/Button.hpp"
 #include "core/node/RecycleList.hpp"
+#include "core/nodeEvent/FocusLost.hpp"
+#include "core/nodeEvent/LMBClick.hpp"
+#include "core/nodeEvent/LMBDrag.hpp"
+#include "core/nodeEvent/LMBRelease.hpp"
+#include "core/nodeEvent/NodeEventManager.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -94,6 +99,7 @@ WindowFrame::~WindowFrame()
 {
     log_.infoLn("Cleaning up frameState..");
     frameState_->clickedNodePtr = NO_PTR;
+    frameState_->prevClickedNodePtr = NO_PTR;
     frameState_->hoveredNodePtr = NO_PTR;
 
     if (!initCursors)
@@ -299,25 +305,27 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
-            /* If we got here by pressing the mouse button, this is the new selected node. */
             if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
-                /* Notify this is the clicked node. */
                 frameState_->clickedNodePtr = node;
-                node->onMouseButtonNotify();
-
-                /* Notify the previously clicked node that it had lost focus basically. */
-                if (frameState_->prevClickedNodePtr && frameState_->prevClickedNodePtr != frameState_->clickedNodePtr)
+                auto& prevNode = frameState_->prevClickedNodePtr;
+                if (prevNode && prevNode!= node)
                 {
-                    frameState_->prevClickedNodePtr->onMouseButtonNotify();
+                    // log_.debugLn("prev called %d", node->getId());
+                    nodeevent::FocusLost evt;
+                    prevNode->getEvents().notifyAllChannels<nodeevent::FocusLost>(evt);
                 }
+
+                nodeevent::LMBClick evt;
+                node->getEvents().notifyAllChannels<nodeevent::LMBClick>(evt);
             }
             else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
-                /* Save who's the previous clicked node. Notify this is NOT the clicked node anymore. */
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
                 frameState_->clickedNodePtr = NO_PTR;
-                node->onMouseButtonNotify();
+
+                nodeevent::LMBRelease evt;
+                node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
             }
 
             break; // event was consumed
@@ -341,7 +349,7 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
             (y >= nodePos.y && y <= nodePos.y + nodeScale.y))
         {
             frameState_->hoveredNodePtr = node;
-            node->onMouseHoverNotify();
+            // node->onMouseHoverNotify();
             break; // event was consumed
         }
     }
@@ -349,7 +357,8 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     /* Having a selectedNodeId && currently holding down left click means we want to drag only. */
     if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
     {
-        frameState_->clickedNodePtr->onMouseDragNotify();
+        nodeevent::LMBDrag evt;
+        frameState_->clickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBDrag>(evt);
         return;
     }
 }

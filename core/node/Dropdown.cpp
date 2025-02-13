@@ -1,15 +1,19 @@
 #include "Dropdown.hpp"
 
-#include <GLFW/glfw3.h>
 #include <cstdint>
 #include <functional>
 
+#include <GLFW/glfw3.h>
+
 #include "core/MeshLoader.hpp"
-#include "core/ShaderLoader.hpp"
-#include "core/Utils.hpp"
 #include "core/node/Button.hpp"
 #include "core/node/FrameState.hpp"
-#include "core/node/utils/ScrollBar.hpp"
+#include "core/ShaderLoader.hpp"
+#include "core/Utils.hpp"
+#include "core/node/Image.hpp"
+#include "core/nodeEvent/LMBClick.hpp"
+#include "core/nodeEvent/LMBRelease.hpp"
+#include "core/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
 {
@@ -23,24 +27,106 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
 
     color_ = Utils::hexToVec4("#ffffffff");
 
-    // container_ = Utils::make<Box>("BoxIn");
     container_ = Utils::make<Box>("BoxIn");
     container_->setColor(Utils::hexToVec4("#48ff00ff"));
     container_->getLayout()
         .setType(Layout::Type::VERTICAL)
         .setAllowOverflow({false, true})
-        // .setScaleType(Layout::ScaleType::ABS)
-        // .setScale({100, 100})
         .setPadding(Layout::TBLR{0, 0, 2, 2})
-        // .setMargin({10, 10, 60, 10})
         ;
 
-    container_->getListeners().setOnMouseButtonLeftClick([this]()
+    dropdownId_ = getId();
+
+    /* Register only the events you need. */
+    getEvents().listen<nodeevent::LMBRelease, InputChannel>(
+        std::bind(&Dropdown::onMouseRelease, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::FocusLost, InputChannel>(
+        std::bind(&Dropdown::onFocusLost, this, std::placeholders::_1));
+}
+
+void Dropdown::setShaderAttributes()
+{
+    transform_.computeModelMatrix();
+    auto shader = getShader();
+
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+}
+
+void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
+{
+    closeDropdownsOnTheSameLevelAsMe();
+    toggleDropdown();
+}
+
+void Dropdown::onFocusLost(const nodeevent::FocusLost&)
+{
+    const auto& state = getState();
+    const auto& parentBoxCont = state->clickedNodePtr->getParent().lock();
+    const auto& grandParentDd = parentBoxCont ? parentBoxCont->getParent().lock() : nullptr;
+    if (!grandParentDd || grandParentDd->getType() != AbstractNode::NodeType::DROPDOWN ||
+        Utils::as<Dropdown>(grandParentDd)->getDropdownId() != dropdownId_)
     {
-        log_.debugLn("clicked box");
+        recursivelyCloseDropdownsUpwards();
+        setDropdownOpen(false);
+    }
+}
+
+template<typename T>
+std::shared_ptr<T> Dropdown::createMenuItem()
+{
+    std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
+    nodeItem->getLayout()
+        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+        .setScale({1.0f, 20});
+    nodeItem->getEvents().template listen<LMBRelease, InternalChannel>([this](const auto&)
+    {
+        /* Close any open downwards and upwards dropdowns from here. */
+        setDropdownOpen(false);
+        recursivelyCloseDropdownsUpwards();
     });
 
-    rootId_ = getId();
+    container_->append(nodeItem);
+
+    return nodeItem;
+}
+
+/* Currently only button and image can be a menu item (except another dropdown). */
+template ButtonPtr Dropdown::createMenuItem<Button>();
+template ImagePtr Dropdown::createMenuItem<Image>();
+
+DropdownPtr Dropdown::createSubMenuItem()
+{
+    DropdownPtr subMenu = Utils::make<Dropdown>("Drop");
+    subMenu->setColor(Utils::hexToVec4("#ffaa00ff"));
+    subMenu->getLayout()
+        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+        .setScale({1.0f, 20});
+    subMenu->dropdownId_ = dropdownId_;
+    container_->append(subMenu);
+
+    return subMenu;
+}
+
+void Dropdown::removeMenuItem(const int32_t idx)
+{
+    container_->removeAt(idx);
+}
+
+void Dropdown::disableItem(const int32_t idx)
+{
+    if (idx < 0 || idx > (int32_t)container_->getChildren().size() - 1) { return; }
+    Utils::as<Button>(container_->getChildren()[idx])->setEnabled(false);
+}
+
+void Dropdown::toggleDropdown()
+{
+    dropdownOpen_ = !dropdownOpen_;
+    setDropdownOpen(dropdownOpen_);
 }
 
 void Dropdown::closeDropdownsOnTheSameLevelAsMe()
@@ -81,92 +167,6 @@ void Dropdown::recursivelyCloseDropdownsUpwards()
             break;
         }
     }
-}
-
-void Dropdown::setShaderAttributes()
-{
-    transform_.computeModelMatrix();
-    auto shader = getShader();
-
-    shader->setMat4f("uModelMat", transform_.modelMatrix);
-    shader->setVec4f("uColor", color_);
-    shader->setVec4f("uBorderColor", borderColor_);
-    shader->setVec4f("uBorderSize", layout_.border);
-    shader->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-}
-
-void Dropdown::onMouseButtonNotify()
-{
-    const auto& state = getState();
-    int32_t clicked = state->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT];
-
-    /* Close any other open dropdowns on the same level as this one. */
-    closeDropdownsOnTheSameLevelAsMe();
-
-    /* On mouse release if we are still the hovered button, toggle dropdown. */
-    if (!clicked && this == state->hoveredNodePtr.get())
-    {
-        toggleDropdown();
-    }
-
-    /* Mouse clicked elsewhere. This case will happen when we clicked elsewhere but we need to notify
-       the previous element of this so it can do some cleanup. In this case, we need to close
-       everything that has to do with this dropdown, all the way up and down. */
-    if (clicked && this == state->prevClickedNodePtr.get())
-    {
-        const auto& parent =  state->clickedNodePtr->getParent().lock();
-        const auto& grandParent = parent ? parent->getParent().lock() : nullptr;
-        if (state->clickedNodePtr->getType() == AbstractNode::NodeType::DROPDOWN &&
-            Utils::as<Dropdown>(state->clickedNodePtr)->rootId_ == rootId_)
-        {
-            // bool fromSameMasterDd = Utils::as<Dropdown>(state->clickedNodePtr)->rootId_ == rootId_;
-            // log_.debugLn("from same dd %d", fromSameMasterDd);
-        }
-        else if (grandParent && grandParent->getType() == AbstractNode::NodeType::DROPDOWN &&
-            Utils::as<Dropdown>(grandParent)->rootId_ == rootId_)
-        {
-
-        }
-        else
-        {
-            log_.debugLn("elseee");
-            recursivelyCloseDropdownsUpwards();
-            setDropdownOpen(false);
-        }
-    }
-}
-
-void Dropdown::addMenuItem(const glm::vec4& itemData, const std::function<void()> callback)
-{
-    ButtonPtr nodeItem = Utils::make<Button>("Btn");
-    nodeItem->setColor(itemData);
-    nodeItem->getLayout()
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-        .setScale({1.0f, 20})
-        // .setMargin({1, 1, 0, 0})
-        ;
-    nodeItem->getListeners().setOnMouseButtonLeftClick([this, callback]()
-    {
-        /* Close any open downwards and upwards dropdowns from here. */
-        setDropdownOpen(false);
-        recursivelyCloseDropdownsUpwards();
-        callback();
-    });
-
-    container_->append(nodeItem);
-}
-
-void Dropdown::addMenuItem(const DropdownPtr& nodeItem)
-{
-    nodeItem->rootId_ = rootId_;
-    container_->append(nodeItem);
-}
-
-void Dropdown::toggleDropdown()
-{
-    dropdownOpen_ = !dropdownOpen_;
-    setDropdownOpen(dropdownOpen_);
 }
 
 void Dropdown::setupLayoutReloadables()
@@ -230,6 +230,8 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
 glm::vec4 Dropdown::getColor() const { return color_; }
 
 bool Dropdown::isDropdownOpen() const { return dropdownOpen_; }
+
+uint32_t Dropdown::getDropdownId() const { return dropdownId_; }
 
 Listeners& Dropdown::getListeners() { return listeners_; }
 } // msgui

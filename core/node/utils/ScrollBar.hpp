@@ -6,6 +6,8 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/Utils.hpp"
 #include "core/node/utils/ScrollBarKnob.hpp"
+#include "core/nodeEvent/LMBClick.hpp"
+#include "core/nodeEvent/LMBDrag.hpp"
 
 namespace msgui
 {
@@ -37,14 +39,12 @@ public:
     Type getOrientation();
 
 private:
+    void setShaderAttributes() override;
     void updateKnobOffset();
 
-    void setShaderAttributes() override;
-
     friend ScrollBarKnob;
-    void onMouseButtonNotify() override;
-    void onMouseHoverNotify() override;
-    void onMouseDragNotify() override;
+    void onMouseClick(const LMBClick& evt);
+    void onMouseDrag(const LMBDrag& evt);
 
 private:
     Logger log_;
@@ -57,4 +57,5 @@ private:
     ScrollBarKnobPtr knob_{nullptr};
 };
 using ScrollBarPtr = std::shared_ptr<ScrollBar>;
+using ScrollBarWPtr = std::weak_ptr<ScrollBar>;
 } // namespace msgui

@@ -35,7 +35,7 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
-    boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
+    // boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
     append(boxCont_);
 }
 
@@ -131,8 +131,6 @@ void RecycleList::onSliderValueChanged(float newSliderVal)
     (void)newSliderVal;
     updateNodePositions();
 }
-
-void RecycleList::onMouseButtonNotify() {}
 
 void RecycleList::updateNodePositions()
 {

@@ -46,8 +46,6 @@ private:
 
 private: // friend
     friend SliderKnob;
-    void onMouseButtonNotify() override;
-    void onMouseHoverNotify() override;
     void onMouseDragNotify() override;
 
 private:

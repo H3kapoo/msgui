@@ -31,7 +31,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../)
 
     # Link libraries
-    target_link_libraries(${PROJECT_NAME} core GL GLEW)
+    target_link_libraries(${PROJECT_NAME} msgui GL GLEW)
 
 # If the operating system is not recognized
 else()

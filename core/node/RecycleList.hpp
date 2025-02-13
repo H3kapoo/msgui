@@ -34,7 +34,6 @@ private:
     void setShaderAttributes() override;
 
     void onSliderValueChanged(float newVal);
-    void onMouseButtonNotify() override;
 
     void updateNodePositions();
     void setupLayoutReloadables();

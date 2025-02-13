@@ -3,7 +3,8 @@
 #include "AbstractNode.hpp"
 #include "core/Listeners.hpp"
 #include "core/node/Box.hpp"
-#include "core/node/Button.hpp"
+#include "core/nodeEvent/FocusLost.hpp"
+#include "core/nodeEvent/LMBRelease.hpp"
 
 namespace msgui
 {
@@ -14,11 +15,14 @@ class Dropdown : public AbstractNode
 {
 public:
     Dropdown(const std::string& name);
+    
+    template<typename T>
+    std::shared_ptr<T> createMenuItem();
 
-    void addMenuItem(const glm::vec4& itemData, const std::function<void()> callback);
-    void addMenuItem(const DropdownPtr& nodeItem);
+    DropdownPtr createSubMenuItem();
+    void removeMenuItem(const int32_t idx);
+    void disableItem(const int32_t idx);
 
-    // void addMenuItem(const ButtonPtr& nodeItem);
     void toggleDropdown();
 
     Dropdown& setColor(const glm::vec4& color);
@@ -27,21 +31,23 @@ public:
 
     glm::vec4 getColor() const;
     bool isDropdownOpen() const;
+    uint32_t getDropdownId() const;
     Listeners& getListeners();
 
-    uint32_t rootId_{0};
 private:
-    void closeDropdownsOnTheSameLevelAsMe();
-    void recursivelyCloseDropdownsUpwards();
     void setShaderAttributes() override;
 
-    void onMouseButtonNotify() override;
+    void onMouseRelease(const nodeevent::LMBRelease&);
+    void onFocusLost(const nodeevent::FocusLost&);
 
+    void closeDropdownsOnTheSameLevelAsMe();
+    void recursivelyCloseDropdownsUpwards();
     void setupLayoutReloadables();
 
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
+    uint32_t dropdownId_{0};
     Listeners listeners_;
 
     bool dropdownOpen_{false};

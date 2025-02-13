@@ -13,20 +13,24 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     log_ = Logger("Box(" + name +")");
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
+
+    setupReloadables();
 }
 
 bool Box::isScrollBarActive(const ScrollBar::Type orientation)
 {
+    const bool isHParented = hScrollBar_ && hScrollBar_->isParented();
+    const bool isVParented = vScrollBar_ && vScrollBar_->isParented();
     switch (orientation)
     {
         case ScrollBar::Type::HORIZONTAL:
-            return hScrollBar_ ? true : false;
+            return isHParented;
         case ScrollBar::Type::VERTICAL:
-            return vScrollBar_ ? true : false;
+            return isVParented;
         case ScrollBar::Type::ALL:
-            return (hScrollBar_ && vScrollBar_);
+            return (isHParented && isVParented);
         case ScrollBar::Type::NONE:
-            return (!hScrollBar_ && !vScrollBar_);
+            return !(isHParented || isVParented);
         default:
             log_.errorLn("Invalid orientation!");
     }
@@ -38,39 +42,17 @@ void Box::updateOverflow(const glm::ivec2& overflow)
 {
     overflow_ = overflow;
 
-    // Handle horizontal OF
-    if (overflow.x > 0 && !hScrollBar_ && layout_.allowOverflow.x)
-    {
-        hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Type::HORIZONTAL);
-        hScrollBar_->setScrollbarSize(scrollBarSize_);
-        append(hScrollBar_);
-    }
-    else if ((overflow.x <= 0 || !layout_.allowOverflow.x) && hScrollBar_)
-    {
-        remove(hScrollBar_->getId());
-        hScrollBar_.reset();
-    }
-    // Handle vertical OF
-    else if (overflow.y > 0 && !vScrollBar_ && layout_.allowOverflow.y)
-    {
-        vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Type::VERTICAL);
-        vScrollBar_->setScrollbarSize(scrollBarSize_);
-        append(vScrollBar_);
-    }
-    else if ((overflow.y <= 0 || !layout_.allowOverflow.y) && vScrollBar_)
-    {
-        remove(vScrollBar_->getId());
-        vScrollBar_.reset();
-    }
-
-    // Update with the new overflow value
     if (hScrollBar_)
     {
+        if (overflow.x > 0 && !hScrollBar_->isParented()) { append(hScrollBar_); }
+        else if (overflow.x <= 0 && hScrollBar_->isParented()) { remove(hScrollBar_->getId()); }
         getState()->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
     }
 
     if (vScrollBar_)
     {
+        if (overflow.y > 0 && !vScrollBar_->isParented()) { append(vScrollBar_); }
+        else if (overflow.y <= 0 && vScrollBar_->isParented()) { remove(vScrollBar_->getId()); }
         getState()->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
     }
 }
@@ -88,18 +70,33 @@ void Box::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Box::onMouseButtonNotify()
+void Box::setupReloadables()
 {
-    listeners_.callOnMouseButton(
-        getState()->lastMouseButtonTriggeredIdx,
-        getState()->mouseButtonState[getState()->lastMouseButtonTriggeredIdx],
-        getState()->mouseX,
-        getState()->mouseY);
-    // log_.infoLn("I was clicked at %d %d", getState()->mouseX, getState()->mouseY);
-}
+    layout_.onAllowOverflowChange = [this]()
+    {
+        if (layout_.allowOverflow.x && !hScrollBar_)
+        {
+            hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Type::HORIZONTAL);
+            if (overflow_.x > 0) { append(hScrollBar_); }
+        }
+        else if (!layout_.allowOverflow.x && hScrollBar_)
+        {
+            remove(hScrollBar_->getId());
+            hScrollBar_.reset();
+        }
 
-void Box::onMouseDragNotify()
-{}
+        if (layout_.allowOverflow.y && !vScrollBar_)
+        {
+            vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Type::VERTICAL);
+            if (overflow_.x > 0) { append(hScrollBar_); }
+        }
+        else if (!layout_.allowOverflow.y && vScrollBar_)
+        {
+            remove(hScrollBar_->getId());
+            vScrollBar_.reset();
+        }
+    };
+}
 
 Box& Box::setColor(const glm::vec4& color)
 {
@@ -113,29 +110,11 @@ Box& Box::setBorderColor(const glm::vec4& color)
     return *this;
 }
 
-Box& Box::setScrollbarSize(const int32_t size)
-{
-    scrollBarSize_ = size;
-    if (hScrollBar_) { hScrollBar_->setScrollbarSize(size); }
-    if (vScrollBar_) { vScrollBar_->setScrollbarSize(size); }
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    return *this;
-}
-
 glm::vec4 Box::getColor() const { return color_; }
 
 glm::vec4 Box::getBorderColor() const { return borderColor_; }
 
-int32_t Box::getScrollbarSize() const { return scrollBarSize_; }
+ScrollBarWPtr Box::getHBar() { return Utils::ref<ScrollBar>(hScrollBar_); }
 
-ScrollBarPtr Box::getScrollBar(const ScrollBar::Type orientation)
-{
-    if (orientation == ScrollBar::Type::HORIZONTAL) { return hScrollBar_; }
-    if (orientation == ScrollBar::Type::VERTICAL) { return vScrollBar_; }
-
-    return nullptr;
-}
-
-Listeners& Box::getListeners() { return listeners_; }
-
+ScrollBarWPtr Box::getVBar() { return Utils::ref<ScrollBar>(vScrollBar_); }
 } // namespace msgui

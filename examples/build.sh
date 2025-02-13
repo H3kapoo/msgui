@@ -2,6 +2,7 @@
 
 set -xe
 
+# Build the lib first
 cd ..
 ./build.sh
 cd -
@@ -12,6 +13,9 @@ if [[ -z $1 ]]; then
     echo "[ERROR] No main file provided. Available examples:"
     echo "[INFO ] simpleWindow"
     echo "[INFO ] multiWindow"
+    echo "[INFO ] boxes"
+    echo "[INFO ] boxesOverflow"
+    echo "[INFO ] boxDividers"
     exit
 fi
 

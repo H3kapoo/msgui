@@ -36,24 +36,24 @@ void BoxDividerSep::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void BoxDividerSep::onMouseButtonNotify()
-{
-    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-    {
-        if (layout_.type == Layout::Type::HORIZONTAL)
-        {
-            getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
-        }
-        else if (layout_.type == Layout::Type::VERTICAL)
-        {
-            getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
-        }
-    }
-    else
-    {
-        getState()->currentCursorId = GLFW_ARROW_CURSOR;
-    }
-}
+// void BoxDividerSep::onMouseButtonNotify()
+// {
+//     if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+//     {
+//         if (layout_.type == Layout::Type::HORIZONTAL)
+//         {
+//             getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
+//         }
+//         else if (layout_.type == Layout::Type::VERTICAL)
+//         {
+//             getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
+//         }
+//     }
+//     else
+//     {
+//         getState()->currentCursorId = GLFW_ARROW_CURSOR;
+//     }
+// }
 
 void BoxDividerSep::onMouseDragNotify()
 {

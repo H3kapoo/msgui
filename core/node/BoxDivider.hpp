@@ -27,7 +27,6 @@ private:
     void setShaderAttributes() override;
 
     void appendBoxContainers(const std::vector<BoxPtr>& boxes);
-    void onMouseButtonNotify() override;
 
     void setupLayoutReloadables();
 

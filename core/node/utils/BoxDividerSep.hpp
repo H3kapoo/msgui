@@ -21,7 +21,6 @@ public:
     BoxPtr getSecondBox();
 
 private:
-    void onMouseButtonNotify() override;
     void onMouseDragNotify() override;
 
     void setupLayoutReloadables();

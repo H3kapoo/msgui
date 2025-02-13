@@ -26,19 +26,17 @@ void SliderKnob::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void SliderKnob::onMouseButtonNotify()
-{
-    // Pass-through to parent
-    AbstractNodePtr sbParent = parent_.lock();
-    if (!sbParent) { return; }
+// void SliderKnob::onMouseButtonNotify()
+// {
+//     // Pass-through to parent
+//     AbstractNodePtr sbParent = parent_.lock();
+//     if (!sbParent) { return; }
 
-    Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
-    if (!sbParentRaw) { return; }
+//     Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
+//     if (!sbParentRaw) { return; }
 
-    sbParentRaw->onMouseButtonNotify();
-}
-
-void SliderKnob::onMouseHoverNotify() {}
+//     sbParentRaw->onMouseButtonNotify();
+// }
 
 void SliderKnob::onMouseDragNotify()
 {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <random>
 
@@ -139,9 +140,24 @@ public:
         @return New shared pointer of specified type
     */
     template<typename Type, typename... Args>
-    static std::shared_ptr<Type> make(Args... args)
+    static std::shared_ptr<Type> make(Args&&... args)
     {
         return std::make_shared<Type>(std::forward<Args>(args)...);
+    }
+
+    /**
+        Easier variant to create a new weak pointer for a node.
+        Useful when capturing ourselves inside a callback in order to about cyclic references.
+
+        @param Type Type of node supplied as template argument
+        @param args Type constructor arguments
+
+        @return New shared pointer of specified type
+    */
+    template<typename Type, typename... Args>
+    static std::weak_ptr<Type> ref(Args&&... args)
+    {
+        return std::weak_ptr<Type>(std::forward<Args>(args)...);
     }
 };
 } // namespace msgui

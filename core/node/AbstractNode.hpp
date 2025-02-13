@@ -9,9 +9,12 @@
 #include "core/node/FrameState.hpp"
 #include "core/Logger.hpp"
 #include "core/node/utils/LayoutData.hpp"
+#include "core/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
 {
+using namespace nodeevent;
+
 class WindowFrame;
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
@@ -154,8 +157,6 @@ public:
      */
     AbstractNodePtr findOneBy(std::function<bool(AbstractNodePtr)> pred);
 
-    bool isDeepChildOfThis(const AbstractNodePtr& node);
-
     /**
         Prints a tree view of the current's node children.
 
@@ -182,6 +183,8 @@ public:
     NodeType getType() const;
     AbstractNodePVec& getChildren();
     Layout& getLayout();
+    NodeEventManager& getEvents();
+    bool isParented() const;
 
 private: // friend
     friend WindowFrame;
@@ -192,8 +195,6 @@ private: // friend
     // virtual void onLayoutUpdateNotify();
 
     /* Event consumers */
-    virtual void onMouseButtonNotify();
-    virtual void onMouseHoverNotify();
     virtual void onMouseDragNotify();
     virtual void onWindowResizeNotify();
 
@@ -217,6 +218,7 @@ protected:
     bool isParented_{false};
     std::weak_ptr<AbstractNode> parent_;
     AbstractNodePVec children_;
+    NodeEventManager eventManager_;
     Logger log_;
 };
 } // namespace msgui

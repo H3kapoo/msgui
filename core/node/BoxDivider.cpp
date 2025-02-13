@@ -83,16 +83,6 @@ void BoxDivider::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void BoxDivider::onMouseButtonNotify()
-{
-    // User custom behavior
-    // listeners.callOnMouseButton(
-    //     state_->lastMouseButtonTriggeredIdx,
-    //     state_->mouseButtonState[state_->lastMouseButtonTriggeredIdx],
-    //     state_->mouseX,
-    //     state_->mouseY);
-}
-
 void BoxDivider::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()

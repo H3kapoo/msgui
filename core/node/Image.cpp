@@ -7,6 +7,7 @@
 #include "core/TextureLoader.hpp"
 #include "core/Utils.hpp"
 #include "core/node/FrameState.hpp"
+#include "core/nodeEvent/LMBClick.hpp"
 
 namespace msgui
 {
