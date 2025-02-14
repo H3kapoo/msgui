@@ -36,4 +36,5 @@ private:
     ScrollBarPtr hScrollBar_{nullptr};
 };
 using BoxPtr = std::shared_ptr<Box>;
+using BoxWPtr = std::weak_ptr<Box>;
 } // namespace msgui

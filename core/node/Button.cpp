@@ -106,6 +106,4 @@ glm::vec4 Button::getColor() const { return color_; }
 glm::vec4 Button::getBorderColor() const { return borderColor_; }
 
 std::string Button::getTexturePath() const { return texturePath_; }
-
-Listeners& Button::getListeners() { return listeners_; }
 } // msgui

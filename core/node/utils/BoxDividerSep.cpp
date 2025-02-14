@@ -22,6 +22,13 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
 
     color_ = Utils::hexToVec4("#52161bff");
     layout_.onTypeChange();
+
+    getEvents().listen<nodeevent::LMBClick, InputChannel>(
+        std::bind(&BoxDividerSep::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBRelease, InputChannel>(
+        std::bind(&BoxDividerSep::onMouseRelease, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBDrag, InputChannel>(
+        std::bind(&BoxDividerSep::onMouseDrag, this, std::placeholders::_1));
 }
 
 void BoxDividerSep::setShaderAttributes()
@@ -36,26 +43,24 @@ void BoxDividerSep::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-// void BoxDividerSep::onMouseButtonNotify()
-// {
-//     if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-//     {
-//         if (layout_.type == Layout::Type::HORIZONTAL)
-//         {
-//             getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
-//         }
-//         else if (layout_.type == Layout::Type::VERTICAL)
-//         {
-//             getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
-//         }
-//     }
-//     else
-//     {
-//         getState()->currentCursorId = GLFW_ARROW_CURSOR;
-//     }
-// }
+void BoxDividerSep::onMouseClick(const nodeevent::LMBClick&)
+{
+    if (layout_.type == Layout::Type::HORIZONTAL)
+    {
+        getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
+    }
+    else if (layout_.type == Layout::Type::VERTICAL)
+    {
+        getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
+    }
+}
 
-void BoxDividerSep::onMouseDragNotify()
+void BoxDividerSep::onMouseRelease(const nodeevent::LMBRelease&)
+{
+    getState()->currentCursorId = GLFW_ARROW_CURSOR;
+}
+
+void BoxDividerSep::onMouseDrag(const nodeevent::LMBDrag&)
 {
     Layout& left = firstBox_->getLayout();
     Layout& right = secondBox_->getLayout();
@@ -78,6 +83,30 @@ void BoxDividerSep::onMouseDragNotify()
     isActiveSeparator_ = true;
     MAKE_LAYOUT_DIRTY
 }
+
+// void BoxDividerSep::onMouseDragNotify()
+// {
+//     Layout& left = firstBox_->getLayout();
+//     Layout& right = secondBox_->getLayout();
+//     // Temp is used here as we don't want to modify the original scale supplied by the user
+//     // Maybe there's a better way to do it..later.
+
+//     if (layout_.type == Layout::Type::HORIZONTAL)
+//     {
+//         float diff = getState()->mouseX - getState()->lastMouseX;
+//         left.tempScale.x += diff;
+//         right.tempScale.x -= diff;
+//     }
+//     else if (layout_.type == Layout::Type::VERTICAL)
+//     {
+//         float diff = getState()->mouseY - getState()->lastMouseY;
+//         left.tempScale.y += diff;
+//         right.tempScale.y -= diff;
+//     }
+
+//     isActiveSeparator_ = true;
+//     MAKE_LAYOUT_DIRTY
+// }
 
 void BoxDividerSep::setupLayoutReloadables()
 {

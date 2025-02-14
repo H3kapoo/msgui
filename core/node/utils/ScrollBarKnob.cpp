@@ -47,7 +47,7 @@ void ScrollBarKnob::onMouseClick(const nodeevent::LMBClick&)
     sbParentRaw->getEvents().notifyEvent<nodeevent::LMBClick, InternalChannel>(evt);
 }
 
-void ScrollBarKnob::onMouseDrag(const nodeevent::LMBDrag&)
+void ScrollBarKnob::onMouseDrag(const nodeevent::LMBDrag& evtIn)
 {
     /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
@@ -56,7 +56,7 @@ void ScrollBarKnob::onMouseDrag(const nodeevent::LMBDrag&)
     ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    nodeevent::LMBDrag evt;
+    nodeevent::LMBDrag evt(evtIn);
     sbParentRaw->getEvents().notifyEvent<nodeevent::LMBDrag, InternalChannel>(evt);
 }
 

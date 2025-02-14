@@ -3,7 +3,9 @@
 #include "core/Utils.hpp"
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
+#include "core/node/BoxDivider.hpp"
 #include "core/node/WindowFrame.hpp"
+#include "core/nodeEvent/LMBDrag.hpp"
 #include "core/nodeEvent/LMBRelease.hpp"
 
 using namespace msgui;
@@ -22,40 +24,49 @@ int main()
 
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
-    rootBox->getLayout()
-        .setAllowOverflow({true, true})
-        .setPadding({0, 0, 40, 40})
-        .setType(Layout::Type::HORIZONTAL);
 
-    AbstractNodePVec childBoxes;
-    for (int32_t i = 0; i < 4; i++)
-    {
-        BoxPtr box = Utils::make<Box>("MyBoxName" + std::to_string(i));
-        box->setColor(Utils::randomRGB());
-        box->getLayout()
-            .setType(Layout::Type::HORIZONTAL)
-            .setScaleType(Layout::ScaleType::ABS)
-            .setScale({400, 200})
-            .setMargin({5});
-        childBoxes.emplace_back(box);
-    }
-    rootBox->appendMany(childBoxes);
+    BoxDividerPtr boxDivider = Utils::make<BoxDivider>("MyBoxDivider");
+    boxDivider->getLayout()
+        .setScaleType(Layout::ScaleType::REL)
+        .setScale({1.0f, 1.0f});
 
-    /* Add a listener to the root box to toggle horizontal overflow when we release the click on it. */
-    rootBox->getEvents().listen<LMBRelease>(
-        [mainLog, ref = Utils::ref<Box>(rootBox)](const auto&)
+    rootBox->append(boxDivider);
+
+    /* Create some slots and change their color. */
+    const int32_t slotNo = 3;
+    const float oneThird = 1.0f / slotNo;
+    boxDivider->createSlots(3, {oneThird, oneThird, oneThird});
+
+    boxDivider->getSlot(0).lock()->setColor(Utils::randomRGB());
+    boxDivider->getSlot(1).lock()->setColor(Utils::randomRGB());
+    boxDivider->getSlot(2).lock()->setColor(Utils::randomRGB());
+
+    /* Change colors of the separators. */
+    boxDivider->getSepatator(0).lock()->setColor(Utils::hexToVec4("#ddddddff"));
+    boxDivider->getSepatator(1).lock()->setColor(Utils::hexToVec4("#ddddddff"));
+
+    /* Set minimum widths for the slots, in pixels. */
+    boxDivider->getSlot(0).lock()->getLayout().setMinScale({200, 0});
+    boxDivider->getSlot(1).lock()->getLayout().setMinScale({100, 0});
+    boxDivider->getSlot(2).lock()->getLayout().setMinScale({100, 0});
+
+    /* Some dragging action on the first slot maybe? */
+    boxDivider->getSlot(0).lock()->getEvents().listen<nodeevent::LMBDrag>(
+        [mainLog](const auto& evt)
         {
-            if (auto l = ref.lock())
-            {
-                auto& layout = l->getLayout();
-                layout.allowOverflow.x ?
-                    layout.setAllowOverflow({false, true}) :
-                    layout.setAllowOverflow({true, true});
-            }
+            mainLog.debugLn("Hello. Mouse is at: %d %d", evt.x, evt.y);
         });
 
-    app.setPollMode(Application::PollMode::ON_EVENT);
-    app.setVSync(true);
+    /* Some random color generated on the separator after release? */
+    BoxDividerSepWPtr boxSep = boxDivider->getSepatator(0);
+    boxSep.lock()->getEvents().listen<nodeevent::LMBRelease>(
+        [ref = Utils::ref<BoxDividerSep>(boxSep)](const auto&)
+        {
+            if (auto lockedRef = ref.lock())
+            {
+                lockedRef->setColor(Utils::randomRGB());
+            }
+        });
 
     /* Blocks from here on */
     app.run();

@@ -3,6 +3,9 @@
 #include "core/node/AbstractNode.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/FrameState.hpp"
+#include "core/nodeEvent/LMBClick.hpp"
+#include "core/nodeEvent/LMBDrag.hpp"
+#include "core/nodeEvent/LMBRelease.hpp"
 
 namespace msgui
 {
@@ -21,7 +24,9 @@ public:
     BoxPtr getSecondBox();
 
 private:
-    void onMouseDragNotify() override;
+    void onMouseClick(const nodeevent::LMBClick& evt);
+    void onMouseRelease(const nodeevent::LMBRelease& evt);
+    void onMouseDrag(const nodeevent::LMBDrag& evt);
 
     void setupLayoutReloadables();
 
@@ -34,4 +39,5 @@ private:
     BoxPtr secondBox_{nullptr};
 };
 using BoxDividerSepPtr = std::shared_ptr<BoxDividerSep>;
+using BoxDividerSepWPtr = std::weak_ptr<BoxDividerSep>;
 } // namespace msgui

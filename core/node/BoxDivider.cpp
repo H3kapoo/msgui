@@ -6,6 +6,7 @@
 #include "core/node/Box.hpp"
 #include "core/node/FrameState.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
+#include <memory>
 
 namespace msgui
 {
@@ -37,6 +38,18 @@ void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercS
     }
 
     appendBoxContainers(boxes);
+}
+
+void BoxDivider::setShaderAttributes()
+{
+    transform_.computeModelMatrix();
+    auto shader = getShader();
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
 void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
@@ -71,18 +84,6 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
     }
 }
 
-void BoxDivider::setShaderAttributes()
-{
-    transform_.computeModelMatrix();
-    auto shader = getShader();
-    shader->setMat4f("uModelMat", transform_.modelMatrix);
-    shader->setVec4f("uColor", color_);
-    shader->setVec4f("uBorderColor", borderColor_);
-    shader->setVec4f("uBorderSize", layout_.border);
-    shader->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-}
-
 void BoxDivider::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()
@@ -91,12 +92,12 @@ void BoxDivider::setupLayoutReloadables()
         {
             if (ch->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP)
             {
-                auto sep = static_cast<BoxDividerSep*>(ch.get());
+                auto sep = Utils::as<BoxDividerSep>(ch);
                 sep->getLayout().setType(layout_.type);
             }
             else
             {
-                auto box = static_cast<Box*>(ch.get());
+                auto box = Utils::as<Box>(ch);
                 std::swap(box->getLayout().scale.x, box->getLayout().scale.y);
             }
         }
@@ -113,26 +114,26 @@ void BoxDivider::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
 }
 
-BoxPtr BoxDivider::getSlot(uint32_t slotNumber)
+BoxWPtr BoxDivider::getSlot(uint32_t slotNumber)
 {
     uint32_t idx = slotNumber * 2;
     if (idx < children_.size())
     {
-        // Guaranteed to be Box type
-        return std::static_pointer_cast<Box>(children_[idx]);
+        /* Guaranteed to be Box type */
+        return Utils::ref<Box>(std::static_pointer_cast<Box>(children_[idx]));
     }
-    return nullptr;
+    return Utils::ref<Box>();
 }
 
-BoxDividerSepPtr BoxDivider::getSepatator(uint32_t sepNumber)
+BoxDividerSepWPtr BoxDivider::getSepatator(uint32_t sepNumber)
 {
     uint32_t idx = sepNumber * 2 + 1;
     if (idx < children_.size() - 1)
     {
-        // Guaranteed to be BoxDividerSep type
-        return std::static_pointer_cast<BoxDividerSep>(children_[idx]);
+        /* Guaranteed to be BoxDividerSep type */
+        return Utils::ref<BoxDividerSep>(std::static_pointer_cast<BoxDividerSep>(children_[idx]));
     }
-    return nullptr;
+    return Utils::ref<BoxDividerSep>();
 }
 
 BoxDivider& BoxDivider::setColor(const glm::vec4& color)
@@ -150,6 +151,4 @@ BoxDivider& BoxDivider::setBorderColor(const glm::vec4& color)
 glm::vec4 BoxDivider::getColor() const { return color_; }
 
 glm::vec4 BoxDivider::getBorderColor() const { return borderColor_; }
-
-Listeners& BoxDivider::getListeners() { return listeners_; }
 } // msgui

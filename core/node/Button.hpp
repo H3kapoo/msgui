@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AbstractNode.hpp"
-#include "core/Listeners.hpp"
 #include "core/Texture.hpp"
 #include "core/nodeEvent/FocusLost.hpp"
 #include "core/nodeEvent/LMBClick.hpp"
@@ -22,8 +21,6 @@ public:
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     std::string getTexturePath() const;
-    Listeners& getListeners();
-    Listeners& getInternalListeners();
 
 private:
     Button(const Button&) = delete;
@@ -46,8 +43,6 @@ private:
     std::string texturePath_;
     TexturePtr btnTex_;
     bool isEnabled_{true};
-    Listeners listeners_;
-    Listeners internalListeners_;
 };
 using ButtonPtr = std::shared_ptr<Button>;
 } // namespace msgui

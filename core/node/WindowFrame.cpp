@@ -296,8 +296,9 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     frameState_->mouseButtonState[btn] = action;
     frameState_->lastMouseButtonTriggeredIdx = btn;
 
-    int32_t mX = frameState_->mouseX;
-    int32_t mY = frameState_->mouseY;
+    int32_t mX{frameState_->mouseX};
+    int32_t mY{frameState_->mouseY};
+    bool foundNode{false};
     for (const auto& node : allFrameChildNodes_)
     {
         glm::ivec2& nodePos = node->transform_.vPos;
@@ -305,13 +306,13 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
+            foundNode = true;
             if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
                 frameState_->clickedNodePtr = node;
                 auto& prevNode = frameState_->prevClickedNodePtr;
-                if (prevNode && prevNode!= node)
+                if (prevNode && prevNode != node)
                 {
-                    // log_.debugLn("prev called %d", node->getId());
                     nodeevent::FocusLost evt;
                     prevNode->getEvents().notifyAllChannels<nodeevent::FocusLost>(evt);
                 }
@@ -321,15 +322,28 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             }
             else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
+                nodeevent::LMBRelease evt;
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
+                if (node != frameState_->prevClickedNodePtr)
+                {
+                    frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+                }
                 frameState_->clickedNodePtr = NO_PTR;
 
-                nodeevent::LMBRelease evt;
                 node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
             }
 
             break; // event was consumed
         }
+    }
+
+    /* Means we released the button somewhere outside of the window. */
+    if (!foundNode)
+    {
+        frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
+        nodeevent::LMBRelease evt;
+        frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+        frameState_->clickedNodePtr = NO_PTR;
     }
 }
 
@@ -357,7 +371,7 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     /* Having a selectedNodeId && currently holding down left click means we want to drag only. */
     if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
     {
-        nodeevent::LMBDrag evt;
+        nodeevent::LMBDrag evt(x, y);
         frameState_->clickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBDrag>(evt);
         return;
     }

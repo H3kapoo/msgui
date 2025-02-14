@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AbstractNode.hpp"
-#include "core/Listeners.hpp"
 #include "core/node/Box.hpp"
 #include "core/node/utils/BoxDividerSep.hpp"
 
@@ -12,6 +11,12 @@ class BoxDivider : public AbstractNode
 public:
     BoxDivider(const std::string& name);
 
+    /**
+        Creates *slotCount* slots (panes) of initialPercSize specified size each (depending on index).
+
+        @param slotCount Number of slots (panes) to be created
+        @param initialPercSize Array specifying initial percentage size of each pane (0<x<1)
+    */
     void createSlots(uint32_t slotCount, std::vector<float> initialPercSize);
 
     BoxDivider& setColor(const glm::vec4& color);
@@ -19,21 +24,18 @@ public:
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
-    BoxPtr getSlot(uint32_t slotNumber);
-    BoxDividerSepPtr getSepatator(uint32_t sepNumber);
-    Listeners& getListeners();
+    BoxWPtr getSlot(uint32_t slotNumber);
+    BoxDividerSepWPtr getSepatator(uint32_t sepNumber);
 
 private:
     void setShaderAttributes() override;
 
     void appendBoxContainers(const std::vector<BoxPtr>& boxes);
-
     void setupLayoutReloadables();
 
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
-    Listeners listeners_;
 };
 using BoxDividerPtr = std::shared_ptr<BoxDivider>;
 } // namespace msgui
