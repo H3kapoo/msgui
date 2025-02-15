@@ -57,8 +57,9 @@ public:
     requires (std::is_base_of_v<INEvent, T>)
     void notifyEvent(T& evt)
     {
-        auto key = computeKey<T, ChannelT>();
+        if (paused_) { return; }
 
+        auto key = computeKey<T, ChannelT>();
         if (!eventMap_.count(key)) { return; }
 
         eventMap_[key](evt);
@@ -73,6 +74,11 @@ public:
         notifyEvent<T, UserChannel>(evt);
     }
 
+    void pauseAll(const bool paused = true)
+    {
+        paused_ = paused;
+    }
+
 private:
     NodeEventManager(const NodeEventManager&) = delete;
     NodeEventManager(NodeEventManager&&) = delete;
@@ -81,6 +87,7 @@ private:
 
 private:
     Logger log_{"NodeEventManager"};
+    bool paused_{false};
     std::map<uint32_t, std::function<void(INEvent&)>> eventMap_;
 };
 using NodeEventManagerPtr = std::shared_ptr<NodeEventManager>;

@@ -16,7 +16,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../test_executables)
 
     add_executable(${PROJECT_NAME}
-        ${MAIN_FILE}
+        ${MAIN_FILE}.cpp
     )
 
     # Compile features

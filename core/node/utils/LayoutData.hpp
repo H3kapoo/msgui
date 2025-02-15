@@ -142,5 +142,4 @@ struct Layout
     /* Used for BoxDivider calcs. No ideea where to put it. Shall not be used by user. */
     glm::vec2 tempScale {0, 0};
 };
-
 } // namespace msgui

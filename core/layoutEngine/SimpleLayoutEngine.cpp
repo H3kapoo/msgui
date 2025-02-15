@@ -408,7 +408,7 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
         pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
         /* AlignChild. Negative overflow means we still have X amount of pixels until the parent is full on that axis
            We can leverage this to position elements top, left, right, bot, center. */
-        if (overflow.x < 0 && layout.spacing == Layout::Spacing::TIGHT)
+        if (overflow.x < 0 && (layout.spacing == Layout::Spacing::TIGHT || layout.type == Layout::Type::VERTICAL))
         {
             switch (layout.alignChild.x)
             {
@@ -429,7 +429,7 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
             }
         }
 
-        if (overflow.y < 0 && layout.spacing == Layout::Spacing::TIGHT)
+        if (overflow.y < 0 && (layout.spacing == Layout::Spacing::TIGHT || layout.type == Layout::Type::HORIZONTAL))
         {
             switch (layout.alignChild.y)
             {

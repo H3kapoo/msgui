@@ -189,7 +189,7 @@ AbstractNodePVec AbstractNode::removeMany(
     return removedNodes;
 }
 
-AbstractNodePtr AbstractNode::findOneBy(std::function<bool(AbstractNodePtr)> pred)
+AbstractNodePtr AbstractNode::findOneBy(const std::function<bool(AbstractNodePtr)>& pred)
 {
     const auto it = std::find_if(children_.begin(), children_.end(), pred);
     if (it == children_.end()) { return nullptr; }

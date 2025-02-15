@@ -13,7 +13,7 @@ class Application
 public:
     /* Poll mode for the application. App can run the redering logic CONTINOUSLY or only ON_EVENT triggered by user
        such as mose movement, window resizing, etc. It's recommended to use ON_EVENT to prevent busy looping. */
-    enum class PollMode { ON_EVENT   = 0, CONTINUOUS = 1 };
+    enum class PollMode { ON_EVENT = 0, CONTINUOUS = 1 };
 
 public:
     /**
@@ -67,6 +67,17 @@ public:
         @return Pointer to the window frame
      */
     WindowFramePtr getFrameId(const uint32_t id);
+
+    /**
+        Find and return window frame with specific name.
+
+        @note Do not store it. Use it and let go.
+
+        @param name Name of the window root box
+
+        @return Pointer to the window frame
+     */
+    WindowFramePtr getFrameNamed(const std::string& name);
 
     /**
         Get Application instace.

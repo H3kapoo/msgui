@@ -129,7 +129,11 @@ public:
     template<typename Type>
     static std::shared_ptr<Type> as(AbstractNodePtr node)
     {
-        if (!node) { Logger().errorLn("Cast to type of null node!"); }
+        if (!node)
+        {
+            Logger("Utils").errorLn("Cast to type of null node!");
+            return nullptr;
+        }
         return std::static_pointer_cast<Type>(node);
     }
 

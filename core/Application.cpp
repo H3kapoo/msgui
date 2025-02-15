@@ -130,10 +130,20 @@ WindowFramePtr Application::getFrameId(const uint32_t id)
             return frame->getRoot()->getId() == id;
         });
 
-    if (it == frames_.end())
-    {
-        return nullptr;
-    }
+    if (it == frames_.end()) { return nullptr; }
+
+    return *it;
+}
+
+WindowFramePtr Application::getFrameNamed(const std::string& name)
+{
+    const auto it = std::find_if(frames_.begin(), frames_.end(),
+        [&name](const WindowFramePtr& frame)
+        {
+            return frame->getRoot()->getName() == name;
+        });
+
+    if (it == frames_.end()) { return nullptr; }
 
     return *it;
 }

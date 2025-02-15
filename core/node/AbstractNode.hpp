@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "core/Mesh.hpp"
@@ -10,6 +11,7 @@
 #include "core/Logger.hpp"
 #include "core/node/utils/LayoutData.hpp"
 #include "core/nodeEvent/NodeEventManager.hpp"
+#include "core/Utils.hpp"
 
 namespace msgui
 {
@@ -155,7 +157,22 @@ public:
 
         @return Pointer to found node. Nullptr if not found 
      */
-    AbstractNodePtr findOneBy(std::function<bool(AbstractNodePtr)> pred);
+    AbstractNodePtr findOneBy(const std::function<bool(AbstractNodePtr)>& pred);
+
+    /**
+        Finds first children that satisfies provided predicate and then casts it to the specified
+        template type.
+
+        @param pred Predicate used for checking
+
+        @return Pointer to found node. Nullptr if not found 
+     */
+    template<typename T>
+    requires (std::is_base_of_v<AbstractNode, T>)
+    std::shared_ptr<T> findOneBy(const std::function<bool(AbstractNodePtr)>& pred)
+    {
+        return Utils::as<T>(findOneBy(pred));
+    }
 
     /**
         Prints a tree view of the current's node children.
