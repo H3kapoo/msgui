@@ -18,11 +18,15 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
 
     setupLayoutReloadables();
 
-    color_ = Utils::hexToVec4("#000000ff");
-    disabledColor_ = Utils::hexToVec4("#bbbbbbff");
-    borderColor_ = Utils::hexToVec4("#189114ff");
+    /* Defaults */
+    // color_ = Utils::hexToVec4("#2A2B2C");
+    color_ = Utils::hexToVec4("#F9F8F7");
+    borderColor_ = Utils::hexToVec4("#D2CCC8");
 
-    layout_.border = Layout::TBLR{2, 5, 2, 5};
+    disabledColor_ = Utils::hexToVec4("#bbbbbbff");
+
+    layout_.border = Layout::TBLR{1};
+    layout_.borderRadius = Layout::TBLR{4};
 
     /* Register only the events you need. */
     getEvents().listen<nodeevent::LMBClick, InputChannel>(
@@ -47,20 +51,33 @@ void Button::setShaderAttributes()
 
 void Button::onMouseClick(const nodeevent::LMBClick&)
 {
-    layout_.border = Layout::TBLR{5, 2, 5, 2};
-    borderColor_ = Utils::hexToVec4("#21c01bff");
+    // layout_.border = Layout::TBLR{5, 2, 5, 2};
+    color_ = Utils::hexToVec4("#dadada");
+    borderColor_ = Utils::hexToVec4("#D2CCC8");
+
+    transform_.pos.x += shrinkFactor;
+    transform_.pos.y += shrinkFactor;
+    transform_.scale.x -= shrinkFactor*2;
+    transform_.scale.y -= shrinkFactor*2;
 }
 
 void Button::onMouseRelease(const nodeevent::LMBRelease&)
 {
-    layout_.border = Layout::TBLR{2, 5, 2, 5};
-    borderColor_ = Utils::hexToVec4("#189114ff");
+    // layout_.border = Layout::TBLR{2, 5, 2, 5};
+    color_ = Utils::hexToVec4("#F9F8F7");
+    borderColor_ = Utils::hexToVec4("#D2CCC8");
+
+    transform_.pos.x -= shrinkFactor;
+    transform_.pos.y -= shrinkFactor;
+    transform_.scale.x += shrinkFactor*2;
+    transform_.scale.y += shrinkFactor*2;
 }
 
 void Button::onFocusLost(const nodeevent::FocusLost&)
 {
-    layout_.border = Layout::TBLR{2, 5, 2, 5};
-    borderColor_ = Utils::hexToVec4("#189114ff");
+    // layout_.border = Layout::TBLR{2, 5, 2, 5};
+    // color_ = Utils::hexToVec4("#F9F8F7");
+    // borderColor_ = Utils::hexToVec4("#D2CCC8");
 }
 
 void Button::setupLayoutReloadables()

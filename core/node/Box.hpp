@@ -25,6 +25,11 @@ private: // friend
     void updateOverflow(const glm::ivec2& overflow);
 
 private:
+    Box(const Box&) = delete;
+    Box(Box&&) = delete;
+    Box& operator=(const Box&) = delete;
+    Box& operator=(Box&&) = delete;
+
     void setShaderAttributes() override;
     void setupReloadables();
 

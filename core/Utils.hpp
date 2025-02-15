@@ -67,6 +67,8 @@ public:
         uint32_t r, g, b, a;
         sscanf(hexColor.c_str(), "#%02x%02x%02x%02x", &r, &g, &b, &a);
 
+        if (hexColor.size() == 7) { a = 1.0f; }
+
         // Normalize the color values to the range [0, 1]
         glm::vec4 normalizedColor;
         normalizedColor.r = static_cast<float>(r) / 255.0f;

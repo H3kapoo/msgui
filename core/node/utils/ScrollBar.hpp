@@ -39,6 +39,11 @@ public:
     Type getOrientation();
 
 private:
+    ScrollBar(const ScrollBar&) = delete;
+    ScrollBar(ScrollBar&&) = delete;
+    ScrollBar& operator=(const ScrollBar&) = delete;
+    ScrollBar& operator=(ScrollBar&&) = delete;
+
     void setShaderAttributes() override;
     void updateKnobOffset();
 

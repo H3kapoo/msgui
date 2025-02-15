@@ -24,6 +24,11 @@ public:
     BoxPtr getSecondBox();
 
 private:
+    BoxDividerSep(const BoxDividerSep&) = delete;
+    BoxDividerSep(BoxDividerSep&&) = delete;
+    BoxDividerSep& operator=(const BoxDividerSep&) = delete;
+    BoxDividerSep& operator=(BoxDividerSep&&) = delete;
+
     void onMouseClick(const nodeevent::LMBClick& evt);
     void onMouseRelease(const nodeevent::LMBRelease& evt);
     void onMouseDrag(const nodeevent::LMBDrag& evt);

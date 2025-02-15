@@ -65,6 +65,11 @@ Layout& Layout::setAlignChild(const AlignXY valueIn)
     return *this;
 }
 
+Layout& Layout::setAlignChild(const Align valueIn)
+{
+    return setAlignChild({valueIn, valueIn});
+}
+
 Layout& Layout::setSpacing(const Spacing valueIn)
 {
     spacing = valueIn;
@@ -110,6 +115,11 @@ Layout& Layout::setScale(const glm::vec2 valueIn)
     scale = valueIn;
     onScaleChange();
     return *this;
+}
+
+Layout& Layout::setScale(const float valueIn)
+{
+    return setScale({valueIn, valueIn});
 }
 
 Layout& Layout::setMinScale(const glm::vec2 valueIn)

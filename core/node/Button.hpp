@@ -43,6 +43,7 @@ private:
     std::string texturePath_;
     TexturePtr btnTex_;
     bool isEnabled_{true};
+    int32_t shrinkFactor{2};
 };
 using ButtonPtr = std::shared_ptr<Button>;
 } // namespace msgui

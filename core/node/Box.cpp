@@ -72,6 +72,10 @@ void Box::setShaderAttributes()
 
 void Box::setupReloadables()
 {
+    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+
+    layout_.onAlignChildChange = updateCb;
+
     layout_.onAllowOverflowChange = [this]()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)

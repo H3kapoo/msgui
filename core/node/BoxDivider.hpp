@@ -28,6 +28,11 @@ public:
     BoxDividerSepWPtr getSepatator(uint32_t sepNumber);
 
 private:
+    BoxDivider(const BoxDivider&) = delete;
+    BoxDivider(BoxDivider&&) = delete;
+    BoxDivider& operator=(const BoxDivider&) = delete;
+    BoxDivider& operator=(BoxDivider&&) = delete;
+
     void setShaderAttributes() override;
 
     void appendBoxContainers(const std::vector<BoxPtr>& boxes);

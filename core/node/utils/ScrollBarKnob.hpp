@@ -20,6 +20,11 @@ public:
     glm::vec4 getBorderColor() const;
 
 private:
+    ScrollBarKnob(const ScrollBarKnob&) = delete;
+    ScrollBarKnob(ScrollBarKnob&&) = delete;
+    ScrollBarKnob& operator=(const ScrollBarKnob&) = delete;
+    ScrollBarKnob& operator=(ScrollBarKnob&&) = delete;
+
     void setShaderAttributes() override;
 
     void onMouseClick(const nodeevent::LMBClick& evt);

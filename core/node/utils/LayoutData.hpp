@@ -64,13 +64,11 @@ struct Layout
     struct TBLR
     {
         TBLR(float val) : top(val), bot(val), left(val), right(val) {}
+        TBLR(float topBot, float leftRight) : top(topBot), bot(topBot), left(leftRight), right(leftRight) {}
         TBLR(float top_, float bot_, float left_, float right_)
             : top(top_), bot(bot_), left(left_), right(right_) {}
 
-        operator glm::vec4() const
-        {
-            return glm::vec4{top, bot, left, right};
-        }
+        operator glm::vec4() const { return glm::vec4{top, bot, left, right}; }
 
         float top{0};
         float bot{0};
@@ -90,6 +88,7 @@ struct Layout
     Layout& setBorderRadius(const TBLR valueIn);
     Layout& setAlignSelf(const Align valueIn);
     Layout& setAlignChild(const AlignXY valueIn);
+    Layout& setAlignChild(const Align valueIn);
     Layout& setSpacing(const Spacing valueIn);
     Layout& setScaleType(const ScaleTypeXY valueIn);
     Layout& setScaleType(const ScaleType valueIn);
@@ -97,6 +96,7 @@ struct Layout
     Layout& setGridStartRC(const GridRC valueIn);
     Layout& setGridSpanRC(const GridRC valueIn);
     Layout& setScale(const glm::vec2 valueIn);
+    Layout& setScale(const float valueIn);
     Layout& setMinScale(const glm::vec2 valueIn);
     Layout& setMaxScale(const glm::vec2 valueIn);
 

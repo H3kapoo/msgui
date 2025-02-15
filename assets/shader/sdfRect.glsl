@@ -28,7 +28,6 @@ in vec2 fTex;
 
 float roundedBoxSDF(vec2 uv, vec2 size, vec4 radii)
 {
-    // radii: x TL y TR z BR w BL  | TR x
     vec2 absPos = abs(uv) - size;
     float radius = uv.x > 0 ? (uv.y > 0 ? radii.z : radii.y) : (uv.y > 0 ? radii.w : radii.x);
     return length(max(absPos + radius, 0.0)) - radius;
@@ -52,7 +51,7 @@ void main()
     vec4 cornerRadii2 = vec4(0); // Unused for now
 
     float dist1 = roundedBoxSDF(p, borderSize / 2.0, uBorderRadii);
-    float dist2 = roundedBoxSDF(newCenter - p, contentSize / 2.0, cornerRadii2);
+    float dist2 = roundedBoxSDF(newCenter - p, contentSize / 2.0, uBorderRadii / 2.0f);
     float sdfValue = step(0.001, dist1);
     float sdfValue2 = step(0.001, dist2);
     float sdfValue3 = sdfValue2 - sdfValue;

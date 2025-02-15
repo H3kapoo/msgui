@@ -339,10 +339,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.y += (max - scale.y - chLayout.margin.bot) * 0.5f;
+                    pos.y += (max - scale.y - chLayout.margin.top - chLayout.margin.bot) * 0.5f;
                     break;
                 case Layout::BOTTOM:
-                    pos.y += max - scale.y - chLayout.margin.bot;
+                    pos.y += max - scale.y - chLayout.margin.top - chLayout.margin.bot;
                     break;
                 default:
                     log_.warnLn("Unrecognized horizontal alignSelf value: ENUM(%d)",
@@ -359,10 +359,10 @@ void SimpleLayoutEngine::resolveAlignSelf(const AbstractNodePVec& children, cons
                     // Do nothing
                     break;
                 case Layout::CENTER:
-                    pos.x += (max - scale.x - chLayout.margin.right) * 0.5f;
+                    pos.x += (max - scale.x - chLayout.margin.left - chLayout.margin.right) * 0.5f;
                     break;
                 case Layout::RIGHT:
-                    pos.x += max - scale.x - chLayout.margin.right;
+                    pos.x += max - scale.x - chLayout.margin.left - chLayout.margin.right;
                     break;
                 default:
                     log_.warnLn("Unrecognized vertical alignSelf value: ENUM(%d)",
@@ -408,7 +408,7 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
         pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
         /* AlignChild. Negative overflow means we still have X amount of pixels until the parent is full on that axis
            We can leverage this to position elements top, left, right, bot, center. */
-        if (overflow.x < 0)
+        if (overflow.x < 0 && layout.spacing == Layout::Spacing::TIGHT)
         {
             switch (layout.alignChild.x)
             {
@@ -429,7 +429,7 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
             }
         }
 
-        if (overflow.y < 0)
+        if (overflow.y < 0 && layout.spacing == Layout::Spacing::TIGHT)
         {
             switch (layout.alignChild.y)
             {
