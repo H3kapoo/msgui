@@ -58,14 +58,14 @@ int main()
         nodes.emplace_back(bx);
         // nodes.emplace_back(btn);
 
-        DropdownPtr bx2 = bx->createSubMenuItem();
-        // DropdownPtr bx3 = bx->createSubMenuItem();
+        // DropdownPtr bx2 = bx->createSubMenuItem();
+        // // DropdownPtr bx3 = bx->createSubMenuItem();
 
-        for (int32_t i = 0; i < 3; i++)
-        {
-            ButtonPtr item = bx->createMenuItem<Button>();
-            item->setColor(Utils::randomRGB());
-        }
+        // for (int32_t i = 0; i < 3; i++)
+        // {
+        //     ButtonWPtr item = bx->createMenuItem<Button>();
+        //     item.lock()->setColor(Utils::randomRGB());
+        // }
 
         // for (int32_t i = 0; i < 3; i++)
         // {

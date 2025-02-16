@@ -15,6 +15,19 @@ class Utils
 {
 public:
     /**
+        Darken a color by a certain percentage.
+
+        @param color Color to be darkened
+        @param perc Percentage representing how much to darken (0 <= perc <= 1)
+
+        @return Darkened color capped if exceeding RGB limits
+     */
+    static inline glm::vec4 darken(const glm::vec4& color, const float perc)
+    {
+        return {color.r - (color.r * perc), color.g - (color.g * perc), color.b - (color.b * perc), 1.0f};
+    }
+
+    /**
         Generates a random RGB color.
 
         @return Random color computed

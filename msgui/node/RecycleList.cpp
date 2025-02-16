@@ -25,8 +25,8 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     slider_->setGirth(20);
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
-    slider_->getListeners().setOnSlideValueChanged(
-        std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
+    // slider_->getListeners().setOnSlideValueChanged(
+    //     std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
 
     boxCont_ = std::make_shared<Box>("RLBox");
     boxCont_->getLayout()
@@ -191,7 +191,4 @@ glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 int32_t RecycleList::getRowSize() const { return rowSize_; }
 
 SliderPtr RecycleList::getSlider() { return slider_; }
-
-Listeners& RecycleList::getListeners() { return listeners_; }
-
 } // msgui

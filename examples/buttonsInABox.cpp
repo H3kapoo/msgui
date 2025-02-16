@@ -31,7 +31,7 @@ int main()
         .setSpacing(Layout::Spacing::EVEN_WITH_NO_START_GAP)
         .setType(Layout::Type::HORIZONTAL);
 
-    AbstractNodePVec childBoxes;
+    AbstractNodePVec childButtons;
     for (int32_t i = 0; i < 4; i++)
     {
         ButtonPtr btn = Utils::make<Button>("MyButton" + std::to_string(i));
@@ -43,9 +43,9 @@ int main()
         else if (i == 1) { btn->getLayout().setAlignSelf(Layout::Align::CENTER).setMargin({20, 0}); }
         else if (i == 2) { btn->getLayout().setAlignSelf(Layout::Align::BOTTOM).setMargin({20, 0}); }
 
-        childBoxes.emplace_back(btn);
+        childButtons.emplace_back(btn);
     }
-    rootBox->appendMany(childBoxes);
+    rootBox->appendMany(childButtons);
 
     /* Let's find a button inside the box and attach a listener to it. Note that finding returns a generic node
        so we need to cast it to our expected node type. */
@@ -66,9 +66,14 @@ int main()
     /* Let's now dynamically querry for the window frame, then, since we know all our children are buttons, disable
        clicks on all of them as long as the click is held on the parent box. On release, enable buttons back up. */
     rootBox->getEvents().listen<LMBClick>([](const auto&)
-    {
+    {   
+        auto pred = [](const auto& wf) -> bool
+        {
+            return wf->getRoot()->getName() == "MainWindow";
+        };
+
         Application& appInner = Application::get();
-        if (auto wf = appInner.getFrameNamed("MainWindow"))
+        if (auto wf = appInner.getFrameBy(pred).lock())
         {
             for (auto& childButton : wf->getRoot()->getChildren())
             {
@@ -80,7 +85,7 @@ int main()
     rootBox->getEvents().listen<LMBRelease>([](const auto&)
     {
         Application& appInner = Application::get();
-        if (auto wf = appInner.getFrameNamed("MainWindow"))
+        if (auto wf = appInner.getFrameNamed("MainWindow").lock())
         {
             for (auto& childButton : wf->getRoot()->getChildren())
             {

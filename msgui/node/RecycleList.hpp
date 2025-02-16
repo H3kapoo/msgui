@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AbstractNode.hpp"
-#include "msgui/Listeners.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Slider.hpp"
 
@@ -24,7 +23,6 @@ public:
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
     SliderPtr getSlider();
-    Listeners& getListeners();
 
 private: // friend
     friend WindowFrame;
@@ -51,7 +49,6 @@ private:
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};
     float lastScaleY_{0};
-    Listeners listeners_;
 };
 
 using RecycleListPtr = std::shared_ptr<RecycleList>;

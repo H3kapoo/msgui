@@ -90,4 +90,5 @@ private:
     static bool initCursors;
 };
 using WindowFramePtr = std::shared_ptr<WindowFrame>;
+using WindowFrameWPtr = std::weak_ptr<WindowFrame>;
 } // msgui

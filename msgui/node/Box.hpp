@@ -20,6 +20,8 @@ public:
     ScrollBarWPtr getHBar();
     ScrollBarWPtr getVBar();
 
+    ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
+
 private: // friend
     friend WindowFrame;
     void updateOverflow(const glm::ivec2& overflow);

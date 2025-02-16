@@ -30,9 +30,9 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
     layout_.setScale({70, 34});
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBClick, InputChannel>(
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
         std::bind(&Button::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBRelease, InputChannel>(
+    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&Button::onMouseRelease, this, std::placeholders::_1));
 }
 
@@ -89,8 +89,9 @@ void Button::setupLayoutReloadables()
 }
 
 Button& Button::setColor(const glm::vec4& color)
-{
+{   
     color_ = color;
+    currentColor_ = color;
     REQUEST_NEW_FRAME;
     return *this;
 }

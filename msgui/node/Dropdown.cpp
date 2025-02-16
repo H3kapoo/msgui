@@ -10,7 +10,6 @@
 #include "msgui/node/FrameState.hpp"
 #include "msgui/ShaderLoader.hpp"
 #include "msgui/Utils.hpp"
-#include "msgui/node/Image.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
@@ -25,23 +24,30 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
 
     setupLayoutReloadables();
 
-    color_ = Utils::hexToVec4("#ffffffff");
+    /* Defaults */
+    color_ = Utils::hexToVec4("#F9F8F7");
+    pressedColor_ = Utils::hexToVec4("#dadada");
+    borderColor_ = Utils::hexToVec4("#D2CCC8");
+    disabledColor_ = Utils::hexToVec4("#bbbbbbff");
+    currentColor_ = color_;
 
-    container_ = Utils::make<Box>("BoxIn");
-    container_->setColor(Utils::hexToVec4("#48ff00ff"));
-    container_->getLayout()
-        .setType(Layout::Type::VERTICAL)
-        .setAllowOverflow({false, true})
-        .setPadding(Layout::TBLR{0, 0, 2, 2})
-        ;
-
-    dropdownId_ = getId();
+    layout_.setBorder({1});
+    layout_.setBorderRadius({4});
+    layout_.setScale({70, 34});
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBRelease, InputChannel>(
+    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&Dropdown::onMouseRelease, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::FocusLost, InputChannel>(
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+        std::bind(&Dropdown::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::FocusLost, nodeevent::InputChannel>(
         std::bind(&Dropdown::onFocusLost, this, std::placeholders::_1));
+
+    container_ = Utils::make<Box>("ItemsContainer");
+    container_->setColor(Utils::hexToVec4("#4aabeb00"));
+    container_->getLayout().setType(Layout::Type::VERTICAL);
+
+    dropdownId_ = getId();
 }
 
 void Dropdown::setShaderAttributes()
@@ -50,17 +56,34 @@ void Dropdown::setShaderAttributes()
     auto shader = getShader();
 
     shader->setMat4f("uModelMat", transform_.modelMatrix);
-    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uColor", currentColor_);
     shader->setVec4f("uBorderColor", borderColor_);
     shader->setVec4f("uBorderSize", layout_.border);
     shader->setVec4f("uBorderRadii", layout_.borderRadius);
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
+void Dropdown::onMouseClick(const nodeevent::LMBClick&)
+{
+    currentColor_ = pressedColor_;
+
+    transform_.pos.x += shrinkFactor;
+    transform_.pos.y += shrinkFactor;
+    transform_.scale.x -= shrinkFactor*2;
+    transform_.scale.y -= shrinkFactor*2;
+}
+
 void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
 {
     closeDropdownsOnTheSameLevelAsMe();
     toggleDropdown();
+
+    currentColor_ = color_;
+
+    transform_.pos.x -= shrinkFactor;
+    transform_.pos.y -= shrinkFactor;
+    transform_.scale.x += shrinkFactor*2;
+    transform_.scale.y += shrinkFactor*2;
 }
 
 void Dropdown::onFocusLost(const nodeevent::FocusLost&)
@@ -76,33 +99,10 @@ void Dropdown::onFocusLost(const nodeevent::FocusLost&)
     }
 }
 
-template<typename T>
-std::shared_ptr<T> Dropdown::createMenuItem()
+DropdownWPtr Dropdown::createSubMenuItem()
 {
-    std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
-    nodeItem->getLayout()
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-        .setScale({1.0f, 20});
-    nodeItem->getEvents().template listen<LMBRelease, InternalChannel>([this](const auto&)
-    {
-        /* Close any open downwards and upwards dropdowns from here. */
-        setDropdownOpen(false);
-        recursivelyCloseDropdownsUpwards();
-    });
-
-    container_->append(nodeItem);
-
-    return nodeItem;
-}
-
-/* Currently only button and image can be a menu item (except another dropdown). */
-template ButtonPtr Dropdown::createMenuItem<Button>();
-template ImagePtr Dropdown::createMenuItem<Image>();
-
-DropdownPtr Dropdown::createSubMenuItem()
-{
-    DropdownPtr subMenu = Utils::make<Dropdown>("Drop");
-    subMenu->setColor(Utils::hexToVec4("#ffaa00ff"));
+    DropdownPtr subMenu = Utils::make<Dropdown>("SubDropdown");
+    subMenu->setColor(color_);
     subMenu->getLayout()
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
         .setScale({1.0f, 20});
@@ -119,6 +119,7 @@ void Dropdown::removeMenuItem(const int32_t idx)
 
 void Dropdown::disableItem(const int32_t idx)
 {
+    // TODO: This needs to be revised
     if (idx < 0 || idx > (int32_t)container_->getChildren().size() - 1) { return; }
     Utils::as<Button>(container_->getChildren()[idx])->setEnabled(false);
 }
@@ -173,24 +174,32 @@ void Dropdown::setupLayoutReloadables()
 {
     auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
-    layout_.onAlignSelfChange = updateCb;
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
     layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
     layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
     layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
     layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
 }
 
 Dropdown& Dropdown::setColor(const glm::vec4& color)
 {
     color_ = color;
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    currentColor_ = color;
+    REQUEST_NEW_FRAME
     return *this;
 }
 
 Dropdown& Dropdown::setBorderColor(const glm::vec4& color)
 {
     color_ = color;
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    REQUEST_NEW_FRAME
     return *this;
 }
 
@@ -201,11 +210,6 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
     /* Dropdown shall close. Reset scrollbar knob pos and if any submenus are open, close them. */
     if (!dropdownOpen_ && getChildren().size())
     {
-        // if (container_->isScrollBarActive(ScrollBar::Type::VERTICAL))
-        // {
-        //     container_->getScrollBar(ScrollBar::Type::VERTICAL)->setScrollCurrentValue(0);
-        // }
-
         /* If other dropdowns are open underneath me, try to close them also. */
         for (const auto& ch : container_->getChildren())
         {
@@ -232,6 +236,4 @@ glm::vec4 Dropdown::getColor() const { return color_; }
 bool Dropdown::isDropdownOpen() const { return dropdownOpen_; }
 
 uint32_t Dropdown::getDropdownId() const { return dropdownId_; }
-
-Listeners& Dropdown::getListeners() { return listeners_; }
 } // msgui

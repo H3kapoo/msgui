@@ -58,6 +58,17 @@ public:
     void setVSync(const bool vsyncValue);
 
     /**
+        Find and return window frame satisfying a predicate.
+
+        @note Do not store it. Use it and let go.
+
+        @param pred Predicate to be used for finding
+
+        @return WPointer to the window frame
+     */
+    WindowFrameWPtr getFrameBy(const std::function<bool(const WindowFramePtr&)>& pred);
+
+    /**
         Find and return window frame with specific id.
 
         @note Do not store it. Use it and let go.
@@ -66,7 +77,7 @@ public:
 
         @return Pointer to the window frame
      */
-    WindowFramePtr getFrameId(const uint32_t id);
+    WindowFrameWPtr getFrameId(const uint32_t id);
 
     /**
         Find and return window frame with specific name.
@@ -77,7 +88,7 @@ public:
 
         @return Pointer to the window frame
      */
-    WindowFramePtr getFrameNamed(const std::string& name);
+    WindowFrameWPtr getFrameNamed(const std::string& name);
 
     /**
         Get Application instace.

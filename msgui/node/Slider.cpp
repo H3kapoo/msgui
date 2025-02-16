@@ -52,7 +52,7 @@ void Slider::updateSliderValue()
 
     slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
 
-    listeners_.callOnSlide(slideValue_);
+    // listeners_.callOnSlide(slideValue_);
 }
 
 // void Slider::onMouseButtonNotify()
@@ -144,8 +144,6 @@ Slider& Slider::setGirth(const int32_t value)
     }
     return *this;
 }
-
-SliderListeners& Slider::getListeners() { return listeners_; }
 
 glm::vec4 Slider::getColor() const { return color_; }
 

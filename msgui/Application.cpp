@@ -122,30 +122,28 @@ void Application::setVSync(const bool vsyncValue)
     Window::setVSync(vsyncValue);
 }
 
-WindowFramePtr Application::getFrameId(const uint32_t id)
+WindowFrameWPtr Application::getFrameBy(const std::function<bool(const WindowFramePtr&)>& pred)
 {
-    const auto it = std::find_if(frames_.begin(), frames_.end(),
-        [&id](const WindowFramePtr& frame)
-        {
-            return frame->getRoot()->getId() == id;
-        });
+    const auto it = std::find_if(frames_.begin(), frames_.end(), pred);
+    if (it == frames_.end()) { return Utils::ref<WindowFrame>(); }
 
-    if (it == frames_.end()) { return nullptr; }
-
-    return *it;
+    return Utils::ref<WindowFrame>(*it);
 }
 
-WindowFramePtr Application::getFrameNamed(const std::string& name)
+WindowFrameWPtr Application::getFrameId(const uint32_t id)
 {
-    const auto it = std::find_if(frames_.begin(), frames_.end(),
-        [&name](const WindowFramePtr& frame)
-        {
+    return getFrameBy([id](const WindowFramePtr& frame) -> bool
+    {
+            return frame->getRoot()->getId() == id;
+    });
+}
+
+WindowFrameWPtr Application::getFrameNamed(const std::string& name)
+{
+    return getFrameBy([name](const WindowFramePtr& frame) -> bool
+    {
             return frame->getRoot()->getName() == name;
-        });
-
-    if (it == frames_.end()) { return nullptr; }
-
-    return *it;
+    });
 }
 
 Application& Application::get()

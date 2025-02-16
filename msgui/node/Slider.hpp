@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "msgui/Listeners.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
@@ -35,7 +34,6 @@ public:
     float getSlideTo() const;
     float getSlideCurrentValue() const;
     int32_t getGirth() const;
-    SliderListeners& getListeners();
     SliderKnobPtr getKnobRef();
     float getOffsetPerc() const;
 
@@ -56,7 +54,6 @@ private:
     float slideFrom_{0};
     float slideTo_{0};
     float slideValue_{0};
-    SliderListeners listeners_;
     glm::ivec2 mouseDistFromKnobCenter_{0};
     float knobOffsetPerc_{0};
     SliderKnobPtr knobNode_{nullptr};

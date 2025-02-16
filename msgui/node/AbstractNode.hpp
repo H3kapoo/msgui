@@ -17,6 +17,18 @@ namespace msgui
 {
 using namespace nodeevent;
 
+/* Only some nodes are privilaged enough to add remove/nodes from the user's perspective. */
+#define ABSTRACT_NODE_ALLOW_APPEND_REMOVE\
+    using AbstractNode::appendAt;\
+    using AbstractNode::append;\
+    using AbstractNode::appendMany;\
+    using AbstractNode::removeAt;\
+    using AbstractNode::removeBy;\
+    using AbstractNode::removeAll;\
+    using AbstractNode::remove;\
+    using AbstractNode::removeMany;\
+    using AbstractNode::findOneBy;\
+
 class WindowFrame;
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
@@ -46,6 +58,7 @@ public:
     explicit AbstractNode(const std::string& name, const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
+protected: /* Only some nodes are privilaged enough to add remove/nodes from the user's perspective. */
     /**
         Appends node at the specified zero based index.
 
@@ -74,7 +87,6 @@ public:
         @param nodes Initializer list of nodes to append
      */
     void appendMany(std::initializer_list<AbstractNodePtr>& nodes);
-
     /**
         Removes node at the specified zero based index. Resets node relations.
 
@@ -174,6 +186,7 @@ public:
         return Utils::as<T>(findOneBy(pred));
     }
 
+public:
     /**
         Prints a tree view of the current's node children.
 

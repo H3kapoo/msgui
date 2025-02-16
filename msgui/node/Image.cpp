@@ -60,6 +60,4 @@ Image& Image::setImage(const std::string& imagePath)
 }
 
 std::string Image::getImagePath() const { return imagePath_; }
-
-Listeners& Image::getListeners() { return listeners_; }
 } // msgui

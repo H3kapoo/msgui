@@ -23,11 +23,11 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
     color_ = Utils::hexToVec4("#52161bff");
     layout_.onTypeChange();
 
-    getEvents().listen<nodeevent::LMBClick, InputChannel>(
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
         std::bind(&BoxDividerSep::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBRelease, InputChannel>(
+    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&BoxDividerSep::onMouseRelease, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, InputChannel>(
+    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
         std::bind(&BoxDividerSep::onMouseDrag, this, std::placeholders::_1));
 }
 

@@ -16,6 +16,8 @@ if [[ -z $1 ]]; then
     echo "[INFO ] boxes"
     echo "[INFO ] boxesOverflow"
     echo "[INFO ] boxDividers"
+    echo "[INFO ] buttonsInABox"
+    echo "[INFO ] dropdowns"
     exit
 fi
 

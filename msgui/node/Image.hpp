@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AbstractNode.hpp"
-#include "msgui/Listeners.hpp"
 #include "msgui/Texture.hpp"
 
 namespace msgui
@@ -16,7 +15,6 @@ public:
 
     glm::vec4 getTint() const;
     std::string getImagePath() const;
-    Listeners& getListeners();
 
 private:
     void setShaderAttributes() override;
@@ -28,7 +26,6 @@ private:
     glm::vec4 borderColor_{1.0f};
     std::string imagePath_;
     TexturePtr btnTex_{nullptr};
-    Listeners listeners_;
 };
 using ImagePtr = std::shared_ptr<Image>;
 } // namespace msgui

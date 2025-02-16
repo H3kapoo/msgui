@@ -22,6 +22,7 @@ public:
     glm::vec4 getBorderColor() const;
     std::string getTexturePath() const;
 
+    ABSTRACT_NODE_ALLOW_APPEND_REMOVE
 private:
     Button(const Button&) = delete;
     Button(Button&&) = delete;
@@ -45,4 +46,5 @@ private:
     int32_t shrinkFactor{2};
 };
 using ButtonPtr = std::shared_ptr<Button>;
+using ButtonWPtr = std::weak_ptr<Button>;
 } // namespace msgui
