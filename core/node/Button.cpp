@@ -131,7 +131,6 @@ Button& Button::setEnabled(const bool value)
         getEvents().pauseAll();
     }
 
-
     REQUEST_NEW_FRAME;
     return *this;
 }
