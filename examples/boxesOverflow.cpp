@@ -1,11 +1,11 @@
-#include "core/Application.hpp"
-#include "core/Logger.hpp"
-#include "core/Utils.hpp"
-#include "core/node/AbstractNode.hpp"
-#include "core/node/Box.hpp"
-#include "core/node/WindowFrame.hpp"
-#include "core/node/utils/ScrollBar.hpp"
-#include "core/nodeEvent/LMBRelease.hpp"
+#include "msgui/Application.hpp"
+#include "msgui/Logger.hpp"
+#include "msgui/Utils.hpp"
+#include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Box.hpp"
+#include "msgui/node/WindowFrame.hpp"
+#include "msgui/node/utils/ScrollBar.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
 
 using namespace msgui;
 

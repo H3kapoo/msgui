@@ -1,8 +1,8 @@
-#include "core/Application.hpp"
-#include "core/Utils.hpp"
-#include "core/node/AbstractNode.hpp"
-#include "core/node/Box.hpp"
-#include "core/node/WindowFrame.hpp"
+#include "msgui/Application.hpp"
+#include "msgui/Utils.hpp"
+#include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Box.hpp"
+#include "msgui/node/WindowFrame.hpp"
 
 using namespace msgui;
 

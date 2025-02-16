@@ -1,6 +1,6 @@
 set -xe
 
-cd core
+cd msgui
 ./build.sh
 cd ..
 

@@ -1,13 +1,13 @@
-#include "core/Application.hpp"
-#include "core/Logger.hpp"
-#include "core/Utils.hpp"
-#include "core/node/AbstractNode.hpp"
-#include "core/node/Box.hpp"
-#include "core/node/Button.hpp"
-#include "core/node/WindowFrame.hpp"
-#include "core/node/utils/LayoutData.hpp"
-#include "core/nodeEvent/LMBClick.hpp"
-#include "core/nodeEvent/LMBRelease.hpp"
+#include "msgui/Application.hpp"
+#include "msgui/Logger.hpp"
+#include "msgui/Utils.hpp"
+#include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Box.hpp"
+#include "msgui/node/Button.hpp"
+#include "msgui/node/WindowFrame.hpp"
+#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/nodeEvent/LMBClick.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
 
 using namespace msgui;
 
