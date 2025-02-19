@@ -22,7 +22,6 @@ public:
     glm::vec4 getBorderColor() const;
     std::string getTexturePath() const;
 
-    ABSTRACT_NODE_ALLOW_APPEND_REMOVE
 private:
     Button(const Button&) = delete;
     Button(Button&&) = delete;

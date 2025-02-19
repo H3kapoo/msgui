@@ -48,6 +48,7 @@ private:
     ScrollBarsData processScrollbars(const AbstractNodePtr& node);
     void processSlider(const AbstractNodePtr& node);
     void processBoxDivider(const glm::vec2& nScale, const AbstractNodePVec& children);
+    void processDropdown(const AbstractNodePtr& node);
     void processGridLayout(const glm::vec2& nScale, const AbstractNodePtr& node);
     void processHVLayout(const AbstractNodePtr& node, const glm::vec2 nScale);
 

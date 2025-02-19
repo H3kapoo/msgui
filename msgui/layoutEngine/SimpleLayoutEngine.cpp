@@ -8,6 +8,7 @@
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
+#include <algorithm>
 #include <cmath>
 
 namespace msgui
@@ -52,46 +53,7 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
 
     if (node->getType() == AbstractNode::NodeType::DROPDOWN)
     {
-        /* Don't compute anything if the dropdown isn't even visible. */
-        if (!Utils::as<Dropdown>(node)->isDropdownOpen()) { return {0, 0}; }
-
-        auto& children = node->getChildren();
-        if (children.size())
-        {
-            /* Figure out how big the elements are on the vertical axis in order to set a size for the dropdown. */
-            float boxContElementsRollingY{0};
-            for (const auto& ch : children[0]->getChildren())
-            {
-                boxContElementsRollingY += ch->getLayout().scale.y;
-            }
-
-            /* Compute and sets it's scale. */
-            children[0]->getLayout().scale = {node->getTransform().scale.x, boxContElementsRollingY};
-            computeNodeScale({0, 0}, children);
-
-            /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
-               be positioned to the bottom, right, top, left. */
-            // TODO: User should be able to have a prefered open direction.
-            auto& nPos = node->getTransform().pos;
-            auto& nScale = node->getTransform().scale;
-            auto& contBoxPos = children[0]->getTransform().pos;
-            auto& contBoxScale = children[0]->getTransform().scale;
-
-            const auto& frameState = node->getState();
-            /* Try to fit underneath the parent as long as the dropdown would not exit the screen.*/
-            // if (frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y)
-            // {
-            //     contBoxPos.x = nPos.x;
-            //     contBoxPos.y = nPos.y + nScale.y;
-            // }
-            // else
-             if (frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x)
-            {
-                contBoxPos.x = nPos.x + nScale.x;
-                contBoxPos.y = nPos.y;
-            }
-        }
-
+        processDropdown(node);
         return {0, 0}; /* Dropdown will not generate overflow by itself */
     }
 
@@ -654,6 +616,92 @@ void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstra
             }
         }
     }
+}
+
+void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
+{
+       /* Don't compute anything if the dropdown isn't even visible. */
+        DropdownPtr dd = Utils::as<Dropdown>(node);
+        if (!dd->isDropdownOpen()) { return; }
+
+        auto& children = node->getChildren();
+        if (!children.size()) { return; }
+
+        /* Figure out how big the elements are on the vertical axis in order to set a size for the dropdown. */
+        float boxContElementsRollingY{0};
+        float maxX{0};
+        for (const auto& ch : children[0]->getChildren())
+        {
+            boxContElementsRollingY += ch->getLayout().scale.y;
+            maxX = std::max(maxX, ch->getLayout().scale.x);
+        }
+
+        /* Compute and sets it's scale (for the dropdown items container). */
+        children[0]->getLayout().scale = {maxX, boxContElementsRollingY};
+        computeNodeScale({0, 0}, children);
+
+        /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
+            be positioned to the bottom, right, top, left. */
+        auto& nPos = node->getTransform().pos;
+        auto& nScale = node->getTransform().scale;
+        auto& contBoxPos = children[0]->getTransform().pos;
+        auto& contBoxScale = children[0]->getTransform().scale;
+
+        /* Try to fit in the user preferred position relative to the parent as long as the dropdown would not
+           exit the screen. If it happens to exit the screen then BOT -> RIGHT -> TOP -> LEFT policy is used. */
+        const auto& frameState = node->getState();
+        Dropdown::Expand dir = dd->getExpandDirection();
+        int32_t combinationsLeft{4};
+
+        while (combinationsLeft > 0)
+        {
+            switch (dir)
+            {
+                case Dropdown::Expand::LEFT:
+                    if (nPos.x - contBoxScale.x >= 0)
+                    {
+                        contBoxPos.x = nPos.x - contBoxScale.x;
+                        contBoxPos.y = nPos.y;
+                        combinationsLeft = 0;
+                        break;
+                    }
+                    dir = Dropdown::Expand::BOTTOM;
+                    break;
+                case Dropdown::Expand::RIGHT:
+                    if (frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x)
+                    {
+                        contBoxPos.x = nPos.x + nScale.x;
+                        contBoxPos.y = nPos.y;
+                        combinationsLeft = 0;
+                        break;
+                    }
+                    dir = Dropdown::Expand::TOP;
+                    break;
+                case Dropdown::Expand::TOP:
+                    if (nPos.y - contBoxScale.y >= 0)
+                    {
+                        contBoxPos.x = nPos.x;
+                        contBoxPos.y = nPos.y - contBoxScale.y;
+                        combinationsLeft = 0;
+                        break;
+                    }
+                    dir = Dropdown::Expand::LEFT;
+                    break;
+                case Dropdown::Expand::BOTTOM:
+                    if (frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y)
+                    {
+                        contBoxPos.x = nPos.x;
+                        contBoxPos.y = nPos.y + nScale.y;
+                        combinationsLeft = 0;
+                        break;
+                    }
+                    dir = Dropdown::Expand::RIGHT;
+                    break;
+                default:
+                    log_.warnLn("Unknown expand direction: ENUM(%d)", static_cast<uint8_t>(dir));
+            }
+            combinationsLeft--;
+        }
 }
 
 void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const AbstractNodePtr& parent)

@@ -15,6 +15,9 @@ using DropdownWPtr = std::weak_ptr<Dropdown>;
 class Dropdown : public AbstractNode
 {
 public:
+    enum class Expand : uint8_t { LEFT, RIGHT, TOP, BOTTOM };
+
+public:
     Dropdown(const std::string& name);
 
     template<typename T>
@@ -23,13 +26,20 @@ public:
     {
         std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
         nodeItem->getLayout()
-            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-            .setScale({1.0f, 20});
+            .setScaleType(Layout::ScaleType::ABS)
+            .setScale(itemSize_);
         nodeItem->getEvents().template listen<nodeevent::LMBRelease, nodeevent::InternalChannel>([this](const auto&)
         {
             /* Close any open downwards and upwards dropdowns from here. */
             setDropdownOpen(false);
             recursivelyCloseDropdownsUpwards();
+        });
+
+        nodeItem->getEvents().template listen<nodeevent::FocusLost, nodeevent::InternalChannel>([this](const auto& evt)
+        {
+            /* This is mainly used when the menu item has it's events disabled and we click somewhere else.
+               We need to notify the parent to run the close dropdown logic only when dropdown is still open. */
+            if (dropdownOpen_) { onFocusLost(evt); }
         });
 
         container_->append(nodeItem);
@@ -38,19 +48,23 @@ public:
     }
 
     DropdownWPtr createSubMenuItem();
-    void removeMenuItem(const int32_t idx);
-    void disableItem(const int32_t idx);
-
+    void removeMenuItemIdx(const int32_t idx);
+    void removeMenuItemByName(const std::string& name);
     void toggleDropdown();
 
     Dropdown& setColor(const glm::vec4& color);
     Dropdown& setBorderColor(const glm::vec4& color);
     Dropdown& setDropdownOpen(const bool value);
     Dropdown& setPressedColor(const glm::vec4& color);
+    Dropdown& setItemSize(const glm::ivec2& size);
+    Dropdown& setExpandDirection(const Expand expand);
 
     glm::vec4 getColor() const;
     bool isDropdownOpen() const;
     uint32_t getDropdownId() const;
+    BoxWPtr getContainer();
+    glm::ivec2 getItemSize();
+    Expand getExpandDirection() const;
 
 private:
     void setShaderAttributes() override;
@@ -69,6 +83,8 @@ private:
     glm::vec4 pressedColor_{1.0f};
     glm::vec4 borderColor_{1.0f};
     glm::vec4 disabledColor_{1.0f};
+    glm::ivec2 itemSize_{0};
+    Expand expandDir_{Expand::BOTTOM};
     uint32_t dropdownId_{0};
     bool dropdownOpen_{false};
     int32_t shrinkFactor{2};

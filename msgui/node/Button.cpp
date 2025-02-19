@@ -7,6 +7,8 @@
 #include "msgui/TextureLoader.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
+#include "msgui/nodeEvent/FocusLost.hpp"
+#include "msgui/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
 {
@@ -124,12 +126,13 @@ Button& Button::setEnabled(const bool value)
     if (isEnabled_)
     {
         currentColor_ = color_;
-        getEvents().pauseAll(false);
+        getEvents().pauseAllEvents(false);
     }
     else
     {
         currentColor_ = disabledColor_;
-        getEvents().pauseAll();
+        getEvents().pauseAllEvents();
+        getEvents().pauseEvent<nodeevent::FocusLost, InternalChannel>(false);
     }
 
     REQUEST_NEW_FRAME;

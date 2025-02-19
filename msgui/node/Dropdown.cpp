@@ -6,10 +6,12 @@
 #include <GLFW/glfw3.h>
 
 #include "msgui/MeshLoader.hpp"
+#include "msgui/node/Box.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/ShaderLoader.hpp"
 #include "msgui/Utils.hpp"
+#include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
@@ -30,6 +32,7 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
     borderColor_ = Utils::hexToVec4("#D2CCC8");
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
+    itemSize_ = {70, 34};
 
     layout_.setBorder({1});
     layout_.setBorderRadius({4});
@@ -104,24 +107,22 @@ DropdownWPtr Dropdown::createSubMenuItem()
     DropdownPtr subMenu = Utils::make<Dropdown>("SubDropdown");
     subMenu->setColor(color_);
     subMenu->getLayout()
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-        .setScale({1.0f, 20});
+        .setScaleType(Layout::ScaleType::ABS)
+        .setScale(itemSize_);
     subMenu->dropdownId_ = dropdownId_;
     container_->append(subMenu);
 
     return subMenu;
 }
 
-void Dropdown::removeMenuItem(const int32_t idx)
+void Dropdown::removeMenuItemIdx(const int32_t idx)
 {
     container_->removeAt(idx);
 }
 
-void Dropdown::disableItem(const int32_t idx)
+void Dropdown::removeMenuItemByName(const std::string& name)
 {
-    // TODO: This needs to be revised
-    if (idx < 0 || idx > (int32_t)container_->getChildren().size() - 1) { return; }
-    Utils::as<Button>(container_->getChildren()[idx])->setEnabled(false);
+    container_->removeBy([name](const auto& node) -> bool { return node->getName() == name; });
 }
 
 void Dropdown::toggleDropdown()
@@ -231,9 +232,44 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
     return *this;
 }
 
+Dropdown& Dropdown::setPressedColor(const glm::vec4& color)
+{
+    pressedColor_ = color;
+    REQUEST_NEW_FRAME;
+    return *this;
+}
+
+Dropdown& Dropdown::setItemSize(const glm::ivec2& size)
+{
+    itemSize_ = size;
+
+    if (getState())
+    {
+        for (auto& ch : container_->getChildren())
+        {
+            ch->getLayout().setScale(itemSize_);
+        }
+    }
+
+    return *this;
+}
+
+Dropdown& Dropdown::setExpandDirection(const Expand expand)
+{
+    expandDir_ = expand;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
 glm::vec4 Dropdown::getColor() const { return color_; }
 
 bool Dropdown::isDropdownOpen() const { return dropdownOpen_; }
 
 uint32_t Dropdown::getDropdownId() const { return dropdownId_; }
+
+BoxWPtr Dropdown::getContainer() { return container_; }
+
+glm::ivec2 Dropdown::getItemSize() { return itemSize_; }
+
+Dropdown::Expand Dropdown::getExpandDirection() const { return expandDir_; }
 } // msgui

@@ -21,23 +21,21 @@ struct UserChannel {};
 
 class NodeEventManager
 {
+struct EventState
+{
+    bool isKeyPaused{false};
+    std::function<void(INEvent&)> callback;
+};
+
 public:
     NodeEventManager() = default;
-
-    template<typename T, typename ChannelT>
-    uint32_t computeKey()
-    {
-        std::size_t hash1 = std::type_index(typeid(T)).hash_code();
-        std::size_t hash2 = std::type_index(typeid(ChannelT)).hash_code();
-
-        return static_cast<int>(hash1 * 31 + hash2);
-    }
 
     template<typename T, typename ChannelT = UserChannel>
     requires (std::is_base_of_v<INEvent, T>)
     void listen(const std::function<void(const T)>& cb)
     {
-        eventMap_[computeKey<T, ChannelT>()] = [cb](INEvent& evt)
+        const auto key = computeKey<T, ChannelT>();
+        eventMap_[key].callback = [cb](INEvent& evt)
         {
             if (const auto derived = dynamic_cast<T*>(&evt))
             {
@@ -57,12 +55,12 @@ public:
     requires (std::is_base_of_v<INEvent, T>)
     void notifyEvent(T& evt)
     {
-        if (paused_) { return; }
-
-        auto key = computeKey<T, ChannelT>();
+        const auto key = computeKey<T, ChannelT>();
         if (!eventMap_.count(key)) { return; }
 
-        eventMap_[key](evt);
+        if (eventMap_[key].isKeyPaused) { return; }
+
+        eventMap_[key].callback(evt);
     }
 
     template<typename T>
@@ -74,9 +72,20 @@ public:
         notifyEvent<T, UserChannel>(evt);
     }
 
-    void pauseAll(const bool paused = true)
+    template<typename T, typename ChannelT = UserChannel>
+    void pauseEvent(const bool paused = true)
     {
-        paused_ = paused;
+        const auto key = computeKey<T, ChannelT>();
+        if (!eventMap_.count(key)) { return; }
+        eventMap_[key].isKeyPaused = paused;
+    }
+
+    void pauseAllEvents(const bool paused = true)
+    {
+        for (const auto&[key, value] : eventMap_)
+        {
+            eventMap_[key].isKeyPaused = paused;
+        }
     }
 
 private:
@@ -85,10 +94,18 @@ private:
     NodeEventManager& operator=(const NodeEventManager&) = delete;
     NodeEventManager& operator=(NodeEventManager&&) = delete;
 
+    template<typename T, typename ChannelT>
+    uint32_t computeKey()
+    {
+        std::size_t hash1 = std::type_index(typeid(T)).hash_code();
+        std::size_t hash2 = std::type_index(typeid(ChannelT)).hash_code();
+
+        return static_cast<int>(hash1 * 31 + hash2);
+    }
+
 private:
     Logger log_{"NodeEventManager"};
-    bool paused_{false};
-    std::map<uint32_t, std::function<void(INEvent&)>> eventMap_;
+    std::map<uint32_t, EventState> eventMap_;
 };
 using NodeEventManagerPtr = std::shared_ptr<NodeEventManager>;
 }; // namespace msgui::nodeevent
