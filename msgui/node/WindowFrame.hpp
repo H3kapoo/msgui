@@ -17,9 +17,10 @@ class Application;
 /* UI Window content manager */
 class WindowFrame
 {
-/*  Since scrollbars need to be displayed on top of the container they attach to and kinda on top of
+/*  Since scrollbars and dropdowns need to be displayed on top of the container they attach to and kinda on top of
     everything else, a custom Z start is needed. */
 static constexpr uint32_t SCROLL_LAYER_START = 250;
+static constexpr uint32_t DROPDOWN_LAYER_START = 300;
 
 public:
     /**

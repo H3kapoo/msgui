@@ -7,6 +7,7 @@
 
 namespace msgui
 {
+/* Node used for basic clicking behavior. */
 class Button : public AbstractNode
 {
 public:

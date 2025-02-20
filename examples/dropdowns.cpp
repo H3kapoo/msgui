@@ -25,12 +25,17 @@ int main()
         .setAlignChild(Layout::Align::CENTER)
         .setType(Layout::Type::HORIZONTAL);
 
+    BoxPtr newBox = Utils::make<Box>("ContainerBox");
+    newBox->setColor(Utils::hexToVec4("#414141ff"));
+    newBox->getLayout().setScale({300, 200});
+    rootBox->append(newBox);
+
     /* Dropdowns can have a preffered expand direction. */
     DropdownPtr dropdown = Utils::make<Dropdown>("MyDropdown");
     dropdown->getLayout().setScale({100, 30});
     dropdown->setItemSize({170, 30})
         .setExpandDirection(Dropdown::Expand::BOTTOM);
-    rootBox->append(dropdown);
+    newBox->append(dropdown);
 
     /* Create some menu items. */
     for (int32_t i = 0; i < 4; i++)

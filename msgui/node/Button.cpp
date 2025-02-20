@@ -12,7 +12,7 @@
 
 namespace msgui
 {
-Button::Button(const std::string& name) : AbstractNode(name, NodeType::BUTTON)
+Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
@@ -132,6 +132,7 @@ Button& Button::setEnabled(const bool value)
     {
         currentColor_ = disabledColor_;
         getEvents().pauseAllEvents();
+        /* This is mainly needed in case the Button is a menu item in a dropdown. */
         getEvents().pauseEvent<nodeevent::FocusLost, InternalChannel>(false);
     }
 

@@ -21,11 +21,12 @@ void main()
 
 uniform sampler2D uTexture;
 uniform vec4 uColor = vec4(1.0f);
+uniform int uUseTexture = 1;
 
 in vec2 fragUV;
 
 void main()
 {
-    vec4 color = texture(uTexture, fragUV) * uColor;
+    vec4 color = uUseTexture == 0 ? uColor : texture(uTexture, fragUV) * uColor;
     gl_FragColor = color;
 }

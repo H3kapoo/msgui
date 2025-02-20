@@ -1,10 +1,11 @@
 #pragma once
 
-#include "AbstractNode.hpp"
+#include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
 
 namespace msgui
 {
+/* Node used to display an image. */
 class Image : public AbstractNode
 {
 public:
@@ -28,4 +29,5 @@ private:
     TexturePtr btnTex_{nullptr};
 };
 using ImagePtr = std::shared_ptr<Image>;
+using ImageWPtr = std::weak_ptr<Image>;
 } // namespace msgui

@@ -632,8 +632,11 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         float maxX{0};
         for (const auto& ch : children[0]->getChildren())
         {
-            boxContElementsRollingY += ch->getLayout().scale.y;
-            maxX = std::max(maxX, ch->getLayout().scale.x);
+            const auto& chLayout = ch->getLayout();
+            const auto withMarginX = chLayout.scale.x + chLayout.margin.left + chLayout.margin.right;
+            const auto withMarginY = chLayout.scale.y + chLayout.margin.top + chLayout.margin.bot;
+            boxContElementsRollingY += withMarginY;
+            maxX = std::max(maxX, withMarginX);
         }
 
         /* Compute and sets it's scale (for the dropdown items container). */

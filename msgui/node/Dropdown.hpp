@@ -12,6 +12,7 @@ class Dropdown;
 using DropdownPtr = std::shared_ptr<Dropdown>;
 using DropdownWPtr = std::weak_ptr<Dropdown>;
 
+/* Node used to display and handle dropdown menu and submenu items. */
 class Dropdown : public AbstractNode
 {
 public:
@@ -20,6 +21,14 @@ public:
 public:
     Dropdown(const std::string& name);
 
+    /**
+        Creates a new menu item of the template type specified by the user.
+        Pointer is owned by the dropdown class so just a weak handle will be returned.
+
+        @param T Type of the item to be added
+
+        @return T type weak pointer to the new item added
+    */
     template<typename T>
     requires (std::is_base_of_v<AbstractNode, T>)
     std::weak_ptr<T> createMenuItem()
@@ -47,9 +56,31 @@ public:
         return nodeItem;
     }
 
+    /**
+        Creates a new sub menu item of the Dropdown type.
+        Pointer is owned by the dropdown class so just a weak handle will be returned.
+
+        @return T type weak pointer to the new dropdown type added
+    */
     DropdownWPtr createSubMenuItem();
+
+    /**
+        Remove an item from the menu at a specific index.
+
+        @param idx Index of the item to be removed
+    */
     void removeMenuItemIdx(const int32_t idx);
+
+    /**
+        Remove an item from the menu that has a specific name.
+
+        @param name Name of the item to be removed
+    */
     void removeMenuItemByName(const std::string& name);
+
+    /**
+        Simply toggle on or off the dropdown. Open or closed.
+    */
     void toggleDropdown();
 
     Dropdown& setColor(const glm::vec4& color);

@@ -271,11 +271,11 @@ void WindowFrame::resolveNodeRelations()
             if (!ch->state_)
             {
                 bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
-                bool isDropdownNodeBox = ch->getType() == AbstractNode::NodeType::BOX &&
-                    node->getType() == AbstractNode::NodeType::DROPDOWN;
+                bool isDropdownNodeBox = ch->getType() == AbstractNode::NodeType::DROPDOWN;
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
                 ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
+                ch->transform_.pos.z += isDropdownNodeBox ? DROPDOWN_LAYER_START : 0;
                 ch->state_ = frameState_;
             }
 

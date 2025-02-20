@@ -14,6 +14,11 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 
+    /* Defaults */
+    color_ = Utils::hexToVec4("#F9F8F7");
+
+    layout_.setScale({200, 100});
+
     setupReloadables();
 }
 

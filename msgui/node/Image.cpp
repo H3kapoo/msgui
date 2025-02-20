@@ -7,7 +7,6 @@
 #include "msgui/TextureLoader.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
 
 namespace msgui
 {
@@ -19,7 +18,12 @@ Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 
     setupLayoutReloadables();
 
-    color_ = Utils::hexToVec4("#ffffffff");
+    /* Defaults */
+    color_ = Utils::hexToVec4("#F9F8F7");
+
+    layout_.setBorder({1});
+    layout_.setBorderRadius({4});
+    layout_.setScale({70, 34});
 }
 
 void Image::setShaderAttributes()
@@ -30,24 +34,32 @@ void Image::setShaderAttributes()
 
     shader->setMat4f("uModelMat", transform_.modelMatrix);
     shader->setVec4f("uColor", color_);
+    shader->setInt("uUseTexture", texId);
     shader->setTexture2D("uTexture", GL_TEXTURE0, texId);
 }
 
 void Image::setupLayoutReloadables()
 {
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
-    layout_.onAlignSelfChange = updateCb;
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
     layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
     layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
     layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
     layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
 }
 
 Image& Image::setTint(const glm::vec4& color)
 {
     color_ = color;
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -55,7 +67,7 @@ Image& Image::setImage(const std::string& imagePath)
 {
     imagePath_ = imagePath;
     btnTex_ = TextureLoader::loadTexture(imagePath_);
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    REQUEST_NEW_FRAME;
     return *this;
 }
 

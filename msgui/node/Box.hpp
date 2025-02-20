@@ -5,13 +5,13 @@
 
 namespace msgui
 {
+/* Node used for holding different other nodes. Also provides overflow handling functionality. */
 class Box : public AbstractNode
 {
 public:
     Box(const std::string& name);
 
     bool isScrollBarActive(const ScrollBar::Type orientation);
-
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
 

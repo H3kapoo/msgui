@@ -44,7 +44,6 @@ public:
     {
         COMMON,
         BOX,
-        BUTTON,
         SLIDER,
         BOX_DIVIDER,
         BOX_DIVIDER_SEP,
