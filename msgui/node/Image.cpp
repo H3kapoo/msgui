@@ -21,9 +21,7 @@ Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7");
 
-    layout_.setBorder({1});
-    layout_.setBorderRadius({4});
-    layout_.setScale({70, 34});
+    layout_.setScale({100, 100});
 }
 
 void Image::setShaderAttributes()
@@ -34,6 +32,10 @@ void Image::setShaderAttributes()
 
     shader->setMat4f("uModelMat", transform_.modelMatrix);
     shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
     shader->setInt("uUseTexture", texId);
     shader->setTexture2D("uTexture", GL_TEXTURE0, texId);
 }

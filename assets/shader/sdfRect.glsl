@@ -57,7 +57,6 @@ void main()
     float sdfValue3 = sdfValue2 - sdfValue;
 
     if (sdfValue >= 1) { discard; }
-    vec4 uColor2 = vec4(0.0, 1.0, 0.0, 1.0);
 
     vec4 finalColor = mix(uColor, vec4(0.0), sdfValue2);
     finalColor += mix(vec4(0.0), uBorderColor, sdfValue3);

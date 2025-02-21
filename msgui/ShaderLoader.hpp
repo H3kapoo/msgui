@@ -2,7 +2,6 @@
 
 #include <string>
 #include <unordered_map>
-#include <future>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -18,9 +17,6 @@ using ShaderPartType = uint32_t;
 class ShaderLoader
 {
 public:
-
-    static std::future<Shader*> loadShaderFut(const std::string& shaderPath);
-
     /**
         Load a shader glsl file from path.
         Note: Vertex and Fragment shader are combined inside one file, not separated.
