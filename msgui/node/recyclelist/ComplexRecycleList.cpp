@@ -1,4 +1,4 @@
-#include "RecycleList.hpp"
+#include "ComplexRecycleList.hpp"
 
 #include "msgui/MeshLoader.hpp"
 #include "msgui/ShaderLoader.hpp"
@@ -6,17 +6,25 @@
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/Scroll.hpp"
 
-namespace msgui
+namespace msgui::recyclelist
 {
-RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
+ComplexRecycleList::ComplexRecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
 {
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
-    log_ = ("RecycleList(" + name + ")");
+    log_ = ("ComplexRecycleList(" + name + ")");
 
     setupLayoutReloadables();
 
+    /* Defaults */
+    color_ = Utils::hexToVec4("#F9F8F7");
+
+    layout_.setScale({100, 100});
+
+    /* RL has a slider to scroll the items. This needs to exist but doesn't need to be appended if not needed. */
     slider_ = std::make_shared<Slider>("RLSlider");
     slider_->getLayout()
         .setType(Layout::Type::VERTICAL)
@@ -25,9 +33,10 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     slider_->setGirth(20);
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
-    // slider_->getListeners().setOnSlideValueChanged(
-    //     std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
+    slider_->getEvents().listen<nodeevent::Scroll>(
+        std::bind(&ComplexRecycleList::onSliderValueChanged, this, std::placeholders::_1));
 
+    /* RL has a box container to hold the items. This has to be appended from the start. */
     boxCont_ = std::make_shared<Box>("RLBox");
     boxCont_->getLayout()
         .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
@@ -35,19 +44,33 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
-    // boxCont_->getListeners().setOnMouseButtonLeftClick(std::bind(&RecycleList::onMouseButtonNotify, this));
+    boxCont_->setColor(Utils::hexToVec4("#4aabebff"));
     append(boxCont_);
 }
 
-void RecycleList::addItem(const glm::vec4& color)
+void ComplexRecycleList::addItem(const glm::vec4& color)
 {
-    listItems_.emplace_back(color);
+    ListItem item;
+    item.color = color;
+    if (listItems_.size() % 3 == 0)
+    {
+        item.push = 1.0f;
+    }
+    else if (listItems_.size() % 3 == 1)
+    {
+        item.push = 0.75f;
+    }
+    else
+    {
+        item.push = 0.50f;
+    }
+    listItems_.emplace_back(item);
 
     listIsDirty_ = true;
     MAKE_LAYOUT_DIRTY
 }
 
-void RecycleList::removeItem(const int32_t idx)
+void ComplexRecycleList::removeItem(const int32_t idx)
 {   
     if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
     listItems_.erase(listItems_.begin() + idx);
@@ -56,7 +79,7 @@ void RecycleList::removeItem(const int32_t idx)
     MAKE_LAYOUT_DIRTY
 }
 
-void RecycleList::removeTailItems(const int32_t amount)
+void ComplexRecycleList::removeTailItems(const int32_t amount)
 {
     for (int32_t i = 0; i < amount; i++)
     {
@@ -64,7 +87,7 @@ void RecycleList::removeTailItems(const int32_t amount)
     }
 }
 
-void RecycleList::setShaderAttributes()
+void ComplexRecycleList::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     auto shader = getShader();
@@ -76,7 +99,7 @@ void RecycleList::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void RecycleList::onLayoutUpdateNotify()
+void ComplexRecycleList::onLayoutUpdateNotify()
 {
     int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
     if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
@@ -97,8 +120,7 @@ void RecycleList::onLayoutUpdateNotify()
 
     int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
     int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
-    int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
-    int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
+    int32_t visibleNodes = maxDisplayAmt + 1;
 
     if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
     {
@@ -110,11 +132,30 @@ void RecycleList::onLayoutUpdateNotify()
             if (topOfListIdx + i < itemSize)
             {
                 auto ref = std::make_shared<Button>("ListItem");
-                ref->getLayout().setMargin({(float)rowMargin_, 0, 5, 5})
+                ref->getLayout()
+                    .setAlignSelf(Layout::Align::RIGHT)
+                    .setMargin({(float)rowMargin_, 0, 0, 0})
                     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-                    .setScale({1.0f, rowSize_});
-                ref->setColor(listItems_[topOfListIdx + i]);
+                    // .setScale({1.0f, rowSize_});
+                    .setScale({listItems_[topOfListIdx + i].push, rowSize_});
+                ref->setColor(listItems_[topOfListIdx + i].color);
                 boxCont_->append(ref);
+
+                if (listItems_[topOfListIdx + i].push == 0.50f)
+                {
+                    // log_.debugLn("pe aici %f", listItems_[topOfListIdx + i].push);
+                    ref->getEvents().listen<nodeevent::LMBRelease>([this, index = topOfListIdx + i](const auto&)
+                    {
+                        log_.debugLn("bag element %d", index);
+                        auto it = listItems_.begin() + index + 1;
+                        ListItem li;
+                        li.color = Utils::hexToVec4("#f700ffff");
+                        li.push = 0.5f;
+                        listItems_.insert(it, li);
+                        listIsDirty_ = true;
+                        MAKE_LAYOUT_DIRTY;
+                    });
+                }
             }
         }
     }
@@ -126,13 +167,13 @@ void RecycleList::onLayoutUpdateNotify()
     lastScaleY_ = transform_.scale.y;
 }
 
-void RecycleList::onSliderValueChanged(float newSliderVal)
+void ComplexRecycleList::onSliderValueChanged(nodeevent::Scroll evt)
 {
-    (void)newSliderVal;
+    (void)evt.value;
     updateNodePositions();
 }
 
-void RecycleList::updateNodePositions()
+void ComplexRecycleList::updateNodePositions()
 {
     if (slider_->getSlideCurrentValue() == 0) { return; }
 
@@ -142,10 +183,11 @@ void RecycleList::updateNodePositions()
     for (uint32_t i = 0; i < size; i++)
     {
         children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
+        // children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue();// % rowSizeAndMargin;
     }
 }
 
-void RecycleList::setupLayoutReloadables()
+void ComplexRecycleList::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()
     {
@@ -161,20 +203,20 @@ void RecycleList::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
 }
 
-RecycleList& RecycleList::setColor(const glm::vec4& color)
+ComplexRecycleList& ComplexRecycleList::setColor(const glm::vec4& color)
 {
     color_ = color;
     boxCont_->setColor(color);
     return *this;
 }
 
-RecycleList& RecycleList::setBorderColor(const glm::vec4& color)
+ComplexRecycleList& ComplexRecycleList::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
     return *this;
 }
 
-RecycleList& RecycleList::setRowSize(const int32_t rowSize)
+ComplexRecycleList& ComplexRecycleList::setRowSize(const int32_t rowSize)
 {
     if (rowSize < 2 || rowSize > 200) { return *this ; }
 
@@ -184,11 +226,11 @@ RecycleList& RecycleList::setRowSize(const int32_t rowSize)
     return *this;
 }
 
-glm::vec4 RecycleList::getColor() const { return color_; }
+glm::vec4 ComplexRecycleList::getColor() const { return color_; }
 
-glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
+glm::vec4 ComplexRecycleList::getBorderColor() const { return borderColor_; }
 
-int32_t RecycleList::getRowSize() const { return rowSize_; }
+int32_t ComplexRecycleList::getRowSize() const { return rowSize_; }
 
-SliderPtr RecycleList::getSlider() { return slider_; }
-} // msgui
+SliderPtr ComplexRecycleList::getSlider() { return slider_; }
+} // msgui::recyclelist

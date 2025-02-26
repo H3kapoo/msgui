@@ -1,23 +1,31 @@
 #pragma once
 
-#include "AbstractNode.hpp"
+#include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/nodeEvent/Scroll.hpp"
 
-namespace msgui
+namespace msgui::recyclelist
 {
-class RecycleList : public AbstractNode
+struct ListItem
+{
+    glm::vec4 color{0};
+    float push{0};
+};
+
+/* Node used for efficiently handling lists with a large amount of entries. */
+class ComplexRecycleList : public AbstractNode
 {
 public:
-    RecycleList(const std::string& name);
+    ComplexRecycleList(const std::string& name);
 
     void addItem(const glm::vec4& color);
     void removeItem(const int32_t idx);
     void removeTailItems(const int32_t amount);
 
-    RecycleList& setColor(const glm::vec4& color);
-    RecycleList& setBorderColor(const glm::vec4& color);
-    RecycleList& setRowSize(const int32_t rowSize);
+    ComplexRecycleList& setColor(const glm::vec4& color);
+    ComplexRecycleList& setBorderColor(const glm::vec4& color);
+    ComplexRecycleList& setRowSize(const int32_t rowSize);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
@@ -31,7 +39,7 @@ private: // friend
 private:
     void setShaderAttributes() override;
 
-    void onSliderValueChanged(float newVal);
+    void onSliderValueChanged(nodeevent::Scroll evt);
 
     void updateNodePositions();
     void setupLayoutReloadables();
@@ -40,8 +48,9 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
     int32_t rowSize_{20};
-    int32_t rowMargin_{4};
-    std::vector<glm::vec4> listItems_;
+    // int32_t rowMargin_{4};
+    int32_t rowMargin_{0};
+    std::vector<ListItem> listItems_;
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
 
@@ -51,5 +60,5 @@ private:
     float lastScaleY_{0};
 };
 
-using RecycleListPtr = std::shared_ptr<RecycleList>;
-} // namespace msgui
+using ComplexRecycleListPtr = std::shared_ptr<ComplexRecycleList>;
+} // namespace msgui::recyclelist

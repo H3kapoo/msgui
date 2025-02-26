@@ -6,6 +6,9 @@
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
+#include "msgui/nodeEvent/LMBDrag.hpp"
+#include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/nodeEvent/Scroll.hpp"
 
 namespace msgui
 {
@@ -22,6 +25,16 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 
     setupLayoutReloadables();
     // layout_.onScaleChange();
+
+    /* Register only the events you need. */
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+        std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
+        std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InternalChannel>(
+        std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBDrag, nodeevent::InternalChannel>(
+        std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
 }
 
 void Slider::setShaderAttributes()
@@ -52,29 +65,30 @@ void Slider::updateSliderValue()
 
     slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
 
-    // listeners_.callOnSlide(slideValue_);
+    nodeevent::Scroll evt{slideValue_};
+    getEvents().notifyAllChannels<nodeevent::Scroll>(evt);
 }
 
-// void Slider::onMouseButtonNotify()
-// {
-//     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
-//     glm::vec2 kPos = knobNode_->getTransform().pos;
-//     if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-//     {
-//         // Compute distance offset to the knob center for more natural knob dragging behavior.
-//         mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
-//         mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
-//             ? 0 : mouseDistFromKnobCenter_.x;
-//         mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
-//         mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
-//             ? 0 : mouseDistFromKnobCenter_.y;
+void Slider::onMouseClick(const nodeevent::LMBClick&)
+{
+    glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
+    glm::vec2 kPos = knobNode_->getTransform().pos;
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+    {
+        /* Compute distance offset to the knob center for more natural knob dragging behavior. */
+        mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
+        mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
+            ? 0 : mouseDistFromKnobCenter_.x;
+        mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
+        mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
+            ? 0 : mouseDistFromKnobCenter_.y;
 
-//         updateSliderValue();
-//         MAKE_LAYOUT_DIRTY
-//     }
-// }
+        updateSliderValue();
+        MAKE_LAYOUT_DIRTY
+    }
+}
 
-void Slider::onMouseDragNotify()
+void Slider::onMouseDrag(const nodeevent::LMBDrag&)
 {
     updateSliderValue();
     MAKE_LAYOUT_DIRTY

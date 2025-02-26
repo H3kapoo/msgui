@@ -8,7 +8,7 @@
 #include "msgui/node/Button.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/Image.hpp"
-#include "msgui/node/RecycleList.hpp"
+#include "msgui/node/recyclelist/RecycleList.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"

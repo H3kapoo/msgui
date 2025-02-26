@@ -23,7 +23,7 @@ public:
         auto& t = node->getTransform();
 
         /* Skip rendering objects that have no viewable area. */
-        // if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
+        if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
 
         node->getMesh()->bind();
         node->setShaderAttributes();

@@ -31,34 +31,35 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories (${GLFW_LIBRARY_INCLUDE_DIRECTORY})
 
     add_library(${PROJECT_NAME} SHARED
-        Window.cpp
-        Input.cpp
-        Mesh.cpp
-        Logger.cpp
-        Debug.cpp
-        Shader.cpp
-        ShaderLoader.cpp
-        MeshLoader.cpp
-        Transform.cpp
-        TextureLoader.cpp
-        Texture.cpp
+        Application.cpp
         BELoadingQueue.cpp
+        Debug.cpp
+        Input.cpp
+        layoutEngine/SimpleLayoutEngine.cpp
+        Logger.cpp
+        Mesh.cpp
+        MeshLoader.cpp
         node/AbstractNode.cpp
-        node/Button.cpp
-        node/WindowFrame.cpp
         node/Box.cpp
-        node/Slider.cpp
         node/BoxDivider.cpp
-        node/RecycleList.cpp
-        node/Image.cpp
+        node/Button.cpp
         node/Dropdown.cpp
+        node/Image.cpp
+        node/recyclelist/ComplexRecycleList.cpp
+        node/recyclelist/RecycleList.cpp
+        node/Slider.cpp
+        node/utils/BoxDividerSep.cpp
         node/utils/LayoutData.cpp
-        node/utils/SliderKnob.cpp
         node/utils/ScrollBar.cpp
         node/utils/ScrollBarKnob.cpp
-        node/utils/BoxDividerSep.cpp
-        layoutEngine/SimpleLayoutEngine.cpp
-        Application.cpp
+        node/utils/SliderKnob.cpp
+        node/WindowFrame.cpp
+        Shader.cpp
+        ShaderLoader.cpp
+        Texture.cpp
+        TextureLoader.cpp
+        Transform.cpp
+        Window.cpp
     )
 
     # Compile features

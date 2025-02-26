@@ -42,6 +42,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
         uniqueContextAquired = true;
     }
 
+    // setBlending(true);
     maskUnnecessaryEvents();
     onResizeEvent(width, height);
     log_.infoLn("Created!");

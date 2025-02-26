@@ -2,6 +2,8 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Utils.hpp"
+#include "msgui/nodeEvent/LMBClick.hpp"
+#include "msgui/nodeEvent/LMBDrag.hpp"
 
 namespace msgui
 {
@@ -19,7 +21,9 @@ public:
 
 private:
     void setShaderAttributes() override;
-    void onMouseDragNotify() override;
+
+    void onMouseClick(const nodeevent::LMBClick& evt);
+    void onMouseDrag(const nodeevent::LMBDrag& evt);
 
 private:
     glm::vec4 color_{Utils::hexToVec4("#000000ff")};

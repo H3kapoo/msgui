@@ -19,6 +19,7 @@ if [[ -z $1 ]]; then
     echo "[INFO ] buttonsInABox"
     echo "[INFO ] dropdowns"
     echo "[INFO ] images"
+    echo "[INFO ] recyclelists"
     exit
 fi
 

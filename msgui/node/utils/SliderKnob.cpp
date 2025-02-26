@@ -5,6 +5,9 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/nodeEvent/LMBClick.hpp"
+#include "msgui/nodeEvent/LMBDrag.hpp"
+#include "msgui/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
 {
@@ -12,6 +15,12 @@ SliderKnob::SliderKnob(const std::string& name) : AbstractNode(name, NodeType::C
 {
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
+
+    /* Register only the events you need. */
+    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+        std::bind(&SliderKnob::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
+        std::bind(&SliderKnob::onMouseDrag, this, std::placeholders::_1));
 }
 
 void SliderKnob::setShaderAttributes()
@@ -26,28 +35,30 @@ void SliderKnob::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-// void SliderKnob::onMouseButtonNotify()
-// {
-//     // Pass-through to parent
-//     AbstractNodePtr sbParent = parent_.lock();
-//     if (!sbParent) { return; }
-
-//     Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
-//     if (!sbParentRaw) { return; }
-
-//     sbParentRaw->onMouseButtonNotify();
-// }
-
-void SliderKnob::onMouseDragNotify()
+void SliderKnob::onMouseClick(const nodeevent::LMBClick& evt)
 {
-    // Pass-through to parent
+    /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
     if (!sbParent) { return; }
 
     Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    sbParentRaw->onMouseDragNotify();
+    nodeevent::LMBClick ev{evt};
+    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBClick, nodeevent::InternalChannel>(ev);
+}
+
+void SliderKnob::onMouseDrag(const nodeevent::LMBDrag& evt)
+{
+    /* Pass-through to parent */
+    AbstractNodePtr sbParent = parent_.lock();
+    if (!sbParent) { return; }
+
+    Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
+    if (!sbParentRaw) { return; }
+
+    nodeevent::LMBDrag ev{evt};
+    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBDrag, nodeevent::InternalChannel>(ev);
 }
 
 SliderKnob& SliderKnob::setColor(const glm::vec4& color)

@@ -14,9 +14,9 @@ namespace msgui::nodeevent
 /* Channels overdered by priority and order of fire. */
 /* Channel dedicated to events coming from the window manager directly to the nodes. */
 struct InputChannel {};
-/* Channel dedicated to events coming from nodes that are a logical part of other nodes. */
+/* Channel dedicated to events coming from / going to nodes that are a logical part of other nodes. */
 struct InternalChannel {};
-/* Channel dedicated to events coming from the user itself. */
+/* Channel dedicated to events coming from / going to the user itself. */
 struct UserChannel {};
 
 class NodeEventManager

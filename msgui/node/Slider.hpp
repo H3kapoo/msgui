@@ -5,10 +5,12 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
+#include "msgui/nodeEvent/LMBClick.hpp"
+#include "msgui/nodeEvent/LMBDrag.hpp"
 
 namespace msgui
 {
-/* Sliding value node class */
+/* Class for handling sliding values on a bar. */
 class Slider : public AbstractNode
 {
 public:
@@ -44,7 +46,9 @@ private:
 
 private: // friend
     friend SliderKnob;
-    void onMouseDragNotify() override;
+
+    void onMouseClick(const nodeevent::LMBClick& evt);
+    void onMouseDrag(const nodeevent::LMBDrag& evt);
 
 private:
     Logger log_{"Slider"};

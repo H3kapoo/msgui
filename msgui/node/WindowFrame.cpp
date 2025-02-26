@@ -1,6 +1,6 @@
 #include "WindowFrame.hpp"
 #include "msgui/node/Button.hpp"
-#include "msgui/node/RecycleList.hpp"
+#include "msgui/node/recyclelist/RecycleList.hpp"
 #include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBDrag.hpp"
@@ -233,7 +233,10 @@ void WindowFrame::updateLayout()
             if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
                 node->getType() == AbstractNode::NodeType::BOX)
             {
-                static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
+                //Todo: this shall be an event emmited instead
+                // static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
+                // static_cast<recyclelist::ComplexRecycleList*>(p)->onLayoutUpdateNotify();
+                static_cast<recyclelist::RecycleList*>(p)->onLayoutUpdateNotify();
             }
 
             /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
