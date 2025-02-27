@@ -7,6 +7,7 @@
 
 namespace msgui::recyclelist
 {
+
 /* Node used for efficiently handling lists with a large amount of entries. */
 class RecycleList : public AbstractNode
 {
@@ -20,11 +21,18 @@ public:
     RecycleList& setColor(const glm::vec4& color);
     RecycleList& setBorderColor(const glm::vec4& color);
     RecycleList& setRowSize(const int32_t rowSize);
+    RecycleList& setItemMargin(const Layout::TBLR margin);
+    RecycleList& setItemBorder(const Layout::TBLR border);
+    RecycleList& setItemBorderRadius(const Layout::TBLR borderRadius);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
-    SliderPtr getSlider();
+    Layout::TBLR getItemMargin() const;
+    Layout::TBLR getItemBorder() const;
+    Layout::TBLR getItemBorderRadius() const;
+    SliderWPtr getSlider();
+    BoxWPtr getContainer();
 
 private: // friend
     friend WindowFrame;
@@ -42,9 +50,11 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
     int32_t rowSize_{20};
-    int32_t rowMargin_{4};
-    // int32_t rowMargin_{0};
+    Layout::TBLR itemMargin_{0};
+    Layout::TBLR itemBorder_{0};
+    Layout::TBLR itemBorderRadius_{0};
     std::vector<glm::vec4> listItems_;
+
     SliderPtr slider_{nullptr};
     BoxPtr boxCont_{nullptr};
 

@@ -169,7 +169,7 @@ float Slider::getSlideTo() const { return slideTo_; }
 
 float Slider::getSlideCurrentValue() const { return slideValue_; }
 
-SliderKnobPtr Slider::getKnobRef() {return knobNode_; }
+SliderKnobWPtr Slider::getKnob() {return knobNode_; }
 
 float Slider::getOffsetPerc() const { return knobOffsetPerc_; }
 } // msgui

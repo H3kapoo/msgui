@@ -6,6 +6,8 @@
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/nodeEvent/LMBItemRelease.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/Scroll.hpp"
 
 namespace msgui::recyclelist
@@ -51,7 +53,7 @@ void RecycleList::addItem(const glm::vec4& color)
     listItems_.emplace_back(color);
 
     listIsDirty_ = true;
-    MAKE_LAYOUT_DIRTY
+    MAKE_LAYOUT_DIRTY;
 }
 
 void RecycleList::removeItem(const int32_t idx)
@@ -60,7 +62,7 @@ void RecycleList::removeItem(const int32_t idx)
     listItems_.erase(listItems_.begin() + idx);
 
     listIsDirty_ = true;
-    MAKE_LAYOUT_DIRTY
+    MAKE_LAYOUT_DIRTY;
 }
 
 void RecycleList::removeTailItems(const int32_t amount)
@@ -85,11 +87,14 @@ void RecycleList::setShaderAttributes()
 
 void RecycleList::onLayoutUpdateNotify()
 {
-    int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
-    if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
+    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
+    const auto& boxLayout = boxCont_->getLayout();
+    float scaleY = boxCont_->getTransform().scale.y - boxLayout.border.top - boxLayout.border.bot
+        - boxLayout.padding.top - boxLayout.padding.bot;
+    if (listIsDirty_ || lastScaleY_ != scaleY)
     {
         int32_t totalElements = listItems_.size();
-        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - transform_.scale.y, 0.0f));
+        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - scaleY, 0.0f));
 
         if (slider_->getSlideTo() == 0 && children_.size() == 2)
         {
@@ -102,7 +107,7 @@ void RecycleList::onLayoutUpdateNotify()
         }
     }
 
-    int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
+    int32_t maxDisplayAmt = scaleY / rowSizeAndMargin + 1;
     int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
     int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
     int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
@@ -116,12 +121,20 @@ void RecycleList::onLayoutUpdateNotify()
         {
             if (topOfListIdx + i < itemSize)
             {
-                auto ref = std::make_shared<Button>("ListItem");
+                auto ref = Utils::make<Button>("ListItem");
                 ref->getLayout()
-                    .setMargin({(float)rowMargin_, 0, 5, 5})
+                    .setMargin(itemMargin_)
+                    .setBorder(itemBorder_)
+                    .setBorderRadius(itemBorderRadius_)
                     .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
                     .setScale({1.0f, rowSize_});
                 ref->setColor(listItems_[topOfListIdx + i]);
+
+                ref->getEvents().listen<nodeevent::LMBRelease>([this, index = topOfListIdx + i](const auto&)
+                {
+                    nodeevent::LMBItemRelease evt{index};
+                    getEvents().notifyEvent<nodeevent::LMBItemRelease>(evt);
+                });
                 boxCont_->append(ref);
             }
         }
@@ -131,7 +144,7 @@ void RecycleList::onLayoutUpdateNotify()
 
     oldTopOfList_ = topOfListIdx;
     oldVisibleNodes_ = visibleNodes;
-    lastScaleY_ = transform_.scale.y;
+    lastScaleY_ = scaleY;
 }
 
 void RecycleList::onSliderValueChanged(nodeevent::Scroll evt)
@@ -146,7 +159,7 @@ void RecycleList::updateNodePositions()
 
     auto& children = boxCont_->getChildren();
     uint32_t size = children.size();
-    int32_t rowSizeAndMargin = rowSize_ + rowMargin_;
+    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
     for (uint32_t i = 0; i < size; i++)
     {
         children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
@@ -157,28 +170,37 @@ void RecycleList::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()
     {
-        MAKE_LAYOUT_DIRTY
+        MAKE_LAYOUT_DIRTY;
     };
 
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME; };
 
-    layout_.onAlignSelfChange = updateCb;
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
     layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
     layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
     layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
     layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
 }
 
 RecycleList& RecycleList::setColor(const glm::vec4& color)
 {
     color_ = color;
     boxCont_->setColor(color);
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
 RecycleList& RecycleList::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -188,7 +210,31 @@ RecycleList& RecycleList::setRowSize(const int32_t rowSize)
 
     rowSize_ = rowSize;
     listIsDirty_ = true;
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
+RecycleList& RecycleList::setItemMargin(const Layout::TBLR margin)
+{
+    itemMargin_ = margin;
+    listIsDirty_ = true;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
+RecycleList& RecycleList::setItemBorder(const Layout::TBLR border)
+{
+    itemBorder_ = border;
+    listIsDirty_ = true;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
+RecycleList& RecycleList::setItemBorderRadius(const Layout::TBLR borderRadius)
+{
+    itemBorderRadius_ = borderRadius;
+    listIsDirty_ = true;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -198,5 +244,14 @@ glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 
 int32_t RecycleList::getRowSize() const { return rowSize_; }
 
-SliderPtr RecycleList::getSlider() { return slider_; }
+Layout::TBLR RecycleList::getItemMargin() const { return itemMargin_; }
+
+Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
+
+Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
+
+SliderWPtr RecycleList::getSlider() { return slider_; }
+
+BoxWPtr RecycleList::getContainer() { return boxCont_; }
+
 } // msgui::recyclelist

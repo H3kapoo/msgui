@@ -36,7 +36,7 @@ public:
     float getSlideTo() const;
     float getSlideCurrentValue() const;
     int32_t getGirth() const;
-    SliderKnobPtr getKnobRef();
+    SliderKnobWPtr getKnob();
     float getOffsetPerc() const;
 
 private:
@@ -63,4 +63,5 @@ private:
     SliderKnobPtr knobNode_{nullptr};
 };
 using SliderPtr = std::shared_ptr<Slider>;
+using SliderWPtr = std::weak_ptr<Slider>;
 } // namespace msgui

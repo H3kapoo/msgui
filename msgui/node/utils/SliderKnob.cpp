@@ -16,6 +16,8 @@ SliderKnob::SliderKnob(const std::string& name) : AbstractNode(name, NodeType::C
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
 
+    setupLayoutReloadables();
+
     /* Register only the events you need. */
     getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
         std::bind(&SliderKnob::onMouseClick, this, std::placeholders::_1));
@@ -59,6 +61,24 @@ void SliderKnob::onMouseDrag(const nodeevent::LMBDrag& evt)
 
     nodeevent::LMBDrag ev{evt};
     sbParentRaw->getEvents().notifyEvent<nodeevent::LMBDrag, nodeevent::InternalChannel>(ev);
+}
+
+void SliderKnob::setupLayoutReloadables()
+{
+    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
+    layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
+    layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
 }
 
 SliderKnob& SliderKnob::setColor(const glm::vec4& color)

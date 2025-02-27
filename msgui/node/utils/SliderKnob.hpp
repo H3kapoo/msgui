@@ -21,9 +21,10 @@ public:
 
 private:
     void setShaderAttributes() override;
-
     void onMouseClick(const nodeevent::LMBClick& evt);
     void onMouseDrag(const nodeevent::LMBDrag& evt);
+
+    void setupLayoutReloadables();
 
 private:
     glm::vec4 color_{Utils::hexToVec4("#000000ff")};
@@ -31,4 +32,5 @@ private:
     Logger log_{"SliderKnob"};
 };
 using SliderKnobPtr = std::shared_ptr<SliderKnob>;
+using SliderKnobWPtr = std::weak_ptr<SliderKnob>;
 } // namespace msgui
