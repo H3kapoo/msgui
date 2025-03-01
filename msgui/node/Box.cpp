@@ -22,6 +22,19 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     setupReloadables();
 }
 
+void Box::setShaderAttributes()
+{
+    transform_.computeModelMatrix();
+    auto shader = getShader();
+
+    shader->setMat4f("uModelMat", transform_.modelMatrix);
+    shader->setVec4f("uColor", color_);
+    shader->setVec4f("uBorderColor", borderColor_);
+    shader->setVec4f("uBorderSize", layout_.border);
+    shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+}
+
 bool Box::isScrollBarActive(const ScrollBar::Type orientation)
 {
     const bool isHParented = hScrollBar_ && hScrollBar_->isParented();
@@ -62,25 +75,23 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     }
 }
 
-void Box::setShaderAttributes()
-{
-    transform_.computeModelMatrix();
-    auto shader = getShader();
-
-    shader->setMat4f("uModelMat", transform_.modelMatrix);
-    shader->setVec4f("uColor", color_);
-    shader->setVec4f("uBorderColor", borderColor_);
-    shader->setVec4f("uBorderSize", layout_.border);
-    shader->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-}
-
 void Box::setupReloadables()
 {
     auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
 
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
     layout_.onAlignChildChange = updateCb;
-
+    layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
+    layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
     layout_.onAllowOverflowChange = [this]()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)
@@ -105,6 +116,8 @@ void Box::setupReloadables()
             vScrollBar_.reset();
         }
     };
+
+
 }
 
 Box& Box::setColor(const glm::vec4& color)

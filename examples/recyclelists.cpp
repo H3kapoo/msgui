@@ -2,12 +2,11 @@
 #include "msgui/Logger.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/node/recyclelist/RecycleList.hpp"
+#include "msgui/node/RecycleList.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/nodeEvent/LMBItemRelease.hpp"
 
 using namespace msgui;
-using namespace msgui::recyclelist;
 
 int main()
 {
@@ -54,7 +53,7 @@ int main()
     rl->getSlider().lock()->getKnob().lock()->getLayout().setBorderRadius({5});
 
     /* Basic node addition. */
-    for (int32_t i = 0; i < 24; i++)
+    for (int32_t i = 0; i < 30; i++)
     {
         rl->addItem(Utils::randomRGB());
     }

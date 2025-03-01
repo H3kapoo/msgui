@@ -11,7 +11,7 @@
 #include "msgui/nodeEvent/Scroll.hpp"
 #include <vector>
 
-namespace msgui::recyclelist
+namespace msgui
 {
 RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
 {
@@ -256,4 +256,4 @@ SliderWPtr RecycleList::getSlider() { return slider_; }
 
 BoxWPtr RecycleList::getContainer() { return boxCont_; }
 
-} // msgui::recyclelist
+} // msgui

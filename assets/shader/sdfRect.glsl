@@ -26,9 +26,16 @@ uniform vec2 uResolution;
 
 in vec2 fTex;
 
-float roundedBoxSDF(vec2 uv, vec2 size, vec4 radii)
+/**
+    Compute sdf of a box whose corners can be rounded individually.
+
+    @param uv Uv coord
+    @param halfSize Half size of the box
+    @radii top/bot/left/right sizes of the corner radii
+*/
+float roundedBoxSDF(vec2 uv, vec2 halfSize, vec4 radii)
 {
-    vec2 absPos = abs(uv) - size;
+    vec2 absPos = abs(uv) - halfSize;
     float radius = uv.x > 0 ? (uv.y > 0 ? radii.z : radii.y) : (uv.y > 0 ? radii.w : radii.x);
     return length(max(absPos + radius, 0.0)) - radius;
 }
@@ -40,25 +47,35 @@ void main()
     p.y *= uResolution.y;
     p -= vec2(uResolution.x / 2.0, uResolution.y / 2.0);
 
-    vec2 borderSize = vec2(uResolution.x, uResolution.y);
-    vec2 contentSize = vec2(uResolution.x, uResolution.y);
+    /* Wanted size of the outside box. */
+    vec2 outerBoxSize = vec2(uResolution.x, uResolution.y);
 
-    vec2 newCenter = vec2(
-        (uBorderSize.z + uBorderSize.w) * 0.5 - uBorderSize.w,
-        (uBorderSize.x + uBorderSize.y) * 0.5 - uBorderSize.y);
+    /* Size of the content after the borders are in place. */
+    vec2 contentSize = vec2(uResolution.x, uResolution.y);
     contentSize -= vec2(uBorderSize.z + uBorderSize.w, uBorderSize.x + uBorderSize.y);
 
-    vec4 cornerRadii2 = vec4(0); // Unused for now
+    /* Center of the inner box aka the box formed after applying the border sizes for the outer box.*/
+    vec2 innerBoxCenter = vec2(
+        ((uBorderSize.z + uBorderSize.w) * 0.5) - uBorderSize.w - 0,
+        ((uBorderSize.x + uBorderSize.y) * 0.5) - uBorderSize.y);
 
-    float dist1 = roundedBoxSDF(p, borderSize / 2.0, uBorderRadii);
-    float dist2 = roundedBoxSDF(newCenter - p, contentSize / 2.0, uBorderRadii / 2.0f);
-    float sdfValue = step(0.001, dist1);
-    float sdfValue2 = step(0.001, dist2);
-    float sdfValue3 = sdfValue2 - sdfValue;
+    // float outerBoxDist = roundedBoxSDF(p, floor(outerBoxSize / 2.0), uBorderRadii);
+    // float innerBoxDist = roundedBoxSDF(floor(innerBoxCenter) - p, floor(contentSize / 2.0), uBorderRadii / 2.0f);
 
-    if (sdfValue >= 1) { discard; }
+    float outerBoxDist = roundedBoxSDF(p, (outerBoxSize / 2.0), uBorderRadii);
+    float innerBoxDist = roundedBoxSDF((innerBoxCenter) - p, (contentSize / 2.0), uBorderRadii / 2.0f);
 
-    vec4 finalColor = mix(uColor, vec4(0.0), sdfValue2);
-    finalColor += mix(vec4(0.0), uBorderColor, sdfValue3);
+    float outerBoxSdf = step(0.0001, outerBoxDist);
+    float innerBoxSdf = step(0.0001, innerBoxDist);
+    float inOutDiffSdf = innerBoxSdf - outerBoxSdf;
+
+    if (outerBoxSdf >= 1) { discard; }
+
+    /* Set the color of the inner content */
+    vec4 finalColor = mix(uColor, vec4(0.0), innerBoxSdf);
+
+    /* Set the color of the border */
+    finalColor += mix(vec4(0.0), uBorderColor, inOutDiffSdf);
+
     gl_FragColor = vec4(finalColor.xyz, 1.0);
 }

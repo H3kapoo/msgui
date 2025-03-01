@@ -5,9 +5,8 @@
 #include "msgui/node/Slider.hpp"
 #include "msgui/nodeEvent/Scroll.hpp"
 
-namespace msgui::recyclelist
+namespace msgui
 {
-
 /* Node used for efficiently handling lists with a large amount of entries. */
 class RecycleList : public AbstractNode
 {
@@ -85,4 +84,4 @@ private:
 };
 
 using RecycleListPtr = std::shared_ptr<RecycleList>;
-} // namespace msgui::recyclelist
+} // namespace msgui

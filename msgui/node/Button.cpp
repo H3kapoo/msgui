@@ -29,8 +29,6 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
 
-    // layout_.setBorder({2});
-    // layout_.setBorderRadius({4});
     layout_.setScale({70, 34});
 
     /* Register only the events you need. */

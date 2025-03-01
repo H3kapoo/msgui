@@ -46,7 +46,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         node/Dropdown.cpp
         node/Image.cpp
         node/recyclelist/ComplexRecycleList.cpp
-        node/recyclelist/RecycleList.cpp
+        node/RecycleList.cpp
         node/Slider.cpp
         node/utils/BoxDividerSep.cpp
         node/utils/LayoutData.cpp

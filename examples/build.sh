@@ -20,6 +20,7 @@ if [[ -z $1 ]]; then
     echo "[INFO ] dropdowns"
     echo "[INFO ] images"
     echo "[INFO ] recyclelists"
+    echo "[INFO ] slider"
     exit
 fi
 
@@ -29,6 +30,7 @@ cmake --build examples_artifacts -j8
 
 # Executable needs to be in the root dir as to have acces to assets directory
 mv test_executables/$1 ../$1
+rm -r test_executables
 cd ..
 ./$1
 rm $1

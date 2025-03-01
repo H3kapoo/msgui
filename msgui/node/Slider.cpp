@@ -19,12 +19,14 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
-    // knobNode_->getLayout().setScale({20, 20});
-
     append(knobNode_);
 
     setupLayoutReloadables();
-    // layout_.onScaleChange();
+
+    /* Defaults */
+    color_ = Utils::hexToVec4("#F9F8F7");
+
+    layout_.setScale({200, 34});
 
     /* Register only the events you need. */
     getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
@@ -35,6 +37,7 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
         std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBDrag, nodeevent::InternalChannel>(
         std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
+        
 }
 
 void Slider::setShaderAttributes()
@@ -104,7 +107,11 @@ void Slider::setupLayoutReloadables()
         }
         else if (layout_.type == Layout::Type::VERTICAL)
         {
-            knobNode_->getLayout().setScale({layout_.scale.x, layout_.scale.x});
+            knobNode_->getLayout()
+                .setScale({1.0f, 20})
+                .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+                ;
+            // knobNode_->getLayout().setScale({layout_.scale.x, layout_.scale.x});
         }
         MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };
@@ -148,13 +155,14 @@ Slider& Slider::setSlideCurrentValue(const float value)
 
 Slider& Slider::setGirth(const int32_t value)
 {
+    constexpr int32_t minValue = 4;
     if (layout_.type == Layout::Type::HORIZONTAL)
     {
-        layout_.setScale({layout_.scale.x, value});
+        layout_.setScale({layout_.scale.x, std::max(minValue, value)});
     }
     else if (layout_.type == Layout::Type::VERTICAL)
     {
-        layout_.setScale({value, layout_.scale.y});
+        layout_.setScale({std::max(minValue, value), layout_.scale.y});
     }
     return *this;
 }

@@ -3,12 +3,11 @@
 #include "msgui/Utils.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Button.hpp"
-#include "msgui/node/recyclelist/RecycleList.hpp"
+#include "msgui/node/RecycleList.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/nodeEvent/LMBItemRelease.hpp"
 
 using namespace msgui;
-using namespace msgui::recyclelist;
 
 int main()
 {

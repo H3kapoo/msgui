@@ -411,6 +411,9 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
                         static_cast<uint8_t>(layout.alignChild.y));
             }
         }
+
+        pos.x = std::round(pos.x);
+        pos.y = std::round(pos.y);
     }
 }
 
@@ -533,8 +536,9 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
         return;
     }
 
-    auto& nPos = sliderPtr->getTransform().pos;
-    auto& pScale = sliderPtr->getTransform().scale;
+    const auto& nLayout = node->getLayout();
+    const auto& nPos = sliderPtr->getTransform().pos;
+    const auto& pScale = sliderPtr->getTransform().scale;
     auto& kPos = knobPtr->getTransform().pos;
     auto& kScale = knobPtr->getTransform().scale;
 
@@ -551,8 +555,8 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
     {
         float newY = Utils::remap(sliderOffset,
             0.0f, 1.0f, nPos.y + kScale.y / 2, nPos.y + pScale.y - kScale.y / 2);
-        kPos.x = nPos.x;
-        kPos.y = newY - kScale.y / 2;
+        kPos.x = nPos.x + nLayout.border.left;
+        kPos.y = newY - kScale.y / 2 + nLayout.border.top;
     }
 }
 
