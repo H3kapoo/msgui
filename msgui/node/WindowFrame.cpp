@@ -5,6 +5,7 @@
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBDrag.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 
 #include <GLFW/glfw3.h>
@@ -233,9 +234,6 @@ void WindowFrame::updateLayout()
             if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
                 node->getType() == AbstractNode::NodeType::BOX)
             {
-                //Todo: this shall be an event emmited instead
-                // static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
-                // static_cast<recyclelist::ComplexRecycleList*>(p)->onLayoutUpdateNotify();
                 static_cast<recyclelist::RecycleList*>(p)->onLayoutUpdateNotify();
             }
 
@@ -325,14 +323,16 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             }
             else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
-                nodeevent::LMBRelease evt;
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
                 if (node != frameState_->prevClickedNodePtr)
                 {
-                    frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+                    nodeevent::LMBReleaseNotHovered evt;
+                    frameState_->prevClickedNodePtr->getEvents()
+                        .notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
                 }
                 frameState_->clickedNodePtr = NO_PTR;
 
+                nodeevent::LMBRelease evt;
                 node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
             }
 
@@ -344,8 +344,8 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     if (!foundNode)
     {
         frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
-        nodeevent::LMBRelease evt;
-        frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+        nodeevent::LMBReleaseNotHovered evt;
+        frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
         frameState_->clickedNodePtr = NO_PTR;
     }
 }

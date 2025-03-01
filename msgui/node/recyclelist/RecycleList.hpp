@@ -14,9 +14,29 @@ class RecycleList : public AbstractNode
 public:
     RecycleList(const std::string& name);
 
+    /**
+        Adds a new item to the list.
+
+        @note @todo For now items are just colors, but when text rendering will be implemented, the items
+                    will be able to display both text, colors and images.
+
+        @param color Color of the item
+    */
     void addItem(const glm::vec4& color);
-    void removeItem(const int32_t idx);
-    void removeTailItems(const int32_t amount);
+
+    /**
+        Removes the item located at a specified index.
+
+        @param idx Index of the item to be removed
+    */
+    void removeItemIdx(const int32_t idx);
+
+    /**
+        Removes all items that meet a certain predicate's criteria.
+
+        @param pred Predicate to be satisfied
+    */
+    void removeItemsBy(const std::function<bool(const glm::vec4&)> pred);
 
     RecycleList& setColor(const glm::vec4& color);
     RecycleList& setBorderColor(const glm::vec4& color);
@@ -41,7 +61,7 @@ private: // friend
 private:
     void setShaderAttributes() override;
 
-    void onSliderValueChanged(nodeevent::Scroll evt);
+    void onSliderValueChanged(const nodeevent::Scroll& evt);
 
     void updateNodePositions();
     void setupLayoutReloadables();

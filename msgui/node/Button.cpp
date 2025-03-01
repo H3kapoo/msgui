@@ -8,6 +8,8 @@
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/nodeEvent/FocusLost.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
@@ -36,6 +38,8 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
         std::bind(&Button::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&Button::onMouseRelease, this, std::placeholders::_1));
+        getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+            std::bind(&Button::onMouseReleaseNotHovered, this, std::placeholders::_1));
 }
 
 void Button::setShaderAttributes()
@@ -70,6 +74,13 @@ void Button::onMouseRelease(const nodeevent::LMBRelease&)
     transform_.pos.y -= shrinkFactor;
     transform_.scale.x += shrinkFactor*2;
     transform_.scale.y += shrinkFactor*2;
+}
+
+void Button::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+{
+    /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acrs just like LMBRelease. */
+    const nodeevent::LMBRelease evt;
+    onMouseRelease(evt);
 }
 
 void Button::setupLayoutReloadables()

@@ -9,6 +9,7 @@
 #include "msgui/nodeEvent/LMBItemRelease.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/Scroll.hpp"
+#include <vector>
 
 namespace msgui::recyclelist
 {
@@ -56,7 +57,7 @@ void RecycleList::addItem(const glm::vec4& color)
     MAKE_LAYOUT_DIRTY;
 }
 
-void RecycleList::removeItem(const int32_t idx)
+void RecycleList::removeItemIdx(const int32_t idx)
 {   
     if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
     listItems_.erase(listItems_.begin() + idx);
@@ -65,11 +66,12 @@ void RecycleList::removeItem(const int32_t idx)
     MAKE_LAYOUT_DIRTY;
 }
 
-void RecycleList::removeTailItems(const int32_t amount)
+void RecycleList::removeItemsBy(const std::function<bool(const glm::vec4&)> pred)
 {
-    for (int32_t i = 0; i < amount; i++)
+    if (std::erase_if(listItems_, pred))
     {
-        removeItem(listItems_.size() - i - 1);
+        listIsDirty_ = true;
+        MAKE_LAYOUT_DIRTY;
     }
 }
 
@@ -147,7 +149,7 @@ void RecycleList::onLayoutUpdateNotify()
     lastScaleY_ = scaleY;
 }
 
-void RecycleList::onSliderValueChanged(nodeevent::Scroll evt)
+void RecycleList::onSliderValueChanged(const nodeevent::Scroll& evt)
 {
     (void)evt.value;
     updateNodePositions();

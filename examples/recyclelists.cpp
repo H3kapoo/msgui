@@ -2,7 +2,6 @@
 #include "msgui/Logger.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/node/Button.hpp"
 #include "msgui/node/recyclelist/RecycleList.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/nodeEvent/LMBItemRelease.hpp"
@@ -60,14 +59,21 @@ int main()
         rl->addItem(Utils::randomRGB());
     }
 
-    /* Do custom logic when the user clicks on an item. */
+    /* Do custom logic when the user clicks (technically releases click) on an item. */
     rl->getEvents().listen<nodeevent::LMBItemRelease>(
         [mainLogger, ref = Utils::ref<RecycleList>(rl)](const auto& evt)
         {
-            mainLogger.debugLn("index clicked %u", evt.index);
+            (void)evt;
+            /* User can add items. (uncomment bellow) */
             ref.lock()->addItem(Utils::randomRGB());
+            /* User can remove items by index. (uncomment bellow)*/
+            // ref.lock()->removeItemIdx(evt.index);
+            /* User can remove items by a predicate. (uncomment bellow) */
+            // ref.lock()->removeItemsBy([](const glm::vec4& item) -> bool
+            // {
+            //     return item.r > 0.5f;
+            // });
         });
-    mainLogger.debugLn("size of %d", sizeof(Button));
 
     /* Blocks from here on */
     app.run();

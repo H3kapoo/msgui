@@ -4,6 +4,7 @@
 #include "msgui/Texture.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -32,6 +33,7 @@ private:
     void setShaderAttributes() override;
     void onMouseClick(const nodeevent::LMBClick& evt);
     void onMouseRelease(const nodeevent::LMBRelease& evt);
+    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered& evt);
     void setupLayoutReloadables();
 
 private:

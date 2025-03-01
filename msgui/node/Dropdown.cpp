@@ -13,6 +13,7 @@
 #include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 
 namespace msgui
@@ -40,6 +41,8 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
     /* Register only the events you need. */
     getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&Dropdown::onMouseRelease, this, std::placeholders::_1));
+        getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+            std::bind(&Dropdown::onMouseReleaseNotHovered, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
         std::bind(&Dropdown::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<nodeevent::FocusLost, nodeevent::InputChannel>(
@@ -86,6 +89,13 @@ void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
     transform_.pos.y -= shrinkFactor;
     transform_.scale.x += shrinkFactor*2;
     transform_.scale.y += shrinkFactor*2;
+}
+
+void Dropdown::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+{
+    /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acrs just like LMBRelease. */
+    const nodeevent::LMBRelease evt;
+    onMouseRelease(evt);
 }
 
 void Dropdown::onFocusLost(const nodeevent::FocusLost&)

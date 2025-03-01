@@ -5,6 +5,7 @@
 #include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -101,6 +102,7 @@ private:
     void setShaderAttributes() override;
 
     void onMouseRelease(const nodeevent::LMBRelease&);
+    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&);
     void onMouseClick(const nodeevent::LMBClick&);
     void onFocusLost(const nodeevent::FocusLost&);
 
