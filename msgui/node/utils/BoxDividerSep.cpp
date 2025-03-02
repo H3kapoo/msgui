@@ -6,6 +6,8 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -27,6 +29,8 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
         std::bind(&BoxDividerSep::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&BoxDividerSep::onMouseRelease, this, std::placeholders::_1));
+        getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+            std::bind(&BoxDividerSep::onMouseReleaseNotHovered, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
         std::bind(&BoxDividerSep::onMouseDrag, this, std::placeholders::_1));
 }
@@ -58,6 +62,12 @@ void BoxDividerSep::onMouseClick(const nodeevent::LMBClick&)
 void BoxDividerSep::onMouseRelease(const nodeevent::LMBRelease&)
 {
     getState()->currentCursorId = GLFW_ARROW_CURSOR;
+}
+
+void BoxDividerSep::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+{
+    nodeevent::LMBRelease evt;
+    onMouseRelease(evt);
 }
 
 void BoxDividerSep::onMouseDrag(const nodeevent::LMBDrag&)

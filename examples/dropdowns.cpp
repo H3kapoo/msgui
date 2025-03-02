@@ -5,6 +5,7 @@
 #include "msgui/node/Button.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/WindowFrame.hpp"
+#include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 
 using namespace msgui;
@@ -25,17 +26,15 @@ int main()
         .setAlignChild(Layout::Align::CENTER)
         .setType(Layout::Type::HORIZONTAL);
 
-    BoxPtr newBox = Utils::make<Box>("ContainerBox");
-    newBox->setColor(Utils::hexToVec4("#414141ff"));
-    newBox->getLayout().setScale({300, 200});
-    rootBox->append(newBox);
-
     /* Dropdowns can have a preffered expand direction. */
     DropdownPtr dropdown = Utils::make<Dropdown>("MyDropdown");
-    dropdown->getLayout().setScale({100, 30});
+    dropdown->getLayout()
+        .setScale({100, 30})
+        .setBorder({1});
     dropdown->setItemSize({170, 30})
-        .setExpandDirection(Dropdown::Expand::BOTTOM);
-    newBox->append(dropdown);
+        .setExpandDirection(Dropdown::Expand::BOTTOM)
+        .setBorderColor(Utils::hexToVec4("#000000ff"));
+        rootBox->append(dropdown);
 
     /* Create some menu items. */
     for (int32_t i = 0; i < 4; i++)
@@ -43,22 +42,28 @@ int main()
         ButtonWPtr btn = dropdown->createMenuItem<Button>();
         if (auto lockedBtn = btn.lock())
         {
-            lockedBtn->setColor(Utils::randomRGB());
-            lockedBtn->setPressedColor(Utils::darken(lockedBtn->getColor(), 0.2));
+            lockedBtn->setColor(Utils::randomRGB())
+                .setPressedColor(Utils::darken(lockedBtn->getColor(), 0.2))
+                .setBorderColor(Utils::hexToVec4("#000000ff"));
+            lockedBtn->getLayout().setBorder({1}).setMargin({0, 1, 0, 0});
         }
     }
 
     /* Create a new dropdown submenu inside the main dropdown. */
     DropdownWPtr subMenu = dropdown->createSubMenuItem();
-    subMenu.lock()->setExpandDirection(Dropdown::Expand::RIGHT);
-    subMenu.lock()->setColor(Utils::hexToVec4("#535353ff"));
+    subMenu.lock()->getLayout().setBorder({1});
+    subMenu.lock()->setExpandDirection(Dropdown::Expand::RIGHT)
+        .setColor(Utils::hexToVec4("#535353ff"))
+        .setBorderColor(Utils::hexToVec4("#000000ff"));
     for (int32_t i = 0; i < 4; i++)
     {
         ButtonWPtr btn = subMenu.lock()->createMenuItem<Button>();
         if (auto lockedBtn = btn.lock())
         {
-            lockedBtn->setColor(Utils::randomRGB());
-            lockedBtn->setPressedColor(Utils::darken(lockedBtn->getColor(), 0.2));
+            lockedBtn->setColor(Utils::randomRGB())
+                .setPressedColor(Utils::darken(lockedBtn->getColor(), 0.2))
+                .setBorderColor(Utils::hexToVec4("#000000ff"));
+            lockedBtn->getLayout().setBorder({1}).setMargin({0, 1, 0, 0});
 
             /* On mouse release, change submenu items to have a new size and also remove the first item
                from the dropdown. */
@@ -75,8 +80,12 @@ int main()
 
     /* Another dropdown that opens to the left by default. Also disable the item on click. */
     DropdownWPtr subMenu2 = dropdown->createSubMenuItem();
-    subMenu2.lock()->setExpandDirection(Dropdown::Expand::LEFT);
-    subMenu2.lock()->setColor(Utils::hexToVec4("#333333ff"));
+    subMenu2.lock()->getLayout()
+        .setBorder({1})
+        .setMargin({1, 0, 0, 0});
+    subMenu2.lock()->setExpandDirection(Dropdown::Expand::LEFT)
+        .setColor(Utils::hexToVec4("#333333ff"))
+        .setBorderColor(Utils::hexToVec4("#000000ff"));
     for (int32_t i = 0; i < 4; i++)
     {
         ButtonWPtr btn = subMenu2.lock()->createMenuItem<Button>();

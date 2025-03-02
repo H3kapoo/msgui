@@ -34,8 +34,6 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
     currentColor_ = color_;
     itemSize_ = {70, 34};
 
-    layout_.setBorder({1});
-    layout_.setBorderRadius({4});
     layout_.setScale({70, 34});
 
     /* Register only the events you need. */
@@ -202,14 +200,14 @@ Dropdown& Dropdown::setColor(const glm::vec4& color)
 {
     color_ = color;
     currentColor_ = color;
-    REQUEST_NEW_FRAME
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
 Dropdown& Dropdown::setBorderColor(const glm::vec4& color)
 {
-    color_ = color;
-    REQUEST_NEW_FRAME
+    borderColor_ = color;
+    REQUEST_NEW_FRAME;
     return *this;
 }
 

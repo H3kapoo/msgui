@@ -6,6 +6,7 @@
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBDrag.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -31,6 +32,7 @@ private:
 
     void onMouseClick(const nodeevent::LMBClick& evt);
     void onMouseRelease(const nodeevent::LMBRelease& evt);
+    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered& evt);
     void onMouseDrag(const nodeevent::LMBDrag& evt);
 
     void setupLayoutReloadables();

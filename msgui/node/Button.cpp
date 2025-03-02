@@ -55,7 +55,6 @@ void Button::setShaderAttributes()
 void Button::onMouseClick(const nodeevent::LMBClick&)
 {
     currentColor_ = pressedColor_;
-    borderColor_ = Utils::hexToVec4("#D2CCC8");
 
     transform_.pos.x += shrinkFactor;
     transform_.pos.y += shrinkFactor;
@@ -66,7 +65,6 @@ void Button::onMouseClick(const nodeevent::LMBClick&)
 void Button::onMouseRelease(const nodeevent::LMBRelease&)
 {
     currentColor_ = color_;
-    borderColor_ = Utils::hexToVec4("#D2CCC8");
 
     transform_.pos.x -= shrinkFactor;
     transform_.pos.y -= shrinkFactor;
