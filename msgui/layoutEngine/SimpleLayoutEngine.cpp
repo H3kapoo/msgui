@@ -548,7 +548,7 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
     {
         float newX = Utils::remap(sliderOffset,
             0.0f, 1.0f, nPos.x + kScale.x / 2, nPos.x + pScale.x - kScale.x / 2);
-        kPos.y = nPos.y;
+        kPos.y = nPos.y + nLayout.border.top;
         kPos.x = newX - kScale.x / 2;
     }
     else if (sliderPtr->getLayout().type == Layout::Type::VERTICAL)

@@ -323,7 +323,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
             {
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
-                if (node != frameState_->prevClickedNodePtr)
+                if (frameState_->prevClickedNodePtr && node != frameState_->prevClickedNodePtr)
                 {
                     nodeevent::LMBReleaseNotHovered evt;
                     frameState_->prevClickedNodePtr->getEvents()

@@ -29,8 +29,7 @@ ComplexRecycleList::ComplexRecycleList(const std::string& name) : AbstractNode(n
     slider_->getLayout()
         .setType(Layout::Type::VERTICAL)
         .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({20 /* Default but you should use setGirth instead */, 1.0f});
-    slider_->setGirth(20);
+        .setScale({20, 1.0f});
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
     slider_->getEvents().listen<nodeevent::Scroll>(

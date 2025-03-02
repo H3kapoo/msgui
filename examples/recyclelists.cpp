@@ -46,7 +46,7 @@ int main()
     rl->getContainer().lock()->getLayout().setBorderRadius({4});
     rl->getContainer().lock()->setBorderColor(Utils::hexToVec4("#bebebe"));
 
-    rl->getSlider().lock()->setGirth(20);
+    rl->getSlider().lock()->getLayout().setScale({20, 1.0f});
     rl->getSlider().lock()->getLayout().setBorderRadius({5});
 
     rl->getSlider().lock()->getKnob().lock()->getLayout().setBorder({0});

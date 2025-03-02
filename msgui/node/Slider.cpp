@@ -19,6 +19,12 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
+
+    /* Assume default horizontal slider. */
+    knobNode_->getLayout()
+        .setScale({20, 1.0f})
+        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL});
+
     append(knobNode_);
 
     setupLayoutReloadables();
@@ -37,7 +43,6 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
         std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBDrag, nodeevent::InternalChannel>(
         std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
-        
 }
 
 void Slider::setShaderAttributes()
@@ -99,19 +104,30 @@ void Slider::onMouseDrag(const nodeevent::LMBDrag&)
 
 void Slider::setupLayoutReloadables()
 {
-    layout_.onScaleChange = [this]()
+    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME; };
+
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
+    layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
+    layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
+    layout_.onTypeChange = [this]()
     {
+        std::swap(knobNode_->getLayout().scale.x, knobNode_->getLayout().scale.y);
         if (layout_.type == Layout::Type::HORIZONTAL)
         {
-            knobNode_->getLayout().setScale({layout_.scale.y, layout_.scale.y});
+            knobNode_->getLayout().setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL});
         }
         else if (layout_.type == Layout::Type::VERTICAL)
         {
-            knobNode_->getLayout()
-                .setScale({1.0f, 20})
-                .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-                ;
-            // knobNode_->getLayout().setScale({layout_.scale.x, layout_.scale.x});
+            knobNode_->getLayout().setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS});
         }
         MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };
@@ -120,12 +136,14 @@ void Slider::setupLayoutReloadables()
 Slider& Slider::setColor(const glm::vec4& color)
 {
     color_ = color;
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
 Slider& Slider::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -133,7 +151,7 @@ Slider& Slider::setSlideFrom(const float value)
 {
     slideFrom_ = value;
     slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -141,7 +159,7 @@ Slider& Slider::setSlideTo(const float value)
 {
     slideTo_ = value;
     slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -149,21 +167,7 @@ Slider& Slider::setSlideCurrentValue(const float value)
 {
     slideValue_ = value;
     knobOffsetPerc_ = Utils::remap(slideValue_, slideFrom_, slideTo_, 0.0f, 1.0f);
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
-    return *this;
-}
-
-Slider& Slider::setGirth(const int32_t value)
-{
-    constexpr int32_t minValue = 4;
-    if (layout_.type == Layout::Type::HORIZONTAL)
-    {
-        layout_.setScale({layout_.scale.x, std::max(minValue, value)});
-    }
-    else if (layout_.type == Layout::Type::VERTICAL)
-    {
-        layout_.setScale({std::max(minValue, value), layout_.scale.y});
-    }
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
 
