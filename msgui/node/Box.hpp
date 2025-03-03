@@ -2,9 +2,14 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
+#include "msgui/nodeEvent/RMBRelease.hpp"
+#include "msgui/nodeEvent/LMBRelease.hpp"
 
 namespace msgui
 {
+class Dropdown;
+using DropdownPtr = std::shared_ptr<Dropdown>;
+
 /* Node used for holding different other nodes. Also provides overflow handling functionality. */
 class Box : public AbstractNode
 {
@@ -14,6 +19,7 @@ public:
     bool isScrollBarActive(const ScrollBar::Type orientation);
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
+    Box& setContextMenu(const DropdownPtr& menu);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
@@ -33,7 +39,9 @@ private:
     Box& operator=(Box&&) = delete;
 
     void setShaderAttributes() override;
-    void setupReloadables();
+    void onLMBRelease(const nodeevent::LMBRelease& evt);
+    void onRMBRelease(const nodeevent::RMBRelease& evt);
+void setupReloadables();
 
 private:
     glm::vec4 color_{1.0f};
@@ -41,6 +49,8 @@ private:
     glm::ivec2 overflow_{0, 0};
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
+
+    AbstractNodePtr ctxMenu_{nullptr};
 };
 using BoxPtr = std::shared_ptr<Box>;
 using BoxWPtr = std::weak_ptr<Box>;

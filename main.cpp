@@ -1,3 +1,6 @@
+#include "msgui/node/Button.hpp"
+#include "msgui/node/Dropdown.hpp"
+#include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/Application.hpp"
 #include "msgui/Logger.hpp"
@@ -6,7 +9,9 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/nodeEvent/RMBRelease.hpp"
 #include "msgui/nodeEvent/Scroll.hpp"
 
 using namespace msgui;
@@ -32,7 +37,6 @@ int main()
 
     SliderPtr slider = Utils::make<Slider>("MySlider");
     slider->getLayout()
-        // .setBorder({2, 2, 2, 2})
         .setBorder({1})
         .setType(Layout::Type::VERTICAL)
         .setScale({35, 200});
@@ -41,13 +45,26 @@ int main()
         .setBorderColor(Utils::hexToVec4("#333333"))
         ;
 
-    // slider->getEvents().listen<nodeevent::Scroll>(
-    //     [ref = Utils::ref<Slider>(slider)](const auto& evt)
-    //     {
-    //         ref.lock()->setGirth(evt.value);
-    //     });
-    rootBox->append(slider);
-    // rootBox->append(newBox);
+    for (int i = 0; i < 4; i++)
+    {
+        BoxPtr box = Utils::make<Box>("newBox");
+        box->getLayout().setScale({200, 200});
+        box->setColor(Utils::randomRGB());
+        rootBox->append(box);
+    }
+
+    DropdownPtr dd = Utils::make<Dropdown>("dd");
+    dd->setColor(Utils::randomRGB());
+    for (int i = 0; i < 4; i++)
+    {
+        auto btn = dd->createMenuItem<Button>();
+        btn.lock()->setColor(Utils::randomRGB());
+    }
+
+    rootBox->setContextMenu(dd);
+
+    // rootBox->append(slider);
+
     /* Blocks from here on */
     app.run();
 

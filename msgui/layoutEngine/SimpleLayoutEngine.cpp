@@ -3,6 +3,7 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Dropdown.hpp"
+#include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
@@ -42,6 +43,9 @@ namespace msgui
         ch->getType() == AbstractNode::NodeType::SCROLL_KNOB)\
     { continue; }\
 
+#define IGNORE_FLOATING_BOX\
+    if (ch->getType() == AbstractNode::NodeType::FLOATING_BOX) { continue; }\
+
 
 glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
 {
@@ -79,11 +83,18 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     /* Compute node children scale */
     computeNodeScale(nShrunkScale, children);
 
+    /* Compute floating boxes separately as their positioning is special */
+    if (node->getType() == AbstractNode::NodeType::FLOATING_BOX)
+    {
+        processFloatingBox(node);
+        return {0, 0}; /* Floating box will not generate overflow */
+    }
+
     /* Compute sliders separately */
     if (node->getType() == AbstractNode::NodeType::SLIDER)
     {
         processSlider(node);
-        return {0, 0}; /* Grid layout will not generate overflow */
+        return {0, 0}; /* Slider will not generate overflow */
     }
 
     /* Process HV layout */
@@ -115,7 +126,8 @@ glm::vec2 SimpleLayoutEngine::getTotalChildrenAbsScale(const AbstractNodePVec& c
     glm::vec2 totalAbsChildSize{0};
     for (auto& ch : children)
     {
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
+        IGNORE_FLOATING_BOX;
 
         const Layout& chLayout = ch->getLayout();
         if (chLayout.scaleType.x == Layout::ScaleType::ABS)
@@ -205,7 +217,8 @@ glm::vec2 SimpleLayoutEngine::computeTotalRealNodesScale(const AbstractNodePVec&
     glm::vec2 totalChildSize{0, 0};
     for (auto& ch : children)
     {
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
+        IGNORE_FLOATING_BOX;
 
         const Layout& chLayout = ch->getLayout();
         totalChildSize.x += ch->getTransform().scale.x + (chLayout.margin.left + chLayout.margin.right);
@@ -251,7 +264,7 @@ void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const Abstrac
     for (auto& ch : children)
     {
         /* Shall not be taken into consideration as these are calculated differently */
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
 
         const Layout& chLayout = ch->getLayout();
         if (chLayout.scaleType.x == Layout::ScaleType::REL)
@@ -340,7 +353,8 @@ glm::vec2 SimpleLayoutEngine::computeOverflow(const glm::vec2& pScale, const Abs
     for (auto& ch : children)
     {
         /* Shall not be taken into consideration for overflow */
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
+        IGNORE_FLOATING_BOX;
 
         const Layout& chLayout = ch->getLayout();
         auto scale = ch->getTransform().scale;
@@ -363,7 +377,8 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
     for (auto& ch : children)
     {
         /* Already calculated, skip */
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
+        IGNORE_FLOATING_BOX;
 
         auto& pos = ch->getTransform().pos;
         pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
@@ -558,6 +573,24 @@ void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
         kPos.x = nPos.x + nLayout.border.left;
         kPos.y = newY - kScale.y / 2 + nLayout.border.top;
     }
+}
+
+void SimpleLayoutEngine::processFloatingBox(const AbstractNodePtr& node)
+{
+    /* Assuming parent node is Slider node, it will always have a SliderKnob child. */
+    FloatingBoxPtr floatingBoxPtr = Utils::as<FloatingBox>(node);
+    if (!floatingBoxPtr)
+    {
+        log_.errorLn("Couldn't cast to FloatingBox for %s", node->getCName());
+        return;
+    }
+
+    const auto& preferredPos = floatingBoxPtr->getPreferredPos();
+    auto& pos = floatingBoxPtr->getTransform().pos;
+    pos = {preferredPos.x, preferredPos.y, pos.z};
+
+    node->getChildren()[0]->getTransform().pos.x = pos.x;
+    node->getChildren()[0]->getTransform().pos.y = pos.y;
 }
 
 void SimpleLayoutEngine::processBoxDivider(const glm::vec2& pScale, const AbstractNodePVec& children)
@@ -781,7 +814,9 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
     const auto& pPadding = parent->getLayout().padding;
     for (auto ch : children)
     {
-        IGNORE_SCROLLBAR
+        IGNORE_SCROLLBAR;
+        IGNORE_FLOATING_BOX;
+
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
         const auto& chLayout = ch->getLayout();
@@ -901,7 +936,8 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
         for (auto& ch : children)
         {
             /* Already calculated, skip */
-            IGNORE_SCROLLBAR
+            IGNORE_SCROLLBAR;
+            IGNORE_FLOATING_BOX;
 
             const Layout& chLayout = ch->getLayout();
             auto& pos = ch->getTransform().pos;
@@ -946,7 +982,8 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
         for (auto& ch : children)
         {
             /* Already calculated, skip */
-            IGNORE_SCROLLBAR
+            IGNORE_SCROLLBAR;
+            IGNORE_FLOATING_BOX;
 
             const Layout& chLayout = ch->getLayout();
             auto& pos = ch->getTransform().pos;
@@ -982,6 +1019,7 @@ void SimpleLayoutEngine::processHVLayout(const AbstractNodePtr& node, const glm:
 }
 
 #undef IGNORE_SCROLLBAR
+#undef IGNORE_FLOATING_BOX
 #undef IGNORE_GRID_ALIGN
 #undef IGNORE_LR_ALIGN
 #undef IGNORE_TB_ALIGN

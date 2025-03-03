@@ -164,6 +164,14 @@ build CMakeFiles/msgui.dir/node/recyclelist/ComplexRecycleList.cpp.o: CXX_COMPIL
   OBJECT_DIR = CMakeFiles/msgui.dir
   OBJECT_FILE_DIR = CMakeFiles/msgui.dir/node/recyclelist
 
+build CMakeFiles/msgui.dir/node/FloatingBox.cpp.o: CXX_COMPILER__msgui_unscanned_ /home/hekapoo/Documents/probe/newgui/msgui/node/FloatingBox.cpp || cmake_object_order_depends_target_msgui
+  DEFINES = -Dmsgui_EXPORTS
+  DEP_FILE = CMakeFiles/msgui.dir/node/FloatingBox.cpp.o.d
+  FLAGS = -Wall -Wextra -Wshadow -ggdb -g -std=gnu++23 -fPIC
+  INCLUDES = -I/home/hekapoo/Downloads/freeType2/freetype-2.13.1/include -I/home/hekapoo/Downloads/glew-2.1.0/include -I/home/hekapoo/Downloads/glfw-3.3.8/include -I/home/hekapoo/Documents/probe/newgui/msgui/..
+  OBJECT_DIR = CMakeFiles/msgui.dir
+  OBJECT_FILE_DIR = CMakeFiles/msgui.dir/node
+
 build CMakeFiles/msgui.dir/node/RecycleList.cpp.o: CXX_COMPILER__msgui_unscanned_ /home/hekapoo/Documents/probe/newgui/msgui/node/RecycleList.cpp || cmake_object_order_depends_target_msgui
   DEFINES = -Dmsgui_EXPORTS
   DEP_FILE = CMakeFiles/msgui.dir/node/RecycleList.cpp.o.d
@@ -284,7 +292,7 @@ build CMakeFiles/msgui.dir/Window.cpp.o: CXX_COMPILER__msgui_unscanned_ /home/he
 #############################################
 # Link the shared library libmsgui.so
 
-build libmsgui.so: CXX_SHARED_LIBRARY_LINKER__msgui_ CMakeFiles/msgui.dir/Application.cpp.o CMakeFiles/msgui.dir/BELoadingQueue.cpp.o CMakeFiles/msgui.dir/Debug.cpp.o CMakeFiles/msgui.dir/Input.cpp.o CMakeFiles/msgui.dir/layoutEngine/SimpleLayoutEngine.cpp.o CMakeFiles/msgui.dir/Logger.cpp.o CMakeFiles/msgui.dir/Mesh.cpp.o CMakeFiles/msgui.dir/MeshLoader.cpp.o CMakeFiles/msgui.dir/node/AbstractNode.cpp.o CMakeFiles/msgui.dir/node/Box.cpp.o CMakeFiles/msgui.dir/node/BoxDivider.cpp.o CMakeFiles/msgui.dir/node/Button.cpp.o CMakeFiles/msgui.dir/node/Dropdown.cpp.o CMakeFiles/msgui.dir/node/Image.cpp.o CMakeFiles/msgui.dir/node/recyclelist/ComplexRecycleList.cpp.o CMakeFiles/msgui.dir/node/RecycleList.cpp.o CMakeFiles/msgui.dir/node/Slider.cpp.o CMakeFiles/msgui.dir/node/utils/BoxDividerSep.cpp.o CMakeFiles/msgui.dir/node/utils/LayoutData.cpp.o CMakeFiles/msgui.dir/node/utils/ScrollBar.cpp.o CMakeFiles/msgui.dir/node/utils/ScrollBarKnob.cpp.o CMakeFiles/msgui.dir/node/utils/SliderKnob.cpp.o CMakeFiles/msgui.dir/node/WindowFrame.cpp.o CMakeFiles/msgui.dir/Shader.cpp.o CMakeFiles/msgui.dir/ShaderLoader.cpp.o CMakeFiles/msgui.dir/Texture.cpp.o CMakeFiles/msgui.dir/TextureLoader.cpp.o CMakeFiles/msgui.dir/Transform.cpp.o CMakeFiles/msgui.dir/Window.cpp.o
+build libmsgui.so: CXX_SHARED_LIBRARY_LINKER__msgui_ CMakeFiles/msgui.dir/Application.cpp.o CMakeFiles/msgui.dir/BELoadingQueue.cpp.o CMakeFiles/msgui.dir/Debug.cpp.o CMakeFiles/msgui.dir/Input.cpp.o CMakeFiles/msgui.dir/layoutEngine/SimpleLayoutEngine.cpp.o CMakeFiles/msgui.dir/Logger.cpp.o CMakeFiles/msgui.dir/Mesh.cpp.o CMakeFiles/msgui.dir/MeshLoader.cpp.o CMakeFiles/msgui.dir/node/AbstractNode.cpp.o CMakeFiles/msgui.dir/node/Box.cpp.o CMakeFiles/msgui.dir/node/BoxDivider.cpp.o CMakeFiles/msgui.dir/node/Button.cpp.o CMakeFiles/msgui.dir/node/Dropdown.cpp.o CMakeFiles/msgui.dir/node/Image.cpp.o CMakeFiles/msgui.dir/node/recyclelist/ComplexRecycleList.cpp.o CMakeFiles/msgui.dir/node/FloatingBox.cpp.o CMakeFiles/msgui.dir/node/RecycleList.cpp.o CMakeFiles/msgui.dir/node/Slider.cpp.o CMakeFiles/msgui.dir/node/utils/BoxDividerSep.cpp.o CMakeFiles/msgui.dir/node/utils/LayoutData.cpp.o CMakeFiles/msgui.dir/node/utils/ScrollBar.cpp.o CMakeFiles/msgui.dir/node/utils/ScrollBarKnob.cpp.o CMakeFiles/msgui.dir/node/utils/SliderKnob.cpp.o CMakeFiles/msgui.dir/node/WindowFrame.cpp.o CMakeFiles/msgui.dir/Shader.cpp.o CMakeFiles/msgui.dir/ShaderLoader.cpp.o CMakeFiles/msgui.dir/Texture.cpp.o CMakeFiles/msgui.dir/TextureLoader.cpp.o CMakeFiles/msgui.dir/Transform.cpp.o CMakeFiles/msgui.dir/Window.cpp.o
   LANGUAGE_COMPILE_FLAGS = -Wall -Wextra -Wshadow -ggdb -g
   LINK_LIBRARIES = -Wl,-rpath,/home/hekapoo/Downloads/freeType2/freetype-2.13.1/objs/.libs:/home/hekapoo/Downloads/glew-2.1.0/lib:/home/hekapoo/Downloads/glfw-3.3.8/src  -lglfw  -lGL  -lGLEW  -lX11
   LINK_PATH = -L/home/hekapoo/Downloads/freeType2/freetype-2.13.1/objs/.libs   -L/home/hekapoo/Downloads/glew-2.1.0/lib   -L/home/hekapoo/Downloads/glfw-3.3.8/src

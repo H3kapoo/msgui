@@ -6,9 +6,9 @@
 
 namespace msgui::nodeevent
 {
-struct LMBRelease : public INEvent
+struct RMBRelease : public INEvent
 {
-    explicit LMBRelease(const glm::ivec2& posIn)
+    explicit RMBRelease(const glm::ivec2& posIn)
         : pos{posIn}
     {}
 

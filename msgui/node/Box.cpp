@@ -3,6 +3,8 @@
 #include "msgui/MeshLoader.hpp"
 #include "msgui/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Dropdown.hpp"
+#include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
 
@@ -20,6 +22,12 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     layout_.setScale({200, 100});
 
     setupReloadables();
+
+    /* Register only the events you need. */
+    getEvents().listen<nodeevent::RMBRelease, nodeevent::InputChannel>(
+        std::bind(&Box::onRMBRelease, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
+        std::bind(&Box::onLMBRelease, this, std::placeholders::_1));
 }
 
 void Box::setShaderAttributes()
@@ -33,6 +41,25 @@ void Box::setShaderAttributes()
     shader->setVec4f("uBorderSize", layout_.border);
     shader->setVec4f("uBorderRadii", layout_.borderRadius);
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+}
+
+void Box::onLMBRelease(const nodeevent::LMBRelease& evt)
+{
+    if (!ctxMenu_) { return; }
+
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
+}
+
+void Box::onRMBRelease(const nodeevent::RMBRelease& evt)
+{
+    if (!ctxMenu_) { return; }
+
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    fb->setPreferredPosition(evt.pos);
+    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    Utils::as<Dropdown>(ddd)->setDropdownOpen(true);
 }
 
 bool Box::isScrollBarActive(const ScrollBar::Type orientation)
@@ -129,6 +156,21 @@ Box& Box::setColor(const glm::vec4& color)
 Box& Box::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
+    return *this;
+}
+
+Box& Box::setContextMenu(const DropdownPtr& menu)
+{
+    if (!ctxMenu_)
+    {
+        menu->getLayout().setScale({0, 0});
+
+        auto fb = Utils::make<FloatingBox>("ContextMenuFloatingBox");
+        fb->getLayout().setScale({0, 0});
+        fb->getContainer().lock()->append(menu);
+        ctxMenu_ = fb;
+        append(ctxMenu_);
+    }
     return *this;
 }
 

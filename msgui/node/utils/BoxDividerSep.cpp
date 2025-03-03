@@ -66,7 +66,7 @@ void BoxDividerSep::onMouseRelease(const nodeevent::LMBRelease&)
 
 void BoxDividerSep::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
 {
-    nodeevent::LMBRelease evt;
+    nodeevent::LMBRelease evt{{0, 0}};
     onMouseRelease(evt);
 }
 

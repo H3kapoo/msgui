@@ -44,6 +44,7 @@ public:
     {
         COMMON,
         BOX,
+        FLOATING_BOX,
         SLIDER,
         BOX_DIVIDER,
         BOX_DIVIDER_SEP,

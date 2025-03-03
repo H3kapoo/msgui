@@ -75,7 +75,7 @@ void Button::onMouseRelease(const nodeevent::LMBRelease&)
 void Button::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
 {
     /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acrs just like LMBRelease. */
-    const nodeevent::LMBRelease evt;
+    const nodeevent::LMBRelease evt{{0,0}};
     onMouseRelease(evt);
 }
 

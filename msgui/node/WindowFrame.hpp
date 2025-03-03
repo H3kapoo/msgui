@@ -21,6 +21,7 @@ class WindowFrame
     everything else, a custom Z start is needed. */
 static constexpr uint32_t SCROLL_LAYER_START = 250;
 static constexpr uint32_t DROPDOWN_LAYER_START = 300;
+static constexpr uint32_t FLOATING_LAYER_START = 400;
 
 public:
     /**

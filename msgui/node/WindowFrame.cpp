@@ -6,6 +6,7 @@
 #include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/nodeEvent/RMBRelease.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -272,10 +273,12 @@ void WindowFrame::resolveNodeRelations()
             {
                 bool isScrollNode = ch->getType() == AbstractNode::NodeType::SCROLL;
                 bool isDropdownNodeBox = ch->getType() == AbstractNode::NodeType::DROPDOWN;
+                bool isFloatingBoxNode = ch->getType() == AbstractNode::NodeType::FLOATING_BOX;
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
                 ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
                 ch->transform_.pos.z += isDropdownNodeBox ? DROPDOWN_LAYER_START : 0;
+                ch->transform_.pos.z = isFloatingBoxNode ? FLOATING_LAYER_START : ch->transform_.pos.z;
                 ch->state_ = frameState_;
             }
 
@@ -307,34 +310,58 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             (mY >= nodePos.y && mY <= nodePos.y + nodeScale.y))
         {
             foundNode = true;
-            if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+            if (frameState_->mouseButtonState[btn])
             {
                 frameState_->clickedNodePtr = node;
                 auto& prevNode = frameState_->prevClickedNodePtr;
-                if (prevNode && prevNode != node)
+                auto& hoveredNode = frameState_->hoveredNodePtr;
+                if (prevNode && (prevNode != node || hoveredNode != node))
                 {
                     nodeevent::FocusLost evt;
                     prevNode->getEvents().notifyAllChannels<nodeevent::FocusLost>(evt);
                 }
-
-                nodeevent::LMBClick evt;
-                node->getEvents().notifyAllChannels<nodeevent::LMBClick>(evt);
+                
+                if (btn == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    nodeevent::LMBClick evt;
+                    node->getEvents().notifyAllChannels<nodeevent::LMBClick>(evt);
+                }
+                else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
+                {
+                    // nodeevent::RMBClick evt;
+                    // node->getEvents().notifyAllChannels<nodeevent::RMBClick>(evt);
+                }
             }
-            else if (!frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
+            else if (!frameState_->mouseButtonState[btn])
             {
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
                 if (frameState_->prevClickedNodePtr && node != frameState_->prevClickedNodePtr)
                 {
-                    nodeevent::LMBReleaseNotHovered evt;
-                    frameState_->prevClickedNodePtr->getEvents()
-                        .notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
+                    if (btn == GLFW_MOUSE_BUTTON_LEFT)
+                    {
+                        nodeevent::LMBReleaseNotHovered evt;
+                        frameState_->prevClickedNodePtr->getEvents()
+                            .notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
+                    }
+                    else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
+                    {
+                        // TODO: To be fille if neeeded
+                    }
                 }
+
                 frameState_->clickedNodePtr = NO_PTR;
-
-                nodeevent::LMBRelease evt;
-                node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+                
+                if (btn == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    nodeevent::LMBRelease evt{{mX, mY}};
+                    node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+                }
+                else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
+                {
+                    nodeevent::RMBRelease evt{{mX, mY}};
+                    node->getEvents().notifyAllChannels<nodeevent::RMBRelease>(evt);
+                }
             }
-
             break; // event was consumed
         }
     }
