@@ -21,6 +21,7 @@ if [[ -z $1 ]]; then
     echo "[INFO ] images"
     echo "[INFO ] recyclelists"
     echo "[INFO ] slider"
+    echo "[INFO ] contextmenu"
     exit
 fi
 

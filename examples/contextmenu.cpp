@@ -30,22 +30,27 @@ int main()
         .setSpacing(Layout::Spacing::EVEN_WITH_NO_START_GAP)
         .setAlignChild(Layout::Align::CENTER);
 
+    /* Create two random boxes */
     for (int i = 0; i < 2; i++)
     {
         BoxPtr box = Utils::make<Box>("newBox");
         box->getLayout().setScale({200, 200});
         box->setColor(Utils::randomRGB());
         rootBox->append(box);
-
+        
+        /* Spawn a context menu and set it up as you like */
         DropdownWPtr ddCtx = box->createContextMenu();
-        ddCtx.lock()->setExpandDirection(Dropdown::Expand::LEFT);
+        ddCtx.lock()->setExpandDirection(Dropdown::Expand::RIGHT);
         ddCtx.lock()->getContainer().lock()->setColor(Utils::randomRGB());
-        for (int j = 0; j < 2; j++)
+        ddCtx.lock()->getContainer().lock()->getLayout().setBorder({1, 2});
+
+        /* It acts as a normal dropdown so you can add menu items as you go */
+        for (int j = 0; j < 6; j++)
         {
             auto btn = ddCtx.lock()->createMenuItem<Button>();
             btn.lock()->getLayout().setScale({100, 34});
             btn.lock()->setColor(Utils::randomRGB());
-            btn.lock()->getLayout().setBorder({6, 6});
+            btn.lock()->getLayout().setBorder({1, 0});
 
             btn.lock()->getEvents().listen<nodeevent::LMBRelease>(
                 [ref = Utils::ref<Box>(box)](const auto&)
@@ -53,6 +58,28 @@ int main()
                 ref.lock()->setColor(Utils::randomRGB());
             });
         }
+    }
+
+    /* We know the root box as two boxes inside. Remove the context menu of the first box
+       just because :) */
+    BoxPtr boxOne = Utils::as<Box>(rootBox->getChildren()[0]);
+    boxOne->removeContextMenu();
+
+    /* Now put it back, but different */
+    DropdownWPtr ddCtx = boxOne->createContextMenu();
+    ddCtx.lock()->getContainer().lock()->getLayout().setBorder({1, 2});
+    for (int j = 0; j < 4; j++)
+    {
+        auto btn = ddCtx.lock()->createMenuItem<Button>();
+        btn.lock()->getLayout().setScale({100, 34});
+        btn.lock()->setColor(Utils::randomRGB());
+        btn.lock()->getLayout().setBorder({1, 0});
+
+        btn.lock()->getEvents().listen<nodeevent::LMBRelease>(
+            [ref = Utils::ref<Box>(boxOne)](const auto&)
+        {
+            ref.lock()->setColor(Utils::randomRGB());
+        });
     }
 
     /* Blocks from here on */

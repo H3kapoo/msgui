@@ -10,6 +10,7 @@ namespace msgui
 {
 class Dropdown;
 using DropdownPtr = std::shared_ptr<Dropdown>;
+using DropdownWPtr = std::weak_ptr<Dropdown>;
 
 /* Node used for holding different other nodes. Also provides overflow handling functionality. */
 class Box : public AbstractNode
@@ -17,11 +18,13 @@ class Box : public AbstractNode
 public:
     Box(const std::string& name);
 
-    bool isScrollBarActive(const ScrollBar::Type orientation);
+    DropdownWPtr createContextMenu();
+    void removeContextMenu();
+
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
-    Box& setContextMenu(const DropdownPtr& menu);
-
+    
+    bool isScrollBarActive(const ScrollBar::Type orientation);
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     ScrollBarWPtr getHBar();
@@ -51,8 +54,7 @@ private:
     glm::ivec2 overflow_{0, 0};
     ScrollBarPtr vScrollBar_{nullptr};
     ScrollBarPtr hScrollBar_{nullptr};
-
-    AbstractNodePtr ctxMenu_{nullptr};
+    AbstractNodePtr ctxMenuFloatingBox_{nullptr};
 };
 using BoxPtr = std::shared_ptr<Box>;
 using BoxWPtr = std::weak_ptr<Box>;

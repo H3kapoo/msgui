@@ -670,18 +670,20 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         for (const auto& ch : children[0]->getChildren())
         {
             const auto& chLayout = ch->getLayout();
-            boxContElementsRollingY += chLayout.scale.y;
-            maxX = std::max(maxX, chLayout.scale.x);
+            boxContElementsRollingY += chLayout.scale.y + chLayout.margin.top + chLayout.margin.bot;
+            maxX = std::max(maxX, chLayout.scale.x + chLayout.margin.left + chLayout.margin.right);
         }
 
         /* Compute and sets it's scale (for the dropdown items container). */
         auto& chZeroLayout = children[0]->getLayout();
         chZeroLayout.scale = {
             maxX + chZeroLayout.padding.left + chZeroLayout.padding.right +
-                chZeroLayout.border.left + chZeroLayout.border.right,
+                chZeroLayout.border.left + chZeroLayout.border.right +
+                chZeroLayout.margin.left + chZeroLayout.margin.right,
             boxContElementsRollingY + chZeroLayout.padding.top + chZeroLayout.padding.bot +
                 chZeroLayout.border.top + chZeroLayout.border.bot
         };
+
         computeNodeScale({0, 0}, children);
 
         /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
@@ -692,63 +694,73 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         auto& contBoxScale = children[0]->getTransform().scale;
 
         /* Try to fit in the user preferred position relative to the parent as long as the dropdown would not
-           exit the screen. If it happens to exit the screen then BOT -> RIGHT -> TOP -> LEFT policy is used. */
+           exit the screen. */
         const auto& frameState = node->getState();
         Dropdown::Expand dir = dd->getExpandDirection();
-        int32_t combinationsLeft{4};
 
         const bool topCond = nPos.y - contBoxScale.y >= 0;
         const bool botCond = frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y;
         const bool leftCond = nPos.x - contBoxScale.x >= 0;
-        const bool rightCond = frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x;
-        while (combinationsLeft > 0)
+        // const bool rightCond = frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x;
+        const bool rightCond = frameState->frameSize.x > nPos.x + contBoxScale.x;
+        switch (dir)
         {
-            switch (dir)
-            {
-                case Dropdown::Expand::LEFT:
-                    if (leftCond && botCond)
-                    {
-                        contBoxPos.x = nPos.x - contBoxScale.x;
-                        contBoxPos.y = nPos.y;
-                        combinationsLeft = 0;
-                        break;
-                    }
-                    dir = Dropdown::Expand::BOTTOM;
+            case Dropdown::Expand::LEFT:
+                if (leftCond)
+                {
+                    contBoxPos.x = nPos.x - contBoxScale.x;
+                    contBoxPos.y = nPos.y;
+                }
+                else if (rightCond)
+                {
+                    contBoxPos.x = nPos.x + nScale.x;
+                    contBoxPos.y = nPos.y;
+                }
+                break;
+            case Dropdown::Expand::RIGHT:
+                if (rightCond)
+                {
+                    contBoxPos.x = nPos.x + nScale.x;
+                    contBoxPos.y = nPos.y;
                     break;
-                case Dropdown::Expand::RIGHT:
-                    if (rightCond && botCond)
-                    {
-                        contBoxPos.x = nPos.x + nScale.x;
-                        contBoxPos.y = nPos.y;
-                        combinationsLeft = 0;
-                        break;
-                    }
-                    dir = Dropdown::Expand::TOP;
-                    break;
-                case Dropdown::Expand::TOP:
-                    if (topCond)
-                    {
-                        contBoxPos.x = nPos.x;
-                        contBoxPos.y = nPos.y - contBoxScale.y;
-                        combinationsLeft = 0;
-                        break;
-                    }
-                    dir = Dropdown::Expand::LEFT;
-                    break;
-                case Dropdown::Expand::BOTTOM:
-                    if (botCond)
+                }
+                else if (leftCond)
+                {
+                    contBoxPos.x = nPos.x - contBoxScale.x;
+                    contBoxPos.y = nPos.y;
+                }
+                break;
+            case Dropdown::Expand::TOP:
+                if (topCond)
+                {
+                    contBoxPos.y = nPos.y - contBoxScale.y;
+                    if (rightCond)
                     {
                         contBoxPos.x = nPos.x;
-                        contBoxPos.y = nPos.y + nScale.y;
-                        combinationsLeft = 0;
-                        break;
                     }
-                    dir = Dropdown::Expand::RIGHT;
+                    else if (leftCond)
+                    {
+                        contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
+                    }
                     break;
-                default:
-                    log_.warnLn("Unknown expand direction: ENUM(%d)", static_cast<uint8_t>(dir));
-            }
-            combinationsLeft--;
+                }
+                break;
+            case Dropdown::Expand::BOTTOM:
+                if (botCond)
+                {
+                    contBoxPos.y = nPos.y + nScale.y;
+                    if (rightCond)
+                    {
+                        contBoxPos.x = nPos.x;
+                    }
+                    else if (leftCond)
+                    {
+                        contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
+                    }
+                }
+                break;
+            default:
+                log_.warnLn("Unknown expand direction: ENUM(%d)", static_cast<uint8_t>(dir));
         }
 }
 

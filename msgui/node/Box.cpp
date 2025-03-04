@@ -33,6 +33,33 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
         std::bind(&Box::onFocusLost, this, std::placeholders::_1));
 }
 
+DropdownWPtr Box::createContextMenu()
+{
+    if (!ctxMenuFloatingBox_)
+    {
+        DropdownPtr ctxDd = Utils::make<Dropdown>("ContextMenuDropdown");
+        ctxDd->getLayout().setScale({0, 0});
+
+        auto fb = Utils::make<FloatingBox>("ContextMenuFloatingBox");
+        fb->getLayout().setScale({0, 0});
+        fb->getContainer().lock()->append(ctxDd);
+        ctxMenuFloatingBox_ = fb;
+        append(ctxMenuFloatingBox_);
+    }
+
+    return Utils::as<Dropdown>(Utils::as<FloatingBox>(ctxMenuFloatingBox_)
+        ->getContainer().lock()->getChildren()[0]);
+}
+
+void Box::removeContextMenu()
+{
+    if (ctxMenuFloatingBox_)
+    {
+        remove(ctxMenuFloatingBox_->getId());
+        ctxMenuFloatingBox_.reset();
+    }
+}
+
 void Box::setShaderAttributes()
 {
     transform_.computeModelMatrix();
@@ -49,9 +76,9 @@ void Box::setShaderAttributes()
 void Box::onLMBRelease(const nodeevent::LMBRelease&)
 {
     /* Nothing to be done if no context menu is assigned. */
-    if (!ctxMenu_) { return; }
+    if (!ctxMenuFloatingBox_) { return; }
     
-    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
     auto& ddd = fb->getContainer().lock()->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
@@ -60,19 +87,19 @@ void Box::onFocusLost(const nodeevent::FocusLost&)
 {
     /* Nothing to be done if no context menu is assigned or if focus is lost
        BUT the newly clicked node is a drop item (the menu's one most likely). */
-    if (!ctxMenu_) { return; }
+    if (!ctxMenuFloatingBox_) { return; }
     if (getState()->clickedNodePtr->getName() == "DropdownItem") { return; }
 
-    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
     auto& ddd = fb->getContainer().lock()->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
 
 void Box::onRMBRelease(const nodeevent::RMBRelease& evt)
 {
-    if (!ctxMenu_) { return; }
+    if (!ctxMenuFloatingBox_) { return; }
 
-    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
     fb->setPreferredPosition(evt.pos);
     auto& ddd = fb->getContainer().lock()->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(true);
@@ -172,21 +199,6 @@ Box& Box::setColor(const glm::vec4& color)
 Box& Box::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
-    return *this;
-}
-
-Box& Box::setContextMenu(const DropdownPtr& menu)
-{
-    if (!ctxMenu_ && !menu->isParented())
-    {
-        menu->getLayout().setScale({0, 0});
-
-        auto fb = Utils::make<FloatingBox>("ContextMenuFloatingBox");
-        fb->getLayout().setScale({0, 0});
-        fb->getContainer().lock()->append(menu);
-        ctxMenu_ = fb;
-        append(ctxMenu_);
-    }
     return *this;
 }
 
