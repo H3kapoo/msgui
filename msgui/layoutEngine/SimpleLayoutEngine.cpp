@@ -381,6 +381,7 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
         IGNORE_FLOATING_BOX;
 
         auto& pos = ch->getTransform().pos;
+        auto& scale = ch->getTransform().scale;
         pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
         pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
         /* AlignChild. Negative overflow means we still have X amount of pixels until the parent is full on that axis
@@ -429,6 +430,11 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
 
         pos.x = std::round(pos.x);
         pos.y = std::round(pos.y);
+
+        pos.x += ch->getLayout().shrink.x;
+        pos.y += ch->getLayout().shrink.y;
+        scale.x -= ch->getLayout().shrink.x * 2;
+        scale.y -= ch->getLayout().shrink.y * 2;
     }
 }
 
@@ -688,6 +694,7 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
 
         /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
             be positioned to the bottom, right, top, left. */
+        auto& nShrink = node->getLayout().shrink;
         auto& nPos = node->getTransform().pos;
         auto& nScale = node->getTransform().scale;
         auto& contBoxPos = children[0]->getTransform().pos;
@@ -701,7 +708,6 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         const bool topCond = nPos.y - contBoxScale.y >= 0;
         const bool botCond = frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y;
         const bool leftCond = nPos.x - contBoxScale.x >= 0;
-        // const bool rightCond = frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x;
         const bool rightCond = frameState->frameSize.x > nPos.x + contBoxScale.x;
         switch (dir)
         {
@@ -733,10 +739,10 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
             case Dropdown::Expand::TOP:
                 if (topCond)
                 {
-                    contBoxPos.y = nPos.y - contBoxScale.y;
+                    contBoxPos.y = nPos.y - contBoxScale.y - nShrink.y;
                     if (rightCond)
                     {
-                        contBoxPos.x = nPos.x;
+                        contBoxPos.x = nPos.x - nShrink.x;
                     }
                     else if (leftCond)
                     {
@@ -748,10 +754,10 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
             case Dropdown::Expand::BOTTOM:
                 if (botCond)
                 {
-                    contBoxPos.y = nPos.y + nScale.y;
+                    contBoxPos.y = nPos.y + nScale.y + nShrink.y;
                     if (rightCond)
                     {
-                        contBoxPos.x = nPos.x;
+                        contBoxPos.x = nPos.x - nShrink.x;
                     }
                     else if (leftCond)
                     {

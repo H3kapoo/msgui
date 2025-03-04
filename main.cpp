@@ -7,6 +7,7 @@
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
+#include <string>
 
 using namespace msgui;
 
@@ -26,35 +27,41 @@ int main()
 
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
-    rootBox->getLayout()
-        .setSpacing(Layout::Spacing::EVEN_WITH_NO_START_GAP)
-        .setAlignChild(Layout::Align::CENTER);
+    // rootBox->getLayout()
+        // .setSpacing(Layout::Spacing::EVEN_WITH_NO_START_GAP)
+        // .setAlignChild(Layout::Align::BOTTOM);
 
-    for (int i = 0; i < 2; i++)
+    for (int32_t i = 0; i < 4; i++)
     {
-        BoxPtr box = Utils::make<Box>("newBox");
-        box->getLayout().setScale({200, 200});
-        box->setColor(Utils::randomRGB());
-        rootBox->append(box);
+        DropdownPtr dd = Utils::make<Dropdown>("myDd" + std::to_string(i));
+        dd->setColor(Utils::hexToVec4("#414141ff"))
+            // .setExpandDirection(Dropdown::Expand::TOP)
+            ;
+        dd->getLayout()
+            .setScale({74, 30})
+            // .setScale({200, 60})
+            .setBorder({0, 1, 0, 1})
+            // .setBorderRadius({1})
+            ;
 
-        DropdownWPtr ddCtx = box->createContextMenu();
-        ddCtx.lock()->setExpandDirection(Dropdown::Expand::LEFT);
-        ddCtx.lock()->getContainer().lock()->setColor(Utils::randomRGB());
-        for (int j = 0; j < 2; j++)
+        if (i == 3)
         {
-            auto btn = ddCtx.lock()->createMenuItem<Button>();
-            btn.lock()->getLayout().setScale({100, 34});
-            btn.lock()->setColor(Utils::randomRGB());
-            btn.lock()->getLayout().setBorder({6, 6});
-
-            btn.lock()->getEvents().listen<nodeevent::LMBRelease>(
-                [ref = Utils::ref<Box>(box)](const auto&)
-            {
-                ref.lock()->setColor(Utils::randomRGB());
-            });
+            dd->getLayout()
+                .setBorderRadius({0, 0, 4, 0});
         }
-    }
 
+        for (int32_t j = 0; j < 3; j++)
+        {
+            ButtonWPtr btn = dd->createMenuItem<Button>();
+            btn.lock()->setColor(Utils::hexToVec4("#303030ff"));
+            btn.lock()->getLayout()
+                .setScale({150, 30})
+                .setBorder({1})
+                ;
+        }
+
+        rootBox->append(dd);
+    }
     /* Blocks from here on */
     app.run();
 

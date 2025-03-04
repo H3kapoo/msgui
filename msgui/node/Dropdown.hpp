@@ -120,7 +120,6 @@ private:
     Expand expandDir_{Expand::BOTTOM};
     uint32_t dropdownId_{0};
     bool dropdownOpen_{false};
-    int32_t shrinkFactor{2};
     BoxPtr container_{nullptr};
 };
 } // namespace msgui

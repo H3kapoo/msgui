@@ -70,23 +70,18 @@ void Dropdown::onMouseClick(const nodeevent::LMBClick&)
 {
     currentColor_ = pressedColor_;
 
-    transform_.pos.x += shrinkFactor;
-    transform_.pos.y += shrinkFactor;
-    transform_.scale.x -= shrinkFactor*2;
-    transform_.scale.y -= shrinkFactor*2;
+    layout_.shrink = {2, 2};
+    MAKE_LAYOUT_DIRTY;
 }
 
 void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
 {
     closeDropdownsOnTheSameLevelAsMe();
     toggleDropdown();
-
     currentColor_ = color_;
-
-    transform_.pos.x -= shrinkFactor;
-    transform_.pos.y -= shrinkFactor;
-    transform_.scale.x += shrinkFactor*2;
-    transform_.scale.y += shrinkFactor*2;
+    
+    layout_.shrink = {0, 0};
+    MAKE_LAYOUT_DIRTY;
 }
 
 void Dropdown::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
@@ -98,6 +93,7 @@ void Dropdown::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
 
 void Dropdown::onFocusLost(const nodeevent::FocusLost&)
 {
+    if (!dropdownOpen_) { return; }
     const auto& state = getState();
     const auto& parentBoxCont = state->clickedNodePtr->getParent().lock();
     const auto& grandParentDd = parentBoxCont ? parentBoxCont->getParent().lock() : nullptr;
@@ -235,7 +231,6 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
         append(container_);
     }
 
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     return *this;
 }
 

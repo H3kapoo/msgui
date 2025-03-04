@@ -118,6 +118,7 @@ struct Layout
     glm::vec2 scale           {0, 0};
     glm::vec2 minScale        {0, 0};
     glm::vec2 maxScale        {10'000, 10'000};
+    glm::vec2 shrink          {0, 0};
 
     /* Functions that will be ran upon setting new values. Usually the nodes execute custom logic using
        these but the user can also set them to do custom logic at their discretion. */

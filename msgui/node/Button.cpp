@@ -56,20 +56,16 @@ void Button::onMouseClick(const nodeevent::LMBClick&)
 {
     currentColor_ = pressedColor_;
 
-    transform_.pos.x += shrinkFactor;
-    transform_.pos.y += shrinkFactor;
-    transform_.scale.x -= shrinkFactor*2;
-    transform_.scale.y -= shrinkFactor*2;
+    layout_.shrink = {2, 2};
+    MAKE_LAYOUT_DIRTY;
 }
 
 void Button::onMouseRelease(const nodeevent::LMBRelease&)
 {
     currentColor_ = color_;
-
-    transform_.pos.x -= shrinkFactor;
-    transform_.pos.y -= shrinkFactor;
-    transform_.scale.x += shrinkFactor*2;
-    transform_.scale.y += shrinkFactor*2;
+    
+    layout_.shrink = {0, 0};
+    MAKE_LAYOUT_DIRTY;
 }
 
 void Button::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
