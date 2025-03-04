@@ -61,9 +61,36 @@ int main()
         btn.lock()->setColor(Utils::randomRGB());
     }
 
-    rootBox->setContextMenu(dd);
+    DropdownPtr dd2 = Utils::make<Dropdown>("dd2");
+    dd2->setColor(Utils::randomRGB());
+    for (int i = 0; i < 4; i++)
+    {
+        auto btn = dd2->createMenuItem<Button>();
+        btn.lock()->setColor(Utils::randomRGB());
+    }
 
-    // rootBox->append(slider);
+    DropdownPtr dd3 = Utils::make<Dropdown>("dd3");
+    // dd3->setExpandDirection(Dropdown::Expand::RIGHT);
+    dd3->setExpandDirection(Dropdown::Expand::TOP);
+    // dd3->getContainer().lock()->getLayout().setPadding({4, 4, 4, 4});
+    dd3->getContainer().lock()->setColor(Utils::randomRGB());
+    // dd3->getLayout().setBorder({4});
+    // dd3->setColor(Utils::randomRGB())
+    //     .setBorderColor(Utils::hexToVec4("#000000ff"));
+    for (int i = 0; i < 8; i++)
+    {
+        auto btn = dd3->createMenuItem<Button>();
+        btn.lock()->getLayout().setScale({100, 34});
+        btn.lock()->setColor(Utils::randomRGB());
+        btn.lock()->getLayout().setBorder({6, 6});
+        // btn.lock()->getLayout().setBorder({4});
+    }
+
+    // rootBox->setContextMenu(dd);
+    // Utils::as<Box>(rootBox->getChildren()[0])->setContextMenu(dd2);
+    Utils::as<Box>(rootBox->getChildren()[2])->setContextMenu(dd3);
+
+    // rootBox->printTree();
 
     /* Blocks from here on */
     app.run();

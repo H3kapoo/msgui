@@ -315,7 +315,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 frameState_->clickedNodePtr = node;
                 auto& prevNode = frameState_->prevClickedNodePtr;
                 auto& hoveredNode = frameState_->hoveredNodePtr;
-                if (prevNode && (prevNode != node || hoveredNode != node))
+                if (prevNode && prevNode != node)
                 {
                     nodeevent::FocusLost evt;
                     prevNode->getEvents().notifyAllChannels<nodeevent::FocusLost>(evt);

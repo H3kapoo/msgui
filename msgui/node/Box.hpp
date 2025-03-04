@@ -2,6 +2,7 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
+#include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/RMBRelease.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 
@@ -41,7 +42,8 @@ private:
     void setShaderAttributes() override;
     void onLMBRelease(const nodeevent::LMBRelease& evt);
     void onRMBRelease(const nodeevent::RMBRelease& evt);
-void setupReloadables();
+    void onFocusLost(const nodeevent::FocusLost& evt);
+    void setupReloadables();
 
 private:
     glm::vec4 color_{1.0f};

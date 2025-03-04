@@ -670,14 +670,18 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         for (const auto& ch : children[0]->getChildren())
         {
             const auto& chLayout = ch->getLayout();
-            const auto withMarginX = chLayout.scale.x + chLayout.margin.left + chLayout.margin.right;
-            const auto withMarginY = chLayout.scale.y + chLayout.margin.top + chLayout.margin.bot;
-            boxContElementsRollingY += withMarginY;
-            maxX = std::max(maxX, withMarginX);
+            boxContElementsRollingY += chLayout.scale.y;
+            maxX = std::max(maxX, chLayout.scale.x);
         }
 
         /* Compute and sets it's scale (for the dropdown items container). */
-        children[0]->getLayout().scale = {maxX, boxContElementsRollingY};
+        auto& chZeroLayout = children[0]->getLayout();
+        chZeroLayout.scale = {
+            maxX + chZeroLayout.padding.left + chZeroLayout.padding.right +
+                chZeroLayout.border.left + chZeroLayout.border.right,
+            boxContElementsRollingY + chZeroLayout.padding.top + chZeroLayout.padding.bot +
+                chZeroLayout.border.top + chZeroLayout.border.bot
+        };
         computeNodeScale({0, 0}, children);
 
         /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
@@ -693,12 +697,16 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
         Dropdown::Expand dir = dd->getExpandDirection();
         int32_t combinationsLeft{4};
 
+        const bool topCond = nPos.y - contBoxScale.y >= 0;
+        const bool botCond = frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y;
+        const bool leftCond = nPos.x - contBoxScale.x >= 0;
+        const bool rightCond = frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x;
         while (combinationsLeft > 0)
         {
             switch (dir)
             {
                 case Dropdown::Expand::LEFT:
-                    if (nPos.x - contBoxScale.x >= 0)
+                    if (leftCond && botCond)
                     {
                         contBoxPos.x = nPos.x - contBoxScale.x;
                         contBoxPos.y = nPos.y;
@@ -708,7 +716,7 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
                     dir = Dropdown::Expand::BOTTOM;
                     break;
                 case Dropdown::Expand::RIGHT:
-                    if (frameState->frameSize.x > nPos.x + nScale.x + contBoxScale.x)
+                    if (rightCond && botCond)
                     {
                         contBoxPos.x = nPos.x + nScale.x;
                         contBoxPos.y = nPos.y;
@@ -718,7 +726,7 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
                     dir = Dropdown::Expand::TOP;
                     break;
                 case Dropdown::Expand::TOP:
-                    if (nPos.y - contBoxScale.y >= 0)
+                    if (topCond)
                     {
                         contBoxPos.x = nPos.x;
                         contBoxPos.y = nPos.y - contBoxScale.y;
@@ -728,7 +736,7 @@ void SimpleLayoutEngine::processDropdown(const AbstractNodePtr& node)
                     dir = Dropdown::Expand::LEFT;
                     break;
                 case Dropdown::Expand::BOTTOM:
-                    if (frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y)
+                    if (botCond)
                     {
                         contBoxPos.x = nPos.x;
                         contBoxPos.y = nPos.y + nScale.y;

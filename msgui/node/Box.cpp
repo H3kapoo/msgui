@@ -7,6 +7,7 @@
 #include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
+#include "msgui/nodeEvent/FocusLost.hpp"
 
 namespace msgui
 {
@@ -28,6 +29,8 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
         std::bind(&Box::onRMBRelease, this, std::placeholders::_1));
     getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
         std::bind(&Box::onLMBRelease, this, std::placeholders::_1));
+    getEvents().listen<nodeevent::FocusLost, nodeevent::InputChannel>(
+        std::bind(&Box::onFocusLost, this, std::placeholders::_1));
 }
 
 void Box::setShaderAttributes()
@@ -43,9 +46,22 @@ void Box::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Box::onLMBRelease(const nodeevent::LMBRelease& evt)
+void Box::onLMBRelease(const nodeevent::LMBRelease&)
 {
+    /* Nothing to be done if no context menu is assigned. */
     if (!ctxMenu_) { return; }
+    
+    FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
+    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
+}
+
+void Box::onFocusLost(const nodeevent::FocusLost&)
+{
+    /* Nothing to be done if no context menu is assigned or if focus is lost
+       BUT the newly clicked node is a drop item (the menu's one most likely). */
+    if (!ctxMenu_) { return; }
+    if (getState()->clickedNodePtr->getName() == "DropdownItem") { return; }
 
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenu_);
     auto& ddd = fb->getContainer().lock()->getChildren()[0];
@@ -161,7 +177,7 @@ Box& Box::setBorderColor(const glm::vec4& color)
 
 Box& Box::setContextMenu(const DropdownPtr& menu)
 {
-    if (!ctxMenu_)
+    if (!ctxMenu_ && !menu->isParented())
     {
         menu->getLayout().setScale({0, 0});
 

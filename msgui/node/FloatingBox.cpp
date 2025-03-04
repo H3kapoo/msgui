@@ -15,7 +15,9 @@ FloatingBox::FloatingBox(const std::string& name)
     setMesh(MeshLoader::loadQuad());
 
     box_ = Utils::make<Box>("InternalBox");
-    box_->getLayout().setScaleType(Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+    box_->getLayout().setScaleType(Layout::ScaleType::REL)
+        .setScale({1.0f, 1.0f})
+        .setAlignChild(Layout::Align::CENTER);
     append(box_);
 
     /* Defaults */
