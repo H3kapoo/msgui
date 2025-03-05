@@ -49,6 +49,7 @@ public:
         BOX_DIVIDER,
         BOX_DIVIDER_SEP,
         RECYCLE_LIST,
+        TREEVIEW,
         DROPDOWN,
         SCROLL,
         SCROLL_KNOB

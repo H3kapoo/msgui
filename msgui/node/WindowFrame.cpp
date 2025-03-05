@@ -1,5 +1,6 @@
 #include "WindowFrame.hpp"
 #include "msgui/node/RecycleList.hpp"
+#include "msgui/node/TreeView.hpp"
 #include "msgui/nodeEvent/FocusLost.hpp"
 #include "msgui/nodeEvent/LMBClick.hpp"
 #include "msgui/nodeEvent/LMBDrag.hpp"
@@ -228,13 +229,18 @@ void WindowFrame::updateLayout()
            viewable area. Raw parent is used for better performance (compared to locking each time). */
         if (auto p = node->getParentRaw())
         {
-            /* RecyleList, being the king it is, requires that we tell it that the layout pass for it had finished.
-               Note that we do this on the parent of the current BOX node because we need to notify it AFTER the
-               item containing BOX inside it finished the layout pass. */
+            /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
+               for it had finished. Note that we do this on the parent of the current BOX node because we need to
+               notify it AFTER the item containing BOX inside it finished the layout pass. */
             if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
                 node->getType() == AbstractNode::NodeType::BOX)
             {
                 static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
+            }
+            else if (p->getType() == AbstractNode::NodeType::TREEVIEW &&
+                node->getType() == AbstractNode::NodeType::BOX)
+            {
+                static_cast<TreeView*>(p)->onLayoutUpdateNotify();
             }
 
             /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
