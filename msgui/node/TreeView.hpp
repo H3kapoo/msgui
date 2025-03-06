@@ -120,12 +120,15 @@ private:
     TreeItemPtrVec flatTreeItems_;
 
     SliderPtr slider_{nullptr};
+    SliderPtr hSlider_{nullptr};
     BoxPtr boxCont_{nullptr};
 
+    float maxX_{0};
     bool listIsDirty_{true};
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};
     float lastScaleY_{0};
+    float lastScaleX_{0};
 };
 
 using TreeViewPtr = std::shared_ptr<TreeView>;

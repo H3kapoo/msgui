@@ -27,9 +27,9 @@ int main()
 
     TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
     tv->getLayout().setScale({300, 300});
-    // tv->getLayout()
-    //     .setScaleType(Layout::ScaleType::REL)
-    //     .setScale({1.0f, 1.0f});
+    tv->getLayout()
+        .setScaleType(Layout::ScaleType::REL)
+        .setScale({0.4f, 0.5f});
     tv->setItemBorder({1});
 
     rootBox->append(tv);
@@ -52,6 +52,13 @@ int main()
             TreeItemPtr blaItem = Utils::make<TreeItem>();
             blaItem->color = Utils::randomRGB();
             rootCH2->addItem(blaItem);
+
+            if (i % 5)
+            {
+                TreeItemPtr uhItem = Utils::make<TreeItem>();
+                uhItem->color = Utils::randomRGB();
+                blaItem->addItem(uhItem);
+            }
         }
     }
 

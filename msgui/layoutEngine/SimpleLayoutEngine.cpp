@@ -838,6 +838,7 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
     int32_t colsCount = gridDistribRC.cols.size();
     int32_t rowsCount = gridDistribRC.rows.size();
     const auto& pPadding = parent->getLayout().padding;
+    const auto& pPos = parent->getTransform().pos;
     for (auto ch : children)
     {
         IGNORE_SCROLLBAR;
@@ -852,8 +853,8 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
         if ((gridStart.col >= 0 && gridStart.col < colsCount) &&
             (gridStart.row >= 0 && gridStart.row < rowsCount))
         {
-            pos.x = gridDistribRC.cols[gridStart.col].computedStart + pPadding.left + chLayout.margin.left;
-            pos.y = gridDistribRC.rows[gridStart.row].computedStart + pPadding.top + chLayout.margin.top;
+            pos.x = pPos.x + gridDistribRC.cols[gridStart.col].computedStart + pPadding.left + chLayout.margin.left;
+            pos.y = pPos.y + gridDistribRC.rows[gridStart.row].computedStart + pPadding.top + chLayout.margin.top;
         }
         else
         {
