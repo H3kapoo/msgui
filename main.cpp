@@ -26,7 +26,10 @@ int main()
         .setAlignChild(Layout::Align::CENTER);
 
     TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
-    tv->getLayout().setScale({400, 300});
+    tv->getLayout().setScale({300, 300});
+    // tv->getLayout()
+    //     .setScaleType(Layout::ScaleType::REL)
+    //     .setScale({1.0f, 1.0f});
     tv->setItemBorder({1});
 
     rootBox->append(tv);
@@ -38,9 +41,19 @@ int main()
     rootCH1->color = {1, 0, 0, 1};
     root->addItem(rootCH1);
 
-    TreeItemPtr rootCH2 = Utils::make<TreeItem>();
-    rootCH2->color = {1, 1, 0, 1};
-    root->addItem(rootCH2);
+    for (int i = 0; i < 20; i++)
+    {
+        TreeItemPtr rootCH2 = Utils::make<TreeItem>();
+        rootCH2->color = {1, 1, 0, 1};
+        root->addItem(rootCH2);
+
+        if (i % 3)
+        {
+            TreeItemPtr blaItem = Utils::make<TreeItem>();
+            blaItem->color = Utils::randomRGB();
+            rootCH2->addItem(blaItem);
+        }
+    }
 
     TreeItemPtr CH1_CH1 = Utils::make<TreeItem>();
     CH1_CH1->color = {1, 1, 1, 1};
@@ -55,7 +68,7 @@ int main()
 
     tv->addItem(root);
     tv->addItem(root2);
-    tv->printTreeView();
+    // tv->printTreeView();
 
     /* Blocks from here on */
     app.run();

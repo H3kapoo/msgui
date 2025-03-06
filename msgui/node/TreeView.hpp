@@ -22,10 +22,7 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
         item->parent = shared_from_this();
     }
 
-    void open()
-    {
-        isOpen = true;
-    }
+    void open() { isOpen = true; }
 
     void close()
     {
@@ -38,10 +35,7 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
         }
     }
 
-    void toggle()
-    {
-        isOpen ? close() : open();
-    }
+    void toggle() { isOpen ? close() : open(); }
 
     glm::vec4 color;
     float push;

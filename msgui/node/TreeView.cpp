@@ -42,9 +42,9 @@ TreeView::TreeView(const std::string& name) : AbstractNode(name, NodeType::TREEV
     /* RL has a box container to hold the items. This has to be appended from the start. */
     boxCont_ = std::make_shared<Box>("TVBox");
     boxCont_->getLayout()
-        .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
+        .setAllowOverflow({true, false}) /* In this context, it shall never have overflow enabled */
         .setType(Layout::Type::VERTICAL)
-        .setAlignChild(Layout::Align::LEFT)
+        // .setAlignChild(Layout::Align::LEFT)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
@@ -121,10 +121,12 @@ void TreeView::setShaderAttributes()
 void TreeView::onLayoutUpdateNotify()
 {
     int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
+    int32_t sbSize = -20;//boxCont_->getHBar().lock() ? boxCont_->getHBar().lock()->getTransform().scale.y : 0;
+    // log_.debugLn("sbsize %d", sbSize);
     if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
     {
         int32_t totalElements = flatTreeItems_.size();
-        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - transform_.scale.y, 0.0f));
+        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - (transform_.scale.y+sbSize), 0.0f));
 
         if (slider_->getSlideTo() == 0 && children_.size() == 2)
         {
@@ -137,7 +139,7 @@ void TreeView::onLayoutUpdateNotify()
         }
     }
 
-    int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
+    int32_t maxDisplayAmt = (transform_.scale.y+sbSize) / rowSizeAndMargin + 1;
     int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
     int32_t visibleNodes = maxDisplayAmt + 1;
 
@@ -155,8 +157,8 @@ void TreeView::onLayoutUpdateNotify()
                     .setMargin(itemMargin_)
                     .setBorder(itemBorder_)
                     .setAlignSelf(Layout::Align::LEFT)
-                    .setScale({100, rowSize_})
-                    .setMargin({0, 0, float(flatTreeItems_[topOfListIdx + i]->depth*20), 0})
+                    .setScale({450, rowSize_})
+                    .setMargin({0, 0, float(flatTreeItems_[topOfListIdx + i]->depth*60), 0})
                     ;
                     ref->setColor(flatTreeItems_[topOfListIdx + i]->color);
                 boxCont_->append(ref);
@@ -172,6 +174,9 @@ void TreeView::onLayoutUpdateNotify()
                     });
             }
         }
+        //
+        boxCont_->updateOverflow({4, 0});
+
     }
 
     updateNodePositions();
@@ -196,6 +201,7 @@ void TreeView::updateNodePositions()
     int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
     for (uint32_t i = 0; i < size; i++)
     {
+        if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
         children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
     }
 }
