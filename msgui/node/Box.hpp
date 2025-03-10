@@ -8,6 +8,7 @@
 
 namespace msgui
 {
+class TreeView;
 class Dropdown;
 using DropdownPtr = std::shared_ptr<Dropdown>;
 using DropdownWPtr = std::weak_ptr<Dropdown>;
@@ -34,6 +35,7 @@ public:
 
 private: // friend
 // public: // friend
+    friend TreeView;
     friend WindowFrame;
     void updateOverflow(const glm::ivec2& overflow);
 

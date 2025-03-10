@@ -29,7 +29,7 @@ int main()
     tv->getLayout().setScale({300, 300});
     tv->getLayout()
         .setScaleType(Layout::ScaleType::REL)
-        .setScale({0.4f, 0.5f});
+        .setScale({0.3f, 0.5f});
     tv->setItemBorder({1});
 
     rootBox->append(tv);
@@ -53,7 +53,7 @@ int main()
             blaItem->color = Utils::randomRGB();
             rootCH2->addItem(blaItem);
 
-            if (i % 5)
+            if (i % 4 == 1)
             {
                 TreeItemPtr uhItem = Utils::make<TreeItem>();
                 uhItem->color = Utils::randomRGB();

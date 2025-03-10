@@ -26,54 +26,19 @@ TreeView::TreeView(const std::string& name) : AbstractNode(name, NodeType::TREEV
     /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7");
 
-    layout_.setScale({100, 100})
-        .setType(Layout::Type::GRID)
-        .setGridDistrib(
-            {
-                {
-                    {Layout::GridDistrib::Type::FRAC, 1},
-                    {Layout::GridDistrib::Type::ABS, 20},
-                },
-                {
-                    {Layout::GridDistrib::Type::ABS, 20},
-                    {Layout::GridDistrib::Type::FRAC, 1}
-                }
-            });
+    layout_.setScale({100, 100});
 
-    /* RL has a slider to scroll the items. This needs to exist but doesn't need to be appended if not needed. */
-    slider_ = std::make_shared<Slider>("TVSlider");
-    slider_->getLayout()
-        .setGridStartRC({0, 0})
-        .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
-        .setScale({20, 1.0f});
-    slider_->setColor(Utils::hexToVec4("#ddaaffff"));
-    slider_->setSlideFrom(0);
-    slider_->getEvents().listen<nodeevent::Scroll>(
-        std::bind(&TreeView::onSliderValueChanged, this, std::placeholders::_1));
-
-    hSlider_ = std::make_shared<Slider>("TVHorizontalSlider");
-    hSlider_->getLayout()
-        .setGridStartRC({1, 1})
-        .setType(Layout::Type::HORIZONTAL)
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
-        .setScale({1.0f, 20});
-    hSlider_->setColor(Utils::hexToVec4("#ddaaffff"));
-    hSlider_->setSlideFrom(0);
-    hSlider_->setSlideTo(300);
-    hSlider_->getEvents().listen<nodeevent::Scroll>(
-        std::bind(&TreeView::onSliderValueChanged, this, std::placeholders::_1));
-    hSlider_->getKnob().lock()->getLayout().setScale({20, 20});
-        /* RL has a box container to hold the items. This has to be appended from the start. */
     boxCont_ = std::make_shared<Box>("TVBox");
     boxCont_->getLayout()
-        .setGridStartRC({0, 1})
+        .setAllowOverflow({true, true})
         .setType(Layout::Type::VERTICAL)
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
+    boxCont_->getVBar().lock()->getEvents().listen<nodeevent::Scroll>(
+        std::bind(&TreeView::onSliderValueChanged, this, std::placeholders::_1));
     append(boxCont_);
-    append(hSlider_);
+
 }
 
 void TreeView::addItem(const TreeItemPtr& tree)
@@ -122,14 +87,14 @@ void TreeView::printTreeView()
     }
 }
 
-void TreeView::removeItemIdx(const int32_t idx)
-{   
-    // if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
-    // listItems_.erase(listItems_.begin() + idx);
+// void TreeView::removeItemIdx(const int32_t idx)
+// {   
+//     // if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
+//     // listItems_.erase(listItems_.begin() + idx);
 
-    // listIsDirty_ = true;
-    // MAKE_LAYOUT_DIRTY
-}
+//     // listIsDirty_ = true;
+//     // MAKE_LAYOUT_DIRTY
+// }
 
 void TreeView::setShaderAttributes()
 {
@@ -145,46 +110,29 @@ void TreeView::setShaderAttributes()
 
 void TreeView::onLayoutUpdateNotify()
 {
+
+    // if (listIsDirty_ || lastScaleX_ != transform_.scale.x)
+    // {
+    //     overflow.x = std::max(0.0f, overflow.x - transform_.scale.x);
+    //     log_.debugLn(" will set value %f", overflow.x - transform_.scale.x);
+    // }
+
+
     int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
-    if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
-    {
-        int32_t totalElements = flatTreeItems_.size();
-        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - transform_.scale.y, 0.0f));
-
-        // if (slider_->getSlideTo() == 0 && children_.size() == 2)
-        if (slider_->getSlideTo() == 0 && children_.size() == 3)
-        {
-            slider_->setSlideCurrentValue(0);
-            remove(slider_->getId());
-        }
-        // else if (slider_->getSlideTo() > 0 && children_.size() == 1)
-        else if (slider_->getSlideTo() > 0 && children_.size() == 2)
-        {
-            appendAt(slider_, 0);
-        }
-    }
-
-    if (lastScaleX_ != transform_.scale.x || listIsDirty_)
-    {
-        // log_.debugLn("maxX: %f", maxX_);
-        hSlider_->setSlideTo(std::max(0.0f, maxX_ + 250 - boxCont_->getTransform().scale.x));
-    }
-
     int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
-    int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
+    int32_t topOfListIdx = boxCont_->getVBar().lock()->geOverflowOffset() / rowSizeAndMargin;
     int32_t visibleNodes = maxDisplayAmt + 1;
 
     if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
     {
-        listIsDirty_ = false;
         int32_t itemSize = flatTreeItems_.size();
         boxCont_->removeAll();
-        maxX_ = 0;
+        int32_t overflowX = 0;
         for (int32_t i = 0; i < visibleNodes; i++)
         {
             if (topOfListIdx + i < itemSize)
             {
-                maxX_ = std::max(maxX_, float(flatTreeItems_[topOfListIdx + i]->depth*60));
+                overflowX = std::max(overflowX, 250+flatTreeItems_[topOfListIdx + i]->depth*60 - (int32_t)transform_.scale.x + 20);
                 auto ref = std::make_shared<Button>("TVItem");
                 ref->getLayout()
                     .setMargin(itemMargin_)
@@ -202,12 +150,24 @@ void TreeView::onLayoutUpdateNotify()
                         flatTreeItems_[index]->toggle();
                         recalc();
                         listIsDirty_ = true;
-                        MAKE_LAYOUT_DIRTY;
+                        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
                     });
             }
         }
-        hSlider_->setSlideTo(std::max(0.0f, maxX_ + 250 - boxCont_->getTransform().scale.x));
+
+        if (overflowX != overflow.x)
+        {
+            overflow.x = overflowX;
+        }
     }
+
+    if (listIsDirty_ || lastScaleY_ != transform_.scale.y)
+    {
+        int32_t totalElements = flatTreeItems_.size();
+
+        overflow.y = std::max(totalElements * rowSizeAndMargin - transform_.scale.y, 0.0f);
+    }
+    boxCont_->updateOverflow(overflow);
 
     updateNodePositions();
 
@@ -215,6 +175,7 @@ void TreeView::onLayoutUpdateNotify()
     oldVisibleNodes_ = visibleNodes;
     lastScaleY_ = transform_.scale.y;
     lastScaleX_ = transform_.scale.x;
+    listIsDirty_ = false;
 }
 
 void TreeView::onSliderValueChanged(const nodeevent::Scroll& evt)
@@ -225,16 +186,14 @@ void TreeView::onSliderValueChanged(const nodeevent::Scroll& evt)
 
 void TreeView::updateNodePositions()
 {
-    // if (slider_->getSlideCurrentValue() == 0) { return; }
-
     auto& children = boxCont_->getChildren();
     uint32_t size = children.size();
     int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
     for (uint32_t i = 0; i < size; i++)
     {
         if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
-        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
-        children[i]->getTransform().pos.x -= hSlider_->getSlideCurrentValue();
+        children[i]->getTransform().pos.y -= (int32_t)boxCont_->getVBar().lock()->geOverflowOffset() % rowSizeAndMargin;
+        children[i]->getTransform().pos.x -= (int32_t)boxCont_->getHBar().lock()->geOverflowOffset();
     }
 }
 
@@ -319,8 +278,6 @@ Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
 Layout::TBLR TreeView::getItemBorder() const { return itemBorder_; }
 
 Layout::TBLR TreeView::getItemBorderRadius() const { return itemBorderRadius_; }
-
-SliderWPtr TreeView::getSlider() { return slider_; }
 
 BoxWPtr TreeView::getContainer() { return boxCont_; }
 } // msgui

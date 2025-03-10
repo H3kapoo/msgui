@@ -134,14 +134,16 @@ void Box::updateOverflow(const glm::ivec2& overflow)
     {
         if (overflow.x > 0 && !hScrollBar_->isParented()) { append(hScrollBar_); }
         else if (overflow.x <= 0 && hScrollBar_->isParented()) { remove(hScrollBar_->getId()); }
-        getState()->isLayoutDirty = hScrollBar_->setOverflow(overflow.x);
-    }
 
+        if (!getState()->isLayoutDirty) { getState()->isLayoutDirty = hScrollBar_->setOverflow(overflow.x); };
+    }
+    
     if (vScrollBar_)
     {
         if (overflow.y > 0 && !vScrollBar_->isParented()) { append(vScrollBar_); }
         else if (overflow.y <= 0 && vScrollBar_->isParented()) { remove(vScrollBar_->getId()); }
-        getState()->isLayoutDirty = vScrollBar_->setOverflow(overflow.y);
+
+        if (!getState()->isLayoutDirty) { getState()->isLayoutDirty = vScrollBar_->setOverflow(overflow.y); };
     }
 }
 

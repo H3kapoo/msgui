@@ -84,7 +84,7 @@ int32_t AbstractNode::removeBy(std::function<bool(AbstractNodePtr)> pred)
 
 void AbstractNode::removeAll()
 {
-    removeBy([](auto){ return true; });
+    removeBy([](const AbstractNodePtr& node ){ return node->getType() != AbstractNode::NodeType::SCROLL; });
 }
 
 std::shared_ptr<AbstractNode> AbstractNode::remove(const uint32_t& nodeId)

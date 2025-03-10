@@ -5,6 +5,7 @@
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/node/TreeView.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
 #include "msgui/node/utils/LayoutData.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
@@ -66,6 +67,13 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     if (layout.type == Layout::Type::GRID)
     {
         processGridLayout(pbScale, node);
+
+        /* Compute tree views separately as their logic is special */
+        if (node->getType() == AbstractNode::NodeType::TREEVIEW)
+        {
+            processTreeView(node);
+        }
+
         return {0, 0}; /* Grid layout will not generate overflow */
     }
 
@@ -382,8 +390,12 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
 
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
-        pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
-        pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
+
+        pos.x += nPos.x + layout.padding.left + layout.border.left;
+        pos.y += nPos.y + layout.padding.top + layout.border.top;
+
+        // pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
+        // pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
         /* AlignChild. Negative overflow means we still have X amount of pixels until the parent is full on that axis
            We can leverage this to position elements top, left, right, bot, center. */
         if (overflow.x < 0 && (layout.spacing == Layout::Spacing::TIGHT || layout.type == Layout::Type::VERTICAL))
@@ -543,6 +555,18 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     }
 
     return data;
+}
+
+void SimpleLayoutEngine::processTreeView(const AbstractNodePtr& node)
+{
+    const TreeViewPtr tvPtr = Utils::as<TreeView>(node);
+    if (!tvPtr)
+    {
+        log_.errorLn("Could not cast to TreeView: %s", node->getCName());
+        return;
+    }
+
+    tvPtr->onLayoutUpdateNotify();
 }
 
 void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)

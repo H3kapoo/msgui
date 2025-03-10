@@ -1,5 +1,6 @@
 #pragma once
 
+#include "msgui/layoutEngine/SimpleLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Slider.hpp"
@@ -44,6 +45,8 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
     std::weak_ptr<TreeItem> parent;
     std::vector<std::shared_ptr<TreeItem>> items;
 };
+
+class SimpleLayoutEngine;
 
 /* Node used for efficiently handling lists with a large amount of entries. */
 class TreeView : public AbstractNode
@@ -92,10 +95,10 @@ public:
     Layout::TBLR getItemMargin() const;
     Layout::TBLR getItemBorder() const;
     Layout::TBLR getItemBorderRadius() const;
-    SliderWPtr getSlider();
     BoxWPtr getContainer();
 
 private: // friend
+    friend SimpleLayoutEngine;
     friend WindowFrame;
     void onLayoutUpdateNotify();
 
@@ -119,11 +122,9 @@ private:
     TreeItemPtrVec treeItems_;
     TreeItemPtrVec flatTreeItems_;
 
-    SliderPtr slider_{nullptr};
-    SliderPtr hSlider_{nullptr};
     BoxPtr boxCont_{nullptr};
 
-    float maxX_{0};
+    glm::ivec2 overflow{0, 0};
     bool listIsDirty_{true};
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};

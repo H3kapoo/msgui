@@ -221,7 +221,8 @@ void WindowFrame::updateLayout()
         /* Currently only BOX type nodes support overflow handling */
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
-            static_cast<Box*>(node.get())->updateOverflow(overflow);
+            // TODO: If treeView, dont update overflow from here
+            // static_cast<Box*>(node.get())->updateOverflow(overflow);
         }
 
         /* TODO: This shall be moved into layout process(). */
@@ -241,6 +242,7 @@ void WindowFrame::updateLayout()
                 node->getType() == AbstractNode::NodeType::BOX)
             {
                 static_cast<TreeView*>(p)->onLayoutUpdateNotify();
+                // static_cast<Box*>(node.get())->updateOverflow({0, 50});
             }
 
             /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use

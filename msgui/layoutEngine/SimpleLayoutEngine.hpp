@@ -46,6 +46,7 @@ private:
     void applyFinalOffsets(const AbstractNodePtr& node, const glm::vec2 overflow,
         const ScrollBarsData& scrollNodeData);
     ScrollBarsData processScrollbars(const AbstractNodePtr& node);
+    void processTreeView(const AbstractNodePtr& node);
     void processSlider(const AbstractNodePtr& node);
     void processFloatingBox(const AbstractNodePtr& node);
     void processBoxDivider(const glm::vec2& nScale, const AbstractNodePVec& children);
