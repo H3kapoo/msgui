@@ -124,12 +124,12 @@ void BoxDividerSep::setupLayoutReloadables()
     {
         if (layout_.type == Layout::Type::HORIZONTAL)
         {
-            layout_.scaleType = {Layout::ScaleType::ABS, Layout::ScaleType::REL};
+            layout_.scaleType = {Layout::ScaleType::PX, Layout::ScaleType::REL};
             layout_.scale = {10, 1.0f};
         }
         else if (layout_.type == Layout::Type::VERTICAL)
         {
-            layout_.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::ABS};
+            layout_.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::PX};
             layout_.scale = {1.0f, 10};
         }
     };

@@ -222,9 +222,6 @@ private: // friend
 
     AbstractNode* getParentRaw();
 
-    // /* Special for notifying nodes (RecycleList mostly) of layout update */
-    // virtual void onLayoutUpdateNotify();
-
     /* Event consumers */
     virtual void onMouseDragNotify();
     virtual void onWindowResizeNotify();

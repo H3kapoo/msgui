@@ -30,7 +30,7 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     slider_ = std::make_shared<Slider>("RLSlider");
     slider_->getLayout()
         .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
+        .setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL})
         .setScale({20, 1.0f});
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
@@ -42,7 +42,7 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     boxCont_->getLayout()
         .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
         .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::PX})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
     append(boxCont_);
@@ -127,7 +127,7 @@ void RecycleList::onLayoutUpdateNotify()
                     .setMargin(itemMargin_)
                     .setBorder(itemBorder_)
                     .setBorderRadius(itemBorderRadius_)
-                    .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS})
+                    .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
                     .setScale({1.0f, rowSize_});
                 ref->setColor(listItems_[topOfListIdx + i]);
 

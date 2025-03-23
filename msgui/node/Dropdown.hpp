@@ -36,7 +36,7 @@ public:
     {
         std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
         nodeItem->getLayout()
-            .setScaleType(Layout::ScaleType::ABS)
+            .setScaleType(Layout::ScaleType::PX)
             .setScale(itemSize_);
         nodeItem->getEvents().template listen<nodeevent::LMBRelease, nodeevent::InternalChannel>([this](const auto&)
         {

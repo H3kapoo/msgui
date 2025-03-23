@@ -33,9 +33,7 @@ public:
 
     ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
 
-private: // friend
-// public: // friend
-    friend TreeView;
+protected: // friend
     friend WindowFrame;
     void updateOverflow(const glm::ivec2& overflow);
 

@@ -214,40 +214,32 @@ void WindowFrame::updateLayout()
     }
 
     /* Iterate from lowest depth to highest */
-    for (auto& node : allFrameChildNodes_ | std::views::reverse)
+    for (const auto& node : allFrameChildNodes_ | std::views::reverse)
     {
         glm::ivec2 overflow = layoutEngine_->process(node);
+
+        /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
+            for it had finished. Note that we do this on the parent of the current BOX node because we need to
+            notify it AFTER the item containing BOX inside it finished the layout pass. */
+        if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+        {
+            Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
+        }
 
         /* Currently only BOX type nodes support overflow handling */
         if (node->getType() == AbstractNode::NodeType::BOX)
         {
-            // TODO: If treeView, dont update overflow from here
-            // static_cast<Box*>(node.get())->updateOverflow(overflow);
+            Utils::as<Box>(node)->updateOverflow(overflow);
         }
 
         /* TODO: This shall be moved into layout process(). */
         /* After updating the node layout, we need to update the viewable area of the node based on the parent's
            viewable area. Raw parent is used for better performance (compared to locking each time). */
-        if (auto p = node->getParentRaw())
+        if (auto parent = node->getParentRaw())
         {
-            /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
-               for it had finished. Note that we do this on the parent of the current BOX node because we need to
-               notify it AFTER the item containing BOX inside it finished the layout pass. */
-            if (p->getType() == AbstractNode::NodeType::RECYCLE_LIST &&
-                node->getType() == AbstractNode::NodeType::BOX)
-            {
-                static_cast<RecycleList*>(p)->onLayoutUpdateNotify();
-            }
-            else if (p->getType() == AbstractNode::NodeType::TREEVIEW &&
-                node->getType() == AbstractNode::NodeType::BOX)
-            {
-                static_cast<TreeView*>(p)->onLayoutUpdateNotify();
-                // static_cast<Box*>(node.get())->updateOverflow({0, 50});
-            }
-
             /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
                the area of the window itself instead. */
-            if (p->getType() == AbstractNode::NodeType::DROPDOWN)
+            if (parent->getType() == AbstractNode::NodeType::DROPDOWN)
             {
                 auto frameBoxIdx = allFrameChildNodes_.size() - 1;
                 node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, Layout::TBLR{0});
@@ -255,7 +247,7 @@ void WindowFrame::updateLayout()
             /* Otherwise just compute viewable area as normal. */
             else
             {
-                node->transform_.computeViewableArea(p->transform_, p->getLayout().border);
+                node->transform_.computeViewableArea(parent->transform_, parent->getLayout().border);
             }
         }
     }

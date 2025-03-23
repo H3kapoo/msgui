@@ -30,7 +30,7 @@ int main()
         box->setColor(Utils::randomRGB());
         box->getLayout()
             .setType(Layout::Type::HORIZONTAL)
-            .setScaleType(Layout::ScaleType::ABS) /* Be aware that wrap + rel doesn't work pretty nicely. */
+            .setScaleType(Layout::ScaleType::PX) /* Be aware that wrap + rel doesn't work pretty nicely. */
             .setAlignSelf(Layout::Align::CENTER)
             .setScale({200 * Utils::random01() + 50, Utils::random01() * 200 + 50})
             .setMargin({5, 0, 5, 5});

@@ -3,7 +3,6 @@
 #include "msgui/layoutEngine/SimpleLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/node/Slider.hpp"
 #include "msgui/nodeEvent/Scroll.hpp"
 #include <memory>
 
@@ -49,7 +48,7 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
 class SimpleLayoutEngine;
 
 /* Node used for efficiently handling lists with a large amount of entries. */
-class TreeView : public AbstractNode
+class TreeView : public Box
 {
 public:
     TreeView(const std::string& name);
@@ -95,7 +94,6 @@ public:
     Layout::TBLR getItemMargin() const;
     Layout::TBLR getItemBorder() const;
     Layout::TBLR getItemBorderRadius() const;
-    BoxWPtr getContainer();
 
 private: // friend
     friend SimpleLayoutEngine;
@@ -122,9 +120,8 @@ private:
     TreeItemPtrVec treeItems_;
     TreeItemPtrVec flatTreeItems_;
 
-    BoxPtr boxCont_{nullptr};
-
     glm::ivec2 overflow{0, 0};
+    int32_t maxDepth_{0};
     bool listIsDirty_{true};
     int32_t oldTopOfList_{-1};
     int32_t oldVisibleNodes_{0};

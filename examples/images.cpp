@@ -31,7 +31,7 @@ int main()
         img->setTint(Utils::randomRGB());
         img->getLayout()
             .setType(Layout::Type::HORIZONTAL)
-            .setScaleType(Layout::ScaleType::ABS)
+            .setScaleType(Layout::ScaleType::PX)
             .setAlignSelf(Layout::Align::CENTER)
             .setScale({200, 200})
             .setBorder({4})

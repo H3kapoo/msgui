@@ -23,7 +23,7 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
     /* Assume default horizontal slider. */
     knobNode_->getLayout()
         .setScale({20, 1.0f})
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL});
+        .setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL});
 
     append(knobNode_);
 
@@ -123,11 +123,11 @@ void Slider::setupLayoutReloadables()
         std::swap(knobNode_->getLayout().scale.x, knobNode_->getLayout().scale.y);
         if (layout_.type == Layout::Type::HORIZONTAL)
         {
-            knobNode_->getLayout().setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL});
+            knobNode_->getLayout().setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL});
         }
         else if (layout_.type == Layout::Type::VERTICAL)
         {
-            knobNode_->getLayout().setScaleType({Layout::ScaleType::REL, Layout::ScaleType::ABS});
+            knobNode_->getLayout().setScaleType({Layout::ScaleType::REL, Layout::ScaleType::PX});
         }
         MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };

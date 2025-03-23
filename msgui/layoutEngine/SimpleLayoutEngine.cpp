@@ -51,7 +51,7 @@ namespace msgui
 glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
 {
     const AbstractNodePVec& children = node->getChildren();
-    if (children.empty()) { return {0, 0}; }
+    if (children.empty() && node->getType() != AbstractNode::NodeType::TREEVIEW) { return {0, 0}; }
 
     /* Useless to compute further if node is a scroll node type. We compute these separately */
     if (node->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
@@ -67,13 +67,6 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     if (layout.type == Layout::Type::GRID)
     {
         processGridLayout(pbScale, node);
-
-        /* Compute tree views separately as their logic is special */
-        if (node->getType() == AbstractNode::NodeType::TREEVIEW)
-        {
-            processTreeView(node);
-        }
-
         return {0, 0}; /* Grid layout will not generate overflow */
     }
 
@@ -114,6 +107,14 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     /* Apply scrollbar offsets + any group offseting from zero offset */
     applyFinalOffsets(node, computedOverflow, scrollNodeData);
 
+    /* TreeView has even MORE final offsets due to the scrollbar it can have */
+    // log_.debugLn("treeview %d", static_cast<uint8_t>(node->getType()));
+    // log_.debugLn("treeview %d", static_cast<uint8_t>(node->nodeType_));
+    if (node->getType() == AbstractNode::NodeType::TREEVIEW)
+    {
+        processTreeView(node);
+    }
+
     return computedOverflow;
 }
 
@@ -138,12 +139,12 @@ glm::vec2 SimpleLayoutEngine::getTotalChildrenAbsScale(const AbstractNodePVec& c
         IGNORE_FLOATING_BOX;
 
         const Layout& chLayout = ch->getLayout();
-        if (chLayout.scaleType.x == Layout::ScaleType::ABS)
+        if (chLayout.scaleType.x == Layout::ScaleType::PX)
         {
             totalAbsChildSize.x += chLayout.scale.x;
         }
 
-        if (chLayout.scaleType.y == Layout::ScaleType::ABS)
+        if (chLayout.scaleType.y == Layout::ScaleType::PX)
         {
             totalAbsChildSize.y += chLayout.scale.y;
         }
@@ -282,7 +283,7 @@ void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const Abstrac
             scale.x -= chLayout.margin.left + chLayout.margin.right;
             scale.x = std::round(scale.x);
         }
-        else if (chLayout.scaleType.x == Layout::ScaleType::ABS)
+        else if (chLayout.scaleType.x == Layout::ScaleType::PX)
         {
             auto& scale = ch->getTransform().scale;
             scale.x = chLayout.scale.x;
@@ -295,7 +296,7 @@ void SimpleLayoutEngine::computeNodeScale(const glm::vec2& pScale, const Abstrac
             scale.y -= chLayout.margin.top + chLayout.margin.bot;
             scale.y = std::round(scale.y);
         }
-        else if (chLayout.scaleType.y == Layout::ScaleType::ABS)
+        else if (chLayout.scaleType.y == Layout::ScaleType::PX)
         {
             auto& scale = ch->getTransform().scale;
             scale.y = chLayout.scale.y;
@@ -391,11 +392,9 @@ void SimpleLayoutEngine::applyFinalOffsets(const AbstractNodePtr& node, const gl
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
 
-        pos.x += nPos.x + layout.padding.left + layout.border.left;
-        pos.y += nPos.y + layout.padding.top + layout.border.top;
+        pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
+        pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
 
-        // pos.x += -scrollNodeData.offsetPx.x + nPos.x + layout.padding.left + layout.border.left;
-        // pos.y += -scrollNodeData.offsetPx.y + nPos.y + layout.padding.top + layout.border.top;
         /* AlignChild. Negative overflow means we still have X amount of pixels until the parent is full on that axis
            We can leverage this to position elements top, left, right, bot, center. */
         if (overflow.x < 0 && (layout.spacing == Layout::Spacing::TIGHT || layout.type == Layout::Type::VERTICAL))
@@ -463,6 +462,7 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
     /* Return by how much should the parent "shrink" to fit scrollbars */
     ScrollBarsData data;
 
+    //TODO: The else/if shall be refactored
     bool bothSbOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
@@ -473,6 +473,19 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         }
 
         if (castBox->isScrollBarActive(ScrollBar::Type::ALL))
+        {
+            bothSbOn = true;
+        }
+    }
+    else if (parent->getType() == AbstractNode::NodeType::TREEVIEW)
+    {
+        TreeViewPtr castTv = Utils::as<TreeView>(parent);
+        if (castTv->isScrollBarActive(ScrollBar::Type::NONE))
+        {
+            return ScrollBarsData{};
+        }
+
+        if (castTv->isScrollBarActive(ScrollBar::Type::ALL))
         {
             bothSbOn = true;
         }
@@ -554,19 +567,25 @@ SimpleLayoutEngine::ScrollBarsData SimpleLayoutEngine::processScrollbars(const A
         }
     }
 
+    /* No need to have an offset for RecycleList or TreeView as they calculate that offset separately. */
+    if (parent->getType() == AbstractNode::NodeType::TREEVIEW)
+    {
+        data.offsetPx = {0, 0};
+    }
     return data;
 }
 
-void SimpleLayoutEngine::processTreeView(const AbstractNodePtr& node)
+bool SimpleLayoutEngine::processTreeView(const AbstractNodePtr& node)
 {
     const TreeViewPtr tvPtr = Utils::as<TreeView>(node);
     if (!tvPtr)
     {
         log_.errorLn("Could not cast to TreeView: %s", node->getCName());
-        return;
+        return false;
     }
 
     tvPtr->onLayoutUpdateNotify();
+    return false;
 }
 
 void SimpleLayoutEngine::processSlider(const AbstractNodePtr& node)
@@ -895,7 +914,7 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
         float endY = gridStart.row + 1 < rowsCount ? gridDistribRC.rows[gridStart.row + 1].computedStart : pScale.y;
         endX -= chLayout.margin.right;
         endY -= chLayout.margin.bot;
-        if (chLayout.scaleType.x == Layout::ScaleType::ABS)
+        if (chLayout.scaleType.x == Layout::ScaleType::PX)
         {
             scale.x = chLayout.scale.x;
             leftover.x = (endX - startX) - scale.x;
@@ -908,7 +927,7 @@ void SimpleLayoutEngine::processGridLayout(const glm::vec2& pScale, const Abstra
             leftover.x -= scale.x;
         }
 
-        if (chLayout.scaleType.y == Layout::ScaleType::ABS)
+        if (chLayout.scaleType.y == Layout::ScaleType::PX)
         {
             scale.y = chLayout.scale.y;
             leftover.y = (endY - startY) - scale.y;

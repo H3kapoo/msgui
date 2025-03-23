@@ -40,7 +40,7 @@ int main()
         box->setColor(Utils::randomRGB());
         box->getLayout()
             .setType(Layout::Type::HORIZONTAL)
-            .setScaleType(Layout::ScaleType::ABS)
+            .setScaleType(Layout::ScaleType::REL)
             .setScale({400, 200})
             .setMargin({5});
         childBoxes.emplace_back(box);

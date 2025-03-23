@@ -7,6 +7,7 @@
 
 namespace msgui
 {
+/* Defines all the layout properties of a UI node. */
 struct Layout
 {
     /* Defines how nodes will be arranged inside the parent. */
@@ -26,10 +27,10 @@ struct Layout
     /* Defines how nodes will be spaces from each other inside the parent. */
     enum Spacing : uint8_t { TIGHT, EVEN_WITH_NO_START_GAP, EVEN_WITH_START_GAP };
 
-    /* Defines how nodes will be scaled. Absolute values (ABS) are exactly what you think they are while
+    /* Defines how nodes will be scaled. Pixel values (PX) are exactly what you think they are while
        relative values (REL 0 <= val <= 1) defines the node scale to be a fractional part of the parent's
        total scale (minus padding + borders of parent). */
-    enum ScaleType : uint8_t { ABS, REL };
+    enum ScaleType : uint8_t { PX, REL };
 
     /* Scale type structure holding each axis. */
     struct ScaleTypeXY { ScaleType x; ScaleType y; };
@@ -110,9 +111,9 @@ struct Layout
     Align alignSelf           {Align::TOP};
     AlignXY alignChild        {Align::LEFT, Align::TOP};
     Spacing spacing           {Spacing::TIGHT};
-    ScaleTypeXY scaleType     {ScaleType::ABS, ScaleType::ABS};
-    GridDistribRC gridDistrib { DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}},
-                                DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}}};
+    ScaleTypeXY scaleType     {ScaleType::PX, ScaleType::PX};
+    GridDistribRC gridDistrib {DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}},
+                               DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}}};
     GridRC gridStartRC        {0, 0};
     GridRC gridSpanRC         {1, 1};
     glm::vec2 scale           {0, 0};
@@ -140,7 +141,8 @@ struct Layout
     std::function<void()> onMinScaleChange {[](){}};
     std::function<void()> onMaxScaleChange {[](){}};
 
-    /* Used for BoxDivider calcs. No ideea where to put it. Shall not be used by user. */
+    /* Used for BoxDivider calcs. No ideea where to put it. Shall not be used by user.
+       This is a design artifact and shall be addressed later. */
     glm::vec2 tempScale {0, 0};
 };
 } // namespace msgui

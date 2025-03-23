@@ -31,7 +31,7 @@ int main()
     RecycleListPtr rl = Utils::make<RecycleList>("MyRecycleList");
     rl->setBorderColor(Utils::hexToVec4("#ffffff"));
     rl->getLayout()
-        .setScaleType({Layout::ScaleType::ABS, Layout::ScaleType::REL})
+        .setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL})
         .setScale({300, 0.8f})
         .setBorder({4})
         .setBorderRadius({4});

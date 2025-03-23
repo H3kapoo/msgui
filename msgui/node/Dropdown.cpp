@@ -110,7 +110,7 @@ DropdownWPtr Dropdown::createSubMenuItem()
     DropdownPtr subMenu = Utils::make<Dropdown>("SubDropdown");
     subMenu->setColor(color_);
     subMenu->getLayout()
-        .setScaleType(Layout::ScaleType::ABS)
+        .setScaleType(Layout::ScaleType::PX)
         .setScale(itemSize_);
     subMenu->dropdownId_ = dropdownId_;
     container_->append(subMenu);

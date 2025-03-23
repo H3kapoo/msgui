@@ -134,7 +134,8 @@ int32_t ScrollBar::geOverflowOffset()
        offset turns out to be "0". */
     // TODO: Maybe there's a better way?
     int32_t offset = knobOffset_ * (float)overflowSize_;
-    return offset == 0 && knobOffset_ > 0 ? 1 : offset;
+    // return offset == 0 && knobOffset_ > 0 ? 1 : offset;
+    return offset;
 }
 
 int32_t ScrollBar::getOverflowSize() { return overflowSize_; }
