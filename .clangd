@@ -2,3 +2,4 @@ CompileFlags:
     Add:
         - "-std=c++23"
         - "-I/home/hekapoo/Documents/probe/newgui"
+        - "-I/home/hekapoo/Downloads/freetype-2.13.1/include/"

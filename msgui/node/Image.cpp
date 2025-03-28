@@ -12,7 +12,8 @@ namespace msgui
 {
 Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/basicTex.glsl"));
+    // setShader(ShaderLoader::loadShader("assets/shader/basicTex.glsl"));
+    setShader(ShaderLoader::loadShader("assets/shader/text.glsl"));
     setMesh(MeshLoader::loadQuad());
     log_ = ("Image(" + name + ")");
 
@@ -22,22 +23,33 @@ Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     color_ = Utils::hexToVec4("#F9F8F7");
 
     layout_.setScale({100, 100});
+    // color_ = Utils::hexToVec4("#ff00ffff");
+    // id_ = loader_.loadFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/LiberationSerif-Regular.ttf", 15);
+    // id_ = loader_.loadFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/droid-sans-mono.ttf", 23);
+    id_ = loader_.loadFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/cmr10.ttf", 23);
+    log_.debugLn("id is %d", id_);
 }
 
 void Image::setShaderAttributes()
 {
     transform_.computeModelMatrix();
     auto shader = getShader();
-    int32_t texId = btnTex_ ? btnTex_->getId() : 0;
+    // int32_t texId = btnTex_ ? btnTex_->getId() : 0;
 
     shader->setMat4f("uModelMat", transform_.modelMatrix);
-    shader->setVec4f("uColor", color_);
-    shader->setVec4f("uBorderColor", borderColor_);
-    shader->setVec4f("uBorderSize", layout_.border);
-    shader->setVec4f("uBorderRadii", layout_.borderRadius);
-    shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-    shader->setInt("uUseTexture", texId);
-    shader->setTexture2D("uTexture", GL_TEXTURE0, texId);
+    // shader->setVec4f("uColor", color_);
+    shader->setInt("uCharIndex", int32_t(65));
+    // shader->setInt("uCharIndex", 0);
+    shader->setTexture2DArray("uTextureArray", GL_TEXTURE1, id_);
+
+    // shader->setMat4f("uModelMat", transform_.modelMatrix);
+    // shader->setVec4f("uColor", color_);
+    // shader->setVec4f("uBorderColor", borderColor_);
+    // shader->setVec4f("uBorderSize", layout_.border);
+    // shader->setVec4f("uBorderRadii", layout_.borderRadius);
+    // shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
+    // shader->setInt("uUseTexture", texId);
+    // shader->setTexture2D("uTexture", GL_TEXTURE0, texId);
 }
 
 void Image::setupLayoutReloadables()

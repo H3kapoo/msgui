@@ -3,69 +3,36 @@
 #include "msgui/layoutEngine/SimpleLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/nodeEvent/Scroll.hpp"
-#include <memory>
+#include "msgui/node/utils/TreeItem.hpp"
 
 namespace msgui
 {
-struct TreeItem;
-using TreeItemWPtr = std::weak_ptr<TreeItem>;
-using TreeItemPtr = std::shared_ptr<TreeItem>;
-using TreeItemPtrVec = std::vector<TreeItemPtr>;
-
-struct TreeItem : std::enable_shared_from_this<TreeItem>
-{
-    void addItem(TreeItemPtr& item)
-    {
-        item->depth = depth + 1;
-        items.emplace_back(item);
-        item->parent = shared_from_this();
-    }
-
-    void open() { isOpen = true; }
-
-    void close()
-    {
-        if (!isOpen) { return; }
-
-        isOpen = false;
-        for (auto& item : items)
-        {
-            item->close();
-        }
-    }
-
-    void toggle() { isOpen ? close() : open(); }
-
-    glm::vec4 color;
-    float push;
-    int32_t depth{0};
-    bool isOpen{false};
-    std::weak_ptr<TreeItem> parent;
-    std::vector<std::shared_ptr<TreeItem>> items;
-};
 
 class SimpleLayoutEngine;
 
 /* Node used for efficiently handling lists with a large amount of entries. */
 class TreeView : public Box
 {
+struct Internals;
 public:
     TreeView(const std::string& name);
 
     /**
-        Adds a new item to the list.
+        Adds a new tree item to the internal buffer.
 
-        @note @todo For now items are just colors, but when text rendering will be implemented, the items
-                    will be able to display both text, colors and images.
-
-        @param color Color of the item
+        @param tree Tree item to be added
     */
-    void addItem(const glm::vec4& color);
+    void addRootItem(const TreeItemPtr& tree);
 
-    void addItem(const TreeItemPtr& tree);
-    void recalc();
-    void printTreeView();
+    /**
+        Triggers refresh of the viewable tree in order to have the newest changes visible.
+    */
+    void refreshTree();
+
+    /**
+        Print tree structure of all nodes that are open and their children. Closed nodes will not show up.
+    */
+    void printFlatTreeView();
 
     /**
         Removes the item located at a specified index.
@@ -94,17 +61,15 @@ public:
     Layout::TBLR getItemMargin() const;
     Layout::TBLR getItemBorder() const;
     Layout::TBLR getItemBorderRadius() const;
+    Internals& getInternalsRef();
 
 private: // friend
     friend SimpleLayoutEngine;
     friend WindowFrame;
-    void onLayoutUpdateNotify();
+    void onLayoutDirtyPost();
 
 private:
     void setShaderAttributes() override;
-
-    void onSliderValueChanged(const nodeevent::Scroll& evt);
-
     void updateNodePositions();
     void setupLayoutReloadables();
 
@@ -115,18 +80,27 @@ private:
     Layout::TBLR itemMargin_{0};
     Layout::TBLR itemBorder_{0};
     Layout::TBLR itemBorderRadius_{0};
+    int32_t pushFactor_{60};
     std::vector<TreeItem> listItems_;
 
     TreeItemPtrVec treeItems_;
-    TreeItemPtrVec flatTreeItems_;
+    TreeItemPtrVec flattenedTreeBuffer; //TODO: Consider using a list instead
 
-    glm::ivec2 overflow{0, 0};
-    int32_t maxDepth_{0};
-    bool listIsDirty_{true};
-    int32_t oldTopOfList_{-1};
-    int32_t oldVisibleNodes_{0};
-    float lastScaleY_{0};
-    float lastScaleX_{0};
+    struct Internals
+    {
+        bool isDirty{true};
+        int32_t topOfListIdx{0};
+        int32_t oldTopOfListIdx{-1};
+        int32_t oldVisibleNodes{0};
+        int32_t visibleNodes{0};
+        int32_t maxDepth_{0};
+        float lastScaleY{0};
+        float lastScaleX{0};
+        int32_t flatTreeElements{0};
+        glm::ivec2 overflow{0, 0};
+    };
+    Internals internals_;
+
 };
 
 using TreeViewPtr = std::shared_ptr<TreeView>;

@@ -9,17 +9,17 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/utils/ScrollBar.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/Scroll.hpp"
+#include "msgui/nodeEvent/LMBTreeItemRelease.hpp"
 
 namespace msgui
 {
 TreeView::TreeView(const std::string& name) : Box(name)
 {
-    AbstractNode::nodeType_ = AbstractNode::NodeType::TREEVIEW;
+    setType(AbstractNode::NodeType::TREEVIEW);
     setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(MeshLoader::loadQuad());
+
     log_ = ("TreeView(" + name + ")");
 
     setupLayoutReloadables();
@@ -29,68 +29,71 @@ TreeView::TreeView(const std::string& name) : Box(name)
     layout_.setAllowOverflow({true, true})
         .setType(Layout::Type::VERTICAL)
         .setScale({100, 100});
-
-    getVBar().lock()->getEvents().listen<nodeevent::Scroll>(
-        std::bind(&TreeView::onSliderValueChanged, this, std::placeholders::_1));
-    }
-
-    void TreeView::addItem(const TreeItemPtr& tree)
-{
-    //TODO: Maybe we dont need to keep both treeItems and a flat version
-    // Maybe the flat one is enough.
-    treeItems_.emplace_back(tree);
-    recalc();
 }
 
-void TreeView::recalc()
+void TreeView::addRootItem(const TreeItemPtr& tree)
 {
-    flatTreeItems_.clear();
+    treeItems_.emplace_back(tree);
+    refreshTree();
+}
 
-    std::stack<TreeItemPtr> st;
+void TreeView::refreshTree()
+{
+    //TODO: On bigger lists this traversal shall be handled by a separate working thread as to not block the main one.
+
+    /* Traverse the tree depth first so that at the end we get a contiguous array of open tree items
+       that we can operate on an display to the user.
+       Example & assume each node is opened:
+
+       depth 0:            a        b
+       depth 1:         c    d
+       depth 2:      e
+
+       Then the flattened buffer will be: a c d e b
+
+       -- a
+          -- c
+          -- d
+             -- e
+       -- b
+    */
+    flattenedTreeBuffer.clear();
+
+    std::stack<TreeItemPtr> traversalStack;
     for (auto& item : treeItems_)
     {
-        st.push(item);
+        traversalStack.push(item);
     }
 
-    maxDepth_ = 0;
-    while (!st.empty())
+    internals_.maxDepth_ = 0;
+    while (!traversalStack.empty())
     {
-        TreeItemPtr currentTreeItem = st.top();
-        st.pop();
+        TreeItemPtr currentTreeItem = traversalStack.top();
+        traversalStack.pop();
 
-        flatTreeItems_.push_back(currentTreeItem);
+        flattenedTreeBuffer.push_back(currentTreeItem);
 
         /* Reverse needed because otherwise children will be displayed in reverse order due to how
            stack traversal works.*/
-        for (auto& item : currentTreeItem->items | std::views::reverse)
+        for (auto& item : currentTreeItem->subItems | std::views::reverse)
         {
             if (currentTreeItem->isOpen)
             {
-                maxDepth_ = std::max(maxDepth_, item->depth);
-                st.push(item);
+                internals_.maxDepth_ = std::max(internals_.maxDepth_, item->depth);
+                traversalStack.push(item);
             }
         }
     }
-    // log_.debugLn("Max depth is %d", maxDepth_);
 }
 
-void TreeView::printTreeView()
+void TreeView::printFlatTreeView()
 {
-    for (const auto& item : flatTreeItems_)
+    for (const auto& item : flattenedTreeBuffer)
     {
         log_.raw("%*s- depth(%d) col(%.2f %.2f %.2f %.2f)\n", item->depth*4, "", item->depth,
             item->color.r, item->color.g, item->color.b, item->color.a);
     }
 }
-
-// void TreeView::removeItemIdx(const int32_t idx)
-// {   
-//     // if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
-//     // listItems_.erase(listItems_.begin() + idx);
-
-//     // listIsDirty_ = true;
-//     // MAKE_LAYOUT_DIRTY
-// }
 
 void TreeView::setShaderAttributes()
 {
@@ -104,81 +107,37 @@ void TreeView::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void TreeView::onLayoutUpdateNotify()
+void TreeView::onLayoutDirtyPost()
 {
-    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
-    int32_t maxDisplayAmt = transform_.scale.y / rowSizeAndMargin + 1;
-    int32_t topOfListIdx = getVBar().lock()->geOverflowOffset() / rowSizeAndMargin;
-    int32_t visibleNodes = maxDisplayAmt + 1;
-    if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
+    removeAll();
+
+    internals_.flatTreeElements = flattenedTreeBuffer.size();
+    for (int32_t i = 0; i < internals_.visibleNodes; i++)
     {
-        removeAll();
-        int32_t itemSize = flatTreeItems_.size();
-        for (int32_t i = 0; i < visibleNodes; i++)
+        int32_t index = internals_.topOfListIdx + i;
+        if (index < internals_.flatTreeElements)
         {
-            if (topOfListIdx + i < itemSize)
-            {
-                auto ref = std::make_shared<Button>("TVItem");
-                ref->getLayout()
-                    .setMargin(itemMargin_)
-                    .setBorder(itemBorder_)
-                    .setScale({250, rowSize_})
-                    .setMargin({0, 0, float(flatTreeItems_[topOfListIdx + i]->depth*60), 0})
-                    ;
-                    ref->setColor(flatTreeItems_[topOfListIdx + i]->color);
-                append(ref);
+            auto ref = std::make_shared<Button>("TreeViewItem");
+            ref->getLayout()
+                .setMargin(itemMargin_)
+                .setBorder(itemBorder_)
+                .setScale({250, rowSize_})
+                .setMargin({0, 0, float(flattenedTreeBuffer[index]->depth*pushFactor_), 0});
+            ref->setColor(flattenedTreeBuffer[index]->color);
+            append(ref);
 
-                ref->getEvents().listen<nodeevent::LMBRelease>(
-                    [this, index = topOfListIdx + i](const auto&)
-                    {
-                        flatTreeItems_[index]->toggle();
-                        recalc();
-                        listIsDirty_ = true;
-                        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
-                    });
-            }
+            ref->getEvents().listen<nodeevent::LMBRelease>(
+                [this, index](const auto&)
+                {
+                    flattenedTreeBuffer[index]->toggle();
+                    refreshTree();
+                    internals_.isDirty = true;
+                    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+
+                    nodeevent::LMBTreeItemRelease evt{flattenedTreeBuffer[index]};
+                    getEvents().notifyEvent<nodeevent::LMBTreeItemRelease>(evt);
+                });
         }
-    }
-
-    // if (listIsDirty_ || lastScaleX_ != transform_.scale.x || lastScaleY_ != transform_.scale.y)
-    // {
-    //     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
-    // }
-
-    overflow.x = (250+60*maxDepth_) - (int32_t)transform_.scale.x + (isScrollBarActive(ScrollBar::Type::VERTICAL) ? 20 : 0);
-    overflow.y = flatTreeItems_.size() * rowSizeAndMargin - transform_.scale.y + (isScrollBarActive(ScrollBar::Type::HORIZONTAL) ? 20 : 0);
-    overflow.x = std::max(0, overflow.x);
-    overflow.y = std::max(0, overflow.y);
-
-    updateOverflow(overflow);
-
-    updateNodePositions();
-
-    oldTopOfList_ = topOfListIdx;
-    oldVisibleNodes_ = visibleNodes;
-    lastScaleY_ = transform_.scale.y;
-    lastScaleX_ = transform_.scale.x;
-    listIsDirty_ = false;
-}
-
-void TreeView::onSliderValueChanged(const nodeevent::Scroll& evt)
-{
-    (void)evt.value;
-    updateNodePositions();
-}
-
-void TreeView::updateNodePositions()
-{
-    int32_t maxX{0};
-    auto& children = getChildren();
-    uint32_t size = children.size();
-    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
-    for (uint32_t i = 0; i < size; i++)
-    {
-        if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
-        children[i]->getTransform().pos.y -= getVBar().lock()->geOverflowOffset() % rowSizeAndMargin;
-        children[i]->getTransform().pos.x -= getHBar().lock()->geOverflowOffset();
-        maxX = std::max(maxX, (int32_t)children[i]->getTransform().scale.x);
     }
 }
 
@@ -208,13 +167,14 @@ void TreeView::setupLayoutReloadables()
 TreeView& TreeView::setColor(const glm::vec4& color)
 {
     color_ = color;
-    // boxCont_->setColor(color);
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
 TreeView& TreeView::setBorderColor(const glm::vec4& color)
 {
     borderColor_ = color;
+    REQUEST_NEW_FRAME;
     return *this;
 }
 
@@ -223,7 +183,7 @@ TreeView& TreeView::setRowSize(const int32_t rowSize)
     if (rowSize < 2 || rowSize > 200) { return *this ; }
 
     rowSize_ = rowSize;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     return *this;
 }
@@ -231,7 +191,7 @@ TreeView& TreeView::setRowSize(const int32_t rowSize)
 TreeView& TreeView::setItemMargin(const Layout::TBLR margin)
 {
     itemMargin_ = margin;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -239,7 +199,7 @@ TreeView& TreeView::setItemMargin(const Layout::TBLR margin)
 TreeView& TreeView::setItemBorder(const Layout::TBLR border)
 {
     itemBorder_ = border;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -247,7 +207,7 @@ TreeView& TreeView::setItemBorder(const Layout::TBLR border)
 TreeView& TreeView::setItemBorderRadius(const Layout::TBLR borderRadius)
 {
     itemBorderRadius_ = borderRadius;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -263,4 +223,6 @@ Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
 Layout::TBLR TreeView::getItemBorder() const { return itemBorder_; }
 
 Layout::TBLR TreeView::getItemBorderRadius() const { return itemBorderRadius_; }
+
+TreeView::Internals& TreeView::getInternalsRef() { return internals_; }
 } // msgui

@@ -7,7 +7,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     message(STATUS "Configuring for Linux")
     set(CXX_STANDARD 23)
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -ggdb -g")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -ggdb")
     # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
     # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
@@ -16,14 +16,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(ROOT_OF_VENDOR "/home/hekapoo/Downloads")
 
     # Include paths
-    set(FT_LIBRARY_INCLUDE_DIRECTORY   ${ROOT_OF_VENDOR}/freeType2/freetype-2.13.1/include/)
-    set(GLEW_LIBRARY_INCLUDE_DIRECTORY ${ROOT_OF_VENDOR}/glew-2.1.0/include)
-    set(GLFW_LIBRARY_INCLUDE_DIRECTORY ${ROOT_OF_VENDOR}/glfw-3.3.8/include)
+    set(FT_LIBRARY_INCLUDE_DIRECTORY   ${ROOT_OF_VENDOR}/freetype-2.13.1/include/)
+    set(GLEW_LIBRARY_INCLUDE_DIRECTORY ${ROOT_OF_VENDOR}/glew-2.2.0/include)
+    set(GLFW_LIBRARY_INCLUDE_DIRECTORY ${ROOT_OF_VENDOR}/glfw-3.4/include)
 
     # Path to lib itself
-    set(FT_LIBRARY_PATH_DIRECTORY   ${ROOT_OF_VENDOR}/freeType2/freetype-2.13.1/objs/.libs)
-    set(GLEW_LIBRARY_PATH_DIRECTORY ${ROOT_OF_VENDOR}/glew-2.1.0/lib)
-    set(GLFW_LIBRARY_PATH_DIRECTORY ${ROOT_OF_VENDOR}/glfw-3.3.8/src)
+    set(FT_LIBRARY_PATH_DIRECTORY   ${ROOT_OF_VENDOR}/freetype-2.13.1/build)
+    set(GLEW_LIBRARY_PATH_DIRECTORY ${ROOT_OF_VENDOR}/glew-2.2.0/lib)
+    set(GLFW_LIBRARY_PATH_DIRECTORY ${ROOT_OF_VENDOR}/glfw-3.4/bld/src)
 
     # "Link" includes
     include_directories (${FT_LIBRARY_INCLUDE_DIRECTORY})
@@ -39,6 +39,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         Logger.cpp
         Mesh.cpp
         MeshLoader.cpp
+        FontLoader.cpp
         node/AbstractNode.cpp
         node/Box.cpp
         node/BoxDivider.cpp
@@ -69,15 +70,17 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Link libs
     target_link_directories(${PROJECT_NAME} PRIVATE
         ${FT_LIBRARY_PATH_DIRECTORY}
-        ${GLEW_LIBRARY_PATH_DIRECTORY}
-        ${GLFW_LIBRARY_PATH_DIRECTORY}
+        # ${GLEW_LIBRARY_PATH_DIRECTORY}
+        # ${GLFW_LIBRARY_PATH_DIRECTORY}
     )
 
     # Needed for absolute include paths
     target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../)
 
     # Link libraries
-    target_link_libraries(${PROJECT_NAME} glfw GL GLEW X11)
+    target_link_libraries(${PROJECT_NAME}
+         glfw GL GLEW X11 freetype z bz2 png brotlicommon brotlidec
+    )
 
 # If the operating system is not recognized
 else()

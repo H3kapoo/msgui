@@ -30,7 +30,7 @@ struct Layout
     /* Defines how nodes will be scaled. Pixel values (PX) are exactly what you think they are while
        relative values (REL 0 <= val <= 1) defines the node scale to be a fractional part of the parent's
        total scale (minus padding + borders of parent). */
-    enum ScaleType : uint8_t { PX, REL };
+    enum ScaleType : uint8_t { PX, REL};
 
     /* Scale type structure holding each axis. */
     struct ScaleTypeXY { ScaleType x; ScaleType y; };

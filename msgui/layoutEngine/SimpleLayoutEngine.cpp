@@ -51,6 +51,8 @@ namespace msgui
 glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
 {
     const AbstractNodePVec& children = node->getChildren();
+    /* Treeview is excused because it's children get added as this function runs so it may happen that
+       at the start of the function it doesn't have any children yet.*/
     if (children.empty() && node->getType() != AbstractNode::NodeType::TREEVIEW) { return {0, 0}; }
 
     /* Useless to compute further if node is a scroll node type. We compute these separately */
@@ -107,9 +109,8 @@ glm::vec2 SimpleLayoutEngine::process(const AbstractNodePtr& node)
     /* Apply scrollbar offsets + any group offseting from zero offset */
     applyFinalOffsets(node, computedOverflow, scrollNodeData);
 
-    /* TreeView has even MORE final offsets due to the scrollbar it can have */
-    // log_.debugLn("treeview %d", static_cast<uint8_t>(node->getType()));
-    // log_.debugLn("treeview %d", static_cast<uint8_t>(node->nodeType_));
+    /* TreeView has even MORE final offsets due to the scrollbar it can have. As such, calculations need to be done
+       after applying "final" offsets. */
     if (node->getType() == AbstractNode::NodeType::TREEVIEW)
     {
         processTreeView(node);
@@ -584,7 +585,48 @@ bool SimpleLayoutEngine::processTreeView(const AbstractNodePtr& node)
         return false;
     }
 
-    tvPtr->onLayoutUpdateNotify();
+    TreeView::Internals& internalsRef = tvPtr->getInternalsRef();
+    const int32_t rowSize = tvPtr->getRowSize();
+    const glm::vec3 nScale = node->getTransform().scale;
+    Layout::TBLR itemMargin = tvPtr->getItemMargin();
+
+    int32_t rowSizeAndMargin = rowSize + itemMargin.top + itemMargin.bot;
+    int32_t maxDisplayAmt = nScale.y / rowSizeAndMargin + 1;
+    internalsRef.topOfListIdx = tvPtr->getVBar().lock()->geOverflowOffset() / rowSizeAndMargin;
+    internalsRef.visibleNodes = maxDisplayAmt + 1;
+    if (internalsRef.isDirty || internalsRef.topOfListIdx != internalsRef.oldTopOfListIdx
+        || internalsRef.oldVisibleNodes != internalsRef.visibleNodes)
+    {
+        internalsRef.isDirty = false;
+        tvPtr->onLayoutDirtyPost();
+    }
+
+    const int32_t hBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::HORIZONTAL) ? 20 : 0;
+    const int32_t vBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::VERTICAL) ? 20 : 0;
+
+    internalsRef.overflow.x = (250+60*internalsRef.maxDepth_) - nScale.x + vBarActiveSize;
+    internalsRef.overflow.y = internalsRef.flatTreeElements * rowSizeAndMargin - nScale.y + hBarActiveSize;
+    internalsRef.overflow.x = std::max(0, internalsRef.overflow.x);
+    internalsRef.overflow.y = std::max(0, internalsRef.overflow.y);
+
+    tvPtr->updateOverflow(internalsRef.overflow);
+
+    internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
+    internalsRef.oldVisibleNodes = internalsRef.visibleNodes;
+    internalsRef.lastScaleY = nScale.y;
+    internalsRef.lastScaleX = nScale.x;
+
+    int32_t maxX{0};
+    auto& children = node->getChildren();
+    uint32_t size = children.size();
+    for (uint32_t i = 0; i < size; i++)
+    {
+        if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
+        children[i]->getTransform().pos.y -= tvPtr->getVBar().lock()->geOverflowOffset() % rowSizeAndMargin;
+        children[i]->getTransform().pos.x -= tvPtr->getHBar().lock()->geOverflowOffset();
+        maxX = std::max(maxX, (int32_t)children[i]->getTransform().scale.x);
+    }
+
     return false;
 }
 

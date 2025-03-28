@@ -73,8 +73,8 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
 
     frameBox_->setColor(Utils::hexToVec4("#cc338bff"));
     frameBox_->transform_.pos = {0, 0, 1};
-    frameBox_->transform_.scale = {width, height, 1};
     frameBox_->transform_.vPos = {frameBox_->getLayout().border.left, frameBox_->getLayout().border.top};
+    frameBox_->transform_.scale = {width, height, 1};
     frameBox_->transform_.vScale = {
         width - frameBox_->getLayout().border.left - frameBox_->getLayout().border.left,
         height - frameBox_->getLayout().border.top - frameBox_->getLayout().border.bot};
@@ -198,8 +198,8 @@ void WindowFrame::renderLayout()
        to render back to front in that case and take overdrawing as a compromise. */
     /* TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
        transparent objects. */
-    // for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
-    for (auto& node : allFrameChildNodes_) // -> front to back Z
+    for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
+    // for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
         Renderer::render(node, pMat, frameState_->frameSize.y);
     }
@@ -221,10 +221,10 @@ void WindowFrame::updateLayout()
         /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
             for it had finished. Note that we do this on the parent of the current BOX node because we need to
             notify it AFTER the item containing BOX inside it finished the layout pass. */
-        if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
-        {
-            Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
-        }
+        // if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+        // {
+        //     Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
+        // }
 
         /* Currently only BOX type nodes support overflow handling */
         if (node->getType() == AbstractNode::NodeType::BOX)

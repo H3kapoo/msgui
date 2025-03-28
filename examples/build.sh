@@ -22,6 +22,7 @@ if [[ -z $1 ]]; then
     echo "[INFO ] recyclelists"
     echo "[INFO ] slider"
     echo "[INFO ] contextmenu"
+    echo "[INFO ] fitBoxes"
     exit
 fi
 

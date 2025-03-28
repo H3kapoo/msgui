@@ -159,6 +159,8 @@ void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, co
 
     /* Shader needs texture unit location in range from [0..maxUnits], not from [GL_TEXTURE0..maxGL_TEXTURE] */
     setInt(name, texUnit - GL_TEXTURE0);
+
+    /* Active unit needs to be indeed [GL_TEXTURE0..maxGL_TEXTURE] */
     glActiveTexture(texUnit);
 
     glBindTexture(type, texId);

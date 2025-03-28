@@ -195,14 +195,19 @@ public:
      */
     void printTree(uint32_t currentDepth = 1);
 
+    /**
+        Each node can have it's own shader attributes and this function allows to set them per node.
+    */
     virtual void setShaderAttributes() = 0;
 
     /* Setters */
+    void setType(const NodeType type);
     void setShader(Shader* shader);
     void setMesh(Mesh* shader);
 
     /* Getters */
     Transform& getTransform();
+    NodeType getType();
     Shader* getShader();
     Mesh* getMesh();
     FrameStatePtr getState();

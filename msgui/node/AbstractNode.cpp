@@ -213,6 +213,11 @@ void AbstractNode::printTree(uint32_t currentDepth)
     }
 }
 
+void AbstractNode::setType(const AbstractNode::NodeType type)
+{
+    nodeType_ = type;
+}
+
 void AbstractNode::setShader(Shader* shader)
 {
     shader_ = shader;
@@ -226,6 +231,11 @@ void AbstractNode::setMesh(Mesh* mesh)
 Transform& AbstractNode::getTransform()
 {
     return transform_;
+}
+
+AbstractNode::NodeType AbstractNode::getType()
+{
+    return nodeType_;
 }
 
 Shader* AbstractNode::getShader()

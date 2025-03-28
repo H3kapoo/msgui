@@ -36,7 +36,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
         setVSync(1);
         setDepthTest(true);
         setScissorTest(true);
-        // setBlending(true);
+        setBlending(true);
         sharedDisplay_ = glfwGetX11Display();
         sharedContext_ = glXGetCurrentContext();
         uniqueContextAquired = true;
