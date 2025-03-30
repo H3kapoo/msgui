@@ -8,6 +8,7 @@
 #include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 #include "msgui/nodeEvent/RMBRelease.hpp"
+#include "msgui/renderer/TextRenderer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -203,6 +204,10 @@ void WindowFrame::renderLayout()
     {
         Renderer::render(node, pMat, frameState_->frameSize.y);
     }
+
+    /* Render text after the nodes themselves. */
+    TextRenderer::get().render(pMat);
+    // TextRenderer::get().clear();
 }
 
 void WindowFrame::updateLayout()

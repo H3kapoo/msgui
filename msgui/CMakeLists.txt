@@ -50,6 +50,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         node/FloatingBox.cpp
         node/RecycleList.cpp
         node/Slider.cpp
+        node/TextLabel.cpp
         node/utils/BoxDividerSep.cpp
         node/utils/LayoutData.cpp
         node/utils/ScrollBar.cpp

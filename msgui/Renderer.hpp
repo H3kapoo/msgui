@@ -30,7 +30,7 @@ public:
 
         // printf("%d\n", frameSizeY);
         // printf("vPos %d %d vScale %d %d\n", t.vPos.x, t.vPos.y, t.vScale.x, t.vScale.y);
-        // Window::setScissorTest(false);
+        Window::setScissorTest(false);
         glScissor(
             t.vPos.x,
             // Height can be computed based on the projMat alone

@@ -1,9 +1,11 @@
+#include "msgui/Texture.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/Application.hpp"
 #include "msgui/Logger.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/Box.hpp"
+#include "msgui/node/TextLabel.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/Image.hpp"
 #include "msgui/node/WindowFrame.hpp"
@@ -26,15 +28,19 @@ int main()
 
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
-    // rootBox->getLayout()
-    //     .setAlignChild(Layout::Align::CENTER);
+    rootBox->getLayout()
+        .setAlignChild(Layout::Align::CENTER);
 
-    ImagePtr img = Utils::make<Image>("myimg");
-    img->getLayout()
-        .setScale({46*2, 46*2});
+    TextLabelPtr lbl = Utils::make<TextLabel>("Text");
+    lbl->getLayout()
+        // .setScale({20, 20});
+        // .setScale({46, 46});
         // .setScale({128, 128});
+        .setScale({256, 256});
         // .setScale({64, 64});
-    rootBox->append(img);
+        // .setScale({64, 64});
+    lbl->setText("ba mihai sa mor io :)))");
+    rootBox->append(lbl);
     // TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
     // tv->getLayout().setScale({300, 300});
     // tv->getLayout()
@@ -93,6 +99,7 @@ int main()
 
     /* Blocks from here on */
     app.setPollMode(Application::PollMode::CONTINUOUS);
+    app.setVSync(false);
     app.run();
 
     return 0;

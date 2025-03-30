@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -90,6 +91,14 @@ public:
     void setInt(const std::string& name, const int32_t value) const;
 
     /**
+        Set vector of integers uniform inside the shader.
+
+        @param name Name of the folder
+        @param values Vector Values to be set
+    */
+    void setIntv(const std::string& name, const std::vector<int32_t>& values) const;
+
+    /**
         Set 2D integer vector uniform inside the shader.
 
         @param name Name of the folder
@@ -128,6 +137,15 @@ public:
         @param value Value to be set
     */
     void setMat4f(const std::string& name, const glm::mat4& value) const;
+
+
+    /**
+        Set 4x4 matrix array uniform inside the shader.
+
+        @param name Name of the folder
+        @param value Vector containing the Values to be set
+    */
+    void setMat4fv(const std::string& name, const std::vector<glm::mat4>& values) const;
 
     /**
         Get the current shader id.

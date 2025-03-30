@@ -77,6 +77,18 @@ void Shader::setInt(const std::string& name, const int32_t value) const
     glUniform1i(loc, value);
 }
 
+void Shader::setIntv(const std::string& name, const std::vector<int32_t>& values) const
+{
+    bind();
+
+    int32_t loc = glGetUniformLocation(shaderId_, name.c_str());
+    if (loc == -1)
+    {
+        return handleNotFoundLocation(name);
+    }
+    glUniform1iv(loc, values.size(), values.data());
+}
+
 void Shader::setVec2i(const std::string& name, const glm::ivec2& value) const
 {
     bind();
@@ -138,6 +150,19 @@ void Shader::setMat4f(const std::string& name, const glm::mat4& value) const
     glUniformMatrix4fv(loc, 1, transposeMatrix, glm::value_ptr(value));
 }
 
+void Shader::setMat4fv(const std::string& name, const std::vector<glm::mat4>& values) const
+{
+    bind();
+
+    int32_t loc = glGetUniformLocation(shaderId_, name.c_str());
+    if (loc == -1)
+    {
+        return handleNotFoundLocation(name);
+    }
+    constexpr uint32_t transposeMatrix = GL_FALSE;
+    glUniformMatrix4fv(loc, values.size(), transposeMatrix, glm::value_ptr(values[0]));
+}
+
 uint32_t Shader::getShaderId() const
 {
     return shaderId_;
@@ -169,5 +194,6 @@ void Shader::setTexture(const std::string& name, const TextureUnitId texUnit, co
 inline void Shader::handleNotFoundLocation(const std::string& name) const
 {
     log_.errorLn("Uniform \"%s\" not found", name.c_str());
+    exit(1);
 }
 } // namespace msgui

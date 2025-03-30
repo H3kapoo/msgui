@@ -31,8 +31,8 @@ void main()
     // if (t < 0.5f) { discard; }
     // float aaf = fwidth(t);
     // float alpha = smoothstep(0.5 - aaf, 0.5 + aaf, t);
-    float feather = 0.04;
-    t = smoothstep(0.5f - feather, 0.5f + feather, t);
+    // float feather = 0.03;
+    // t = smoothstep(0.5f - feather, 0.5f + feather, t);
     // gl_FragColor = vec4(uColor.xyz, alpha);
     gl_FragColor = vec4(uColor.xyz, t);
     // gl_FragColor = vec4(t, t, t, alpha);
