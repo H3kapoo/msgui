@@ -163,6 +163,27 @@ void Shader::setMat4fv(const std::string& name, const std::vector<glm::mat4>& va
     glUniformMatrix4fv(loc, values.size(), transposeMatrix, glm::value_ptr(values[0]));
 }
 
+void Shader::setPartialMat4fv(const std::string& name, const int32_t startIdx,  const int32_t endIdx,
+    const std::vector<glm::mat4>& values) const
+{
+    bind();
+
+    int32_t loc = glGetUniformLocation(shaderId_, name.c_str());
+    if (loc == -1)
+    {
+        return handleNotFoundLocation(name);
+    }
+
+    if (endIdx - startIdx <= 0)
+    {
+        log_.warnLn("Trying to set mat4v but the indices difference is zero or less than zero!");
+        return;
+    }
+
+    constexpr uint32_t transposeMatrix = GL_FALSE;
+    glUniformMatrix4fv(loc, endIdx - startIdx, transposeMatrix, glm::value_ptr(values[startIdx]));
+}
+
 uint32_t Shader::getShaderId() const
 {
     return shaderId_;

@@ -143,9 +143,20 @@ public:
         Set 4x4 matrix array uniform inside the shader.
 
         @param name Name of the folder
-        @param value Vector containing the Values to be set
+        @param values Vector containing the Values to be set
     */
     void setMat4fv(const std::string& name, const std::vector<glm::mat4>& values) const;
+
+    /**
+        Set 4x4 matrix array uniform inside the shader but only the values between [startIdx, endIdx).
+
+        @param name Name of the folder
+        @param startIdx Start index of the array slice
+        @param endIdx End index of the array slice
+        @param value Vector containing the Values to be set
+    */
+    void setPartialMat4fv(const std::string& name, const int32_t startIdx,  const int32_t endIdx,
+        const std::vector<glm::mat4>& values) const;
 
     /**
         Get the current shader id.

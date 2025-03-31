@@ -4,10 +4,10 @@
 
 #include "msgui/MeshLoader.hpp"
 #include "msgui/ShaderLoader.hpp"
-#include "msgui/Transform.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/renderer/TextRenderer.hpp"
+#include "msgui/renderer/text/TextBufferStore.hpp"
+#include "msgui/renderer/text/Types.hpp"
 
 namespace msgui
 {
@@ -59,20 +59,28 @@ void TextLabel::setupLayoutReloadables()
 
 TextLabel& TextLabel::setText(const std::string& text)
 {
-    for (int32_t x = 0; char ch : text)
+    if (textIt_.has_value())
     {
-        Transform tempTr;
-        tempTr.scale = { 24, 24, 1};
-        tempTr.pos = { 100+x, 100, 10};
-
-        TextRenderer::get().pushToBuffer(std::move(tempTr.computeModelMatrix()), int32_t(ch));
-        x += 40;
+        textIt_.value()->text = text;
+        textIt_.value()->pcd.transform.clear();
+        textIt_.value()->pcd.unicodeIndex.clear();
+        log_.debugLn("pe aii");
     }
+    else
+    {
+        log_.debugLn("pe dincolo");
+        TextData data;
+        data.text = text;
+        data.pos = {100, 100, 10};
+        
+        textIt_ = TextBufferStore::get().add(std::move(data));
+    }
+    // TextBufferStore::get().remove(dataIt);
 
-    text_ = text;
+    // text_ = text;
     REQUEST_NEW_FRAME;
     return *this;
 }
 
-std::string TextLabel::getText() const { return text_; }
+std::string TextLabel::getText() const { return textIt_.has_value() ? textIt_.value()->text : ""; }
 } // msgui

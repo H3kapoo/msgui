@@ -9,6 +9,7 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
+#include "msgui/renderer/text/TextRenderer.hpp"
 
 namespace msgui
 {
@@ -87,6 +88,8 @@ private:
     std::vector<AbstractNodePtr> allFrameChildNodes_;
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
+
+    renderer::text::TextRenderer textRenderer_;
 
     static std::array<GLFWcursor*, 6> standardCursors_;
     static bool initCursors;

@@ -3,9 +3,12 @@
 #include "msgui/FontLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
+#include "msgui/renderer/text/Types.hpp"
 
 namespace msgui
 {
+using namespace renderer::text;
+
 /* Node used to display text. */
 class TextLabel : public AbstractNode
 {
@@ -24,7 +27,9 @@ private:
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
-    std::string text_;
+
+    std::optional<TextDataListIt> textIt_{std::nullopt};
+
     TexturePtr btnTex_{nullptr};
     uint32_t id_{0};
     FontLoader loader_;

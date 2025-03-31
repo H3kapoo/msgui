@@ -8,7 +8,6 @@
 #include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 #include "msgui/nodeEvent/RMBRelease.hpp"
-#include "msgui/renderer/TextRenderer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -199,6 +198,7 @@ void WindowFrame::renderLayout()
        to render back to front in that case and take overdrawing as a compromise. */
     /* TODO: Deal with transparent objects. Current fix is to render back to front (reverse) when there are
        transparent objects. */
+    // Later Note: for UI apps it may really not matter performance wise to render front to back.
     for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
     // for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
@@ -206,8 +206,7 @@ void WindowFrame::renderLayout()
     }
 
     /* Render text after the nodes themselves. */
-    TextRenderer::get().render(pMat);
-    // TextRenderer::get().clear();
+    textRenderer_.render(pMat);
 }
 
 void WindowFrame::updateLayout()

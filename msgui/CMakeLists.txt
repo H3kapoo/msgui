@@ -36,6 +36,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         Debug.cpp
         Input.cpp
         layoutEngine/SimpleLayoutEngine.cpp
+        layoutEngine/text/SimpleTextLayoutEngine.cpp
+        renderer/text/TextBufferStore.cpp
+        renderer/text/TextRenderer.cpp
         Logger.cpp
         Mesh.cpp
         MeshLoader.cpp

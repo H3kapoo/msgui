@@ -39,8 +39,15 @@ int main()
         .setScale({256, 256});
         // .setScale({64, 64});
         // .setScale({64, 64});
-    lbl->setText("ba mihai sa mor io :)))");
+    lbl->setText("ba");
     rootBox->append(lbl);
+
+    lbl->getEvents().listen<nodeevent::LMBRelease>(
+        [ref = Utils::ref<TextLabel>(lbl), mainLogger](const auto&)
+        {
+            // mainLogger.debugLn("pe aici");
+            ref.lock()->setText("asta e alt text!");
+        });
     // TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
     // tv->getLayout().setScale({300, 300});
     // tv->getLayout()
@@ -98,8 +105,8 @@ int main()
     // });
 
     /* Blocks from here on */
-    app.setPollMode(Application::PollMode::CONTINUOUS);
-    app.setVSync(false);
+    // app.setPollMode(Application::PollMode::CONTINUOUS);
+    // app.setVSync(false);
     app.run();
 
     return 0;
