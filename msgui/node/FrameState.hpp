@@ -8,8 +8,20 @@
 
 namespace msgui
 {
-#define MAKE_LAYOUT_DIRTY      if (getState()) { getState()->isLayoutDirty = true; };
-#define REQUEST_STORE_RECREATE if (getState()) { getState()->layoutStoreNeedsRecreate = true; };
+// TODO: Implement bitwise & and | so we dont rely on declaring it as uint8_t in FrameState
+enum ELayoutPass : uint8_t
+{
+    NOTHING                    = 0b00000000,
+    RECALCULATE_NODE_TRANSFORM = 0b00000001,
+    RECALCULATE_TEXT_TRANSFORM = 0b00000010,
+    RESOLVE_NODE_RELATIONS     = 0b00000100,
+    EVERYTHING_NODE            = RECALCULATE_NODE_TRANSFORM | RESOLVE_NODE_RELATIONS,
+    EVERYTHING_TEXT            = RECALCULATE_TEXT_TRANSFORM,
+    EVERYTHING                 = EVERYTHING_NODE | EVERYTHING_TEXT
+};
+
+#define MAKE_LAYOUT_DIRTY      if (getState()) { getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM; };
+#define REQUEST_STORE_RECREATE if (getState()) { getState()->layoutPassActions |= ELayoutPass::RESOLVE_NODE_RELATIONS; };
 #define REQUEST_NEW_FRAME      if (getState()) { getState()->requestNewFrameFunc(); };
 #define MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME\
     MAKE_LAYOUT_DIRTY \
@@ -37,8 +49,7 @@ struct FrameState
     AbstractNodePtr prevClickedNodePtr              {NO_PTR};
     AbstractNodePtr hoveredNodePtr                  {NO_PTR};
     std::function<void()> requestNewFrameFunc       {nullptr};
-    bool isLayoutDirty                              {true};
-    bool layoutStoreNeedsRecreate                   {true};
+    uint8_t layoutPassActions                       {ELayoutPass::EVERYTHING};
     int32_t currentCursorId                         {GLFW_ARROW_CURSOR};
     int32_t prevCursorId                            {GLFW_ARROW_CURSOR};
 };

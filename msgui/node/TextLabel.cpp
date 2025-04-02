@@ -59,28 +59,20 @@ void TextLabel::setupLayoutReloadables()
 
 TextLabel& TextLabel::setText(const std::string& text)
 {
-    if (textIt_.has_value())
-    {
-        textIt_.value()->text = text;
-        textIt_.value()->pcd.transform.clear();
-        textIt_.value()->pcd.unicodeIndex.clear();
-        log_.debugLn("pe aii");
-    }
-    else
-    {
-        log_.debugLn("pe dincolo");
-        TextData data;
-        data.text = text;
-        data.pos = {100, 100, 10};
-        
-        textIt_ = TextBufferStore::get().add(std::move(data));
-    }
-    // TextBufferStore::get().remove(dataIt);
+    if (!textData_) { textData_ = TextBufferStore::get().newLocation(); }
 
-    // text_ = text;
+    textData_.value()->transformPtr = &transform_;
+    textData_.value()->text = std::move(text);
+    textData_.value()->isDirty = true;
+
+    if (auto state = getState())
+    {
+        state->layoutPassActions |= ELayoutPass::EVERYTHING_TEXT;
+    }
+
     REQUEST_NEW_FRAME;
     return *this;
 }
 
-std::string TextLabel::getText() const { return textIt_.has_value() ? textIt_.value()->text : ""; }
+std::string TextLabel::getText() const { return textData_ ? textData_.value()->text : ""; }
 } // msgui

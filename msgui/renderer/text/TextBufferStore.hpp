@@ -13,8 +13,8 @@ class TextBufferStore
 public:
     static TextBufferStore& get();
 
-    TextDataListIt add(TextData&& data);
-    bool remove(const TextDataListIt& dataIt);
+    TextDataListIt newLocation();
+    bool remove(MaybeTextDataIt& dataIt);
     TextDataList& buffer();
 
 private:

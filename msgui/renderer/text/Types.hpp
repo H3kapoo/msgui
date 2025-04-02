@@ -1,7 +1,8 @@
 #pragma once
 
+#include "msgui/Transform.hpp"
+#include <optional>
 #include <string>
-#include <list>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -17,11 +18,14 @@ struct TextData
     };
 
     std::string text;
-    glm::ivec3 pos{0};
+    Transform* transformPtr;
     glm::vec4 color{1.0f};
+    bool isDirty{true};
     PerCodepointData pcd;
     // other data
 };
-using TextDataList = std::list<TextData>;
-using TextDataListIt = std::list<TextData>::iterator;
+
+using TextDataList = std::vector<TextData>;
+using TextDataListIt = TextDataList::iterator;
+using MaybeTextDataIt = std::optional<TextDataListIt>;
 } // namespace msgui::renderer::text

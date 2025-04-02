@@ -1,6 +1,5 @@
 #include "msgui/renderer/text/TextRenderer.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "msgui/FontLoader.hpp"
 #include "msgui/MeshLoader.hpp"
@@ -15,7 +14,6 @@ TextRenderer::TextRenderer()
 {
     mesh_ = MeshLoader::loadQuad();
     shader_ = ShaderLoader::loadShader("assets/shader/textInstanced.glsl");
-    // fontTexId_ = FontLoader().loadFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/UbuntuNerdFont-Regular.ttf", 24);
 }
 
 void TextRenderer::render(const glm::mat4& projMat)
@@ -37,19 +35,7 @@ void TextRenderer::render(const glm::mat4& projMat)
     // shaderBuffer_.reserve(MAX_SHADER_BUFFER_SIZE);
     for (auto& element : storeBuffer)
     {
-        // calculate text positions & char index
-        glm::vec3 startPos = element.pos;
-        for (char ch : element.text)
-        {
-            glm::mat4 modelMatrix = glm::mat4(1.0f);
-            modelMatrix = glm::translate(modelMatrix, startPos);
-            modelMatrix = glm::scale(modelMatrix, glm::vec3{24, 24, 1});
-
-            element.pcd.transform.emplace_back(std::move(modelMatrix));
-            element.pcd.unicodeIndex.push_back(ch);
-
-            startPos.x += 50;
-        }
+        // fill the GPU buffer in order to minimize render calls..
     }
 
     // just because right now there's only one element
@@ -61,6 +47,7 @@ void TextRenderer::render(const glm::mat4& projMat)
         
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, front.pcd.unicodeIndex.size());
     }
+
     Window::setDepthTest(true);
 
 };

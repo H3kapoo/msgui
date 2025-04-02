@@ -1,4 +1,5 @@
 #include "WindowFrame.hpp"
+#include "msgui/layoutEngine/text/SimpleTextLayoutEngine.hpp"
 #include "msgui/node/RecycleList.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/nodeEvent/FocusLost.hpp"
@@ -8,6 +9,7 @@
 #include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
 #include "msgui/nodeEvent/NodeEventManager.hpp"
 #include "msgui/nodeEvent/RMBRelease.hpp"
+#include "msgui/renderer/text/TextBufferStore.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -34,6 +36,7 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
     , layoutEngine_(std::make_shared<SimpleLayoutEngine>())
+    , textLayoutEngine_(std::make_shared<SimpleTextLayoutEngine>())
     , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
 {
@@ -162,15 +165,12 @@ bool WindowFrame::run()
     }
 
     /* Layout pass */
-    if (frameState_->isLayoutDirty)
+    if (frameState_->layoutPassActions != ELayoutPass::NOTHING)
     {
-        /* It's important for the variable to be reset before the layout update is called as layoutUpdate
-           can SET the variable to true again if it decides the layout got dirty. */
-        frameState_->isLayoutDirty = false;
         updateLayout();
 
         /* If the layout got dirty again we need to simulate a new frame RUN request. */
-        if (frameState_->isLayoutDirty)
+        if (frameState_->layoutPassActions != ELayoutPass::NOTHING)
         {
             Window::requestEmptyEvent();
             return false; // do not render yet, go away.
@@ -212,10 +212,15 @@ void WindowFrame::renderLayout()
 void WindowFrame::updateLayout()
 {
     /* Must redo internal vector structure if something was added/removed. */
-    if (frameState_->layoutStoreNeedsRecreate)
+    if (frameState_->layoutPassActions & ELayoutPass::RESOLVE_NODE_RELATIONS)
     {
         resolveNodeRelations();
+        frameState_->layoutPassActions &= ~ELayoutPass::RESOLVE_NODE_RELATIONS;
     }
+
+    /* It's important for the variable to be reset before the layout update is called as layoutUpdate
+        can SET the variable to true again if it decides the layout got dirty. */
+    frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_NODE_TRANSFORM;
 
     /* Iterate from lowest depth to highest */
     for (const auto& node : allFrameChildNodes_ | std::views::reverse)
@@ -254,6 +259,25 @@ void WindowFrame::updateLayout()
                 node->transform_.computeViewableArea(parent->transform_, parent->getLayout().border);
             }
         }
+    }
+
+
+    /* Update text layouts if needed.
+       1. If recalculation was requested specifically for text transform then each node will see for itself if
+          it shall be updated.
+       2. If in addition to this the layout is also in need of node transform recalculation, then it probably
+          means the user modified the layout (i.e. positioning of nodes) and as a consequence all text must be
+          forcefully be recalculated.
+    */
+    if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
+    {
+        const bool wasDueToLayoutChanges = frameState_->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM;
+        auto& textBuffer = TextBufferStore::get().buffer();
+        for (auto& textData : textBuffer)
+        {
+            textLayoutEngine_->process(textData, wasDueToLayoutChanges);
+        }
+        frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
     }
 }
 
@@ -412,7 +436,8 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
 
 void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
 {
-    frameState_->isLayoutDirty = true;
+    // frameState_->isLayoutDirty = true;
+    frameState_->layoutPassActions = ELayoutPass::EVERYTHING;
     frameState_->frameSize = {newWidth, newHeight};
     for (const auto& node : allFrameChildNodes_)
     {

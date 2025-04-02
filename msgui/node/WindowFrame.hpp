@@ -6,6 +6,7 @@
 #include "msgui/layoutEngine/ILayoutEngine.hpp"
 #include "msgui/Window.hpp"
 #include "msgui/Input.hpp"
+#include "msgui/layoutEngine/text/ITextLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
@@ -13,6 +14,9 @@
 
 namespace msgui
 {
+using namespace layoutengine::text;
+using namespace renderer::text;
+
 class Application;
 
 /* UI Window content manager */
@@ -85,11 +89,12 @@ private:
     FrameStatePtr frameState_{nullptr};
     bool shouldWindowClose_{false};
     ILayoutEnginePtr layoutEngine_{nullptr}; // this should be a singleton maybe as it doesnt depend on anything
+    TextRenderer textRenderer_;
+    ITextLayoutEnginePtr textLayoutEngine_{nullptr};
     std::vector<AbstractNodePtr> allFrameChildNodes_;
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
 
-    renderer::text::TextRenderer textRenderer_;
 
     static std::array<GLFWcursor*, 6> standardCursors_;
     static bool initCursors;

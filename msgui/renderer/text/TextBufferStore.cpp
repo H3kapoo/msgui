@@ -1,4 +1,6 @@
 #include "msgui/renderer/text/TextBufferStore.hpp"
+#include "msgui/renderer/text/Types.hpp"
+#include <optional>
 
 namespace msgui::renderer::text
 {
@@ -8,25 +10,24 @@ TextBufferStore& TextBufferStore::get()
     return instance;
 }
 
-TextDataListIt TextBufferStore::add(TextData&& data)
+TextDataListIt TextBufferStore::newLocation()
 {
-    /* Using list here instead of vector presevers the iterators validity regardless of if we add/remove
-       elements to the list. Using vectors would mean possible reallocations and iterators getting invalidated.
-       Returning list iterators is more prefferable here for later deletions instead of std::finding each element
-       to be deleted from a std::vector. That's the current assumption at least for now. */
-    log_.debugLn("Added to store: \"%s\"", data.text.c_str());
-
-    return buffer_.insert(buffer_.end(), std::move(data));
+    log_.debugLn("Requested new location");
+    buffer_.emplace_back();
+    return std::prev(buffer_.end());
 }
 
-bool TextBufferStore::remove(const TextDataListIt& dataIt)
+bool TextBufferStore::remove(MaybeTextDataIt& maybeDataIt)
 {
-    log_.debugLn("Removed from store: \"%s\"", dataIt->text.c_str());
+    if (!maybeDataIt) { return false; }
+
+    log_.debugLn("Removed from store: \"%s\"", maybeDataIt.value()->text.c_str());
 
     /* Return true if something was actually removed. */
-    if (dataIt != buffer_.end())
+    if (maybeDataIt.value() != buffer_.end())
     {
-        buffer_.erase(dataIt);
+        buffer_.erase(maybeDataIt.value());
+        maybeDataIt = std::nullopt;
         return true;
     }
 

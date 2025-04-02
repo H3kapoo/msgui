@@ -28,7 +28,7 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
 
-    std::optional<TextDataListIt> textIt_{std::nullopt};
+    MaybeTextDataIt textData_{std::nullopt};
 
     TexturePtr btnTex_{nullptr};
     uint32_t id_{0};
