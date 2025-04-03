@@ -46,7 +46,8 @@ int main()
         [ref = Utils::ref<TextLabel>(lbl), mainLogger](const auto&)
         {
             // mainLogger.debugLn("pe aici");
-            ref.lock()->setText("asta e alt text!");
+            ref.lock()->setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
+            // ref.lock()->setText("");
         });
     // TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
     // tv->getLayout().setScale({300, 300});

@@ -10,21 +10,23 @@ void SimpleTextLayoutEngine::process(TextData& data, const bool forceAllDirty)
        However if the calculation is forced we must recalculate all text data. */
     if (!data.isDirty && !forceAllDirty) { return; }
 
+    data.isDirty = false;
     data.pcd.transform.clear();
     data.pcd.unicodeIndex.clear();
 
     glm::vec3 startPos = data.transformPtr->pos;
+    // startPos.x += 10;
     for (char ch : data.text)
     {
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, startPos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3{24, 24, 1});
+        // modelMatrix = glm::scale(modelMatrix, glm::vec3{24, 24, 1});
+        modelMatrix = glm::scale(modelMatrix, glm::vec3{16, 16, 1});
 
         data.pcd.transform.emplace_back(std::move(modelMatrix));
         data.pcd.unicodeIndex.push_back(ch);
 
-        startPos.x += 50;
+        startPos.x += 12;
     }
-    log_.debugLn("layouting");
 }
 } // namespace msgui::layoutengine::text

@@ -214,53 +214,56 @@ void WindowFrame::updateLayout()
     /* Must redo internal vector structure if something was added/removed. */
     if (frameState_->layoutPassActions & ELayoutPass::RESOLVE_NODE_RELATIONS)
     {
-        resolveNodeRelations();
         frameState_->layoutPassActions &= ~ELayoutPass::RESOLVE_NODE_RELATIONS;
+        resolveNodeRelations();
     }
-
-    /* It's important for the variable to be reset before the layout update is called as layoutUpdate
-        can SET the variable to true again if it decides the layout got dirty. */
-    frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_NODE_TRANSFORM;
 
     /* Iterate from lowest depth to highest */
-    for (const auto& node : allFrameChildNodes_ | std::views::reverse)
+    const bool isNodeTrRecalc = frameState_->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM;
+    if (isNodeTrRecalc)
     {
-        glm::ivec2 overflow = layoutEngine_->process(node);
+        /* It's important for the variable to be reset before the layout update is called as layoutUpdate
+            can SET the variable to true again if it decides the layout got dirty. */
+        frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_NODE_TRANSFORM;
 
-        /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
-            for it had finished. Note that we do this on the parent of the current BOX node because we need to
-            notify it AFTER the item containing BOX inside it finished the layout pass. */
-        // if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
-        // {
-        //     Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
-        // }
-
-        /* Currently only BOX type nodes support overflow handling */
-        if (node->getType() == AbstractNode::NodeType::BOX)
+        for (const auto& node : allFrameChildNodes_ | std::views::reverse)
         {
-            Utils::as<Box>(node)->updateOverflow(overflow);
-        }
-
-        /* TODO: This shall be moved into layout process(). */
-        /* After updating the node layout, we need to update the viewable area of the node based on the parent's
-           viewable area. Raw parent is used for better performance (compared to locking each time). */
-        if (auto parent = node->getParentRaw())
-        {
-            /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
-               the area of the window itself instead. */
-            if (parent->getType() == AbstractNode::NodeType::DROPDOWN)
+            glm::ivec2 overflow = layoutEngine_->process(node);
+    
+            /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
+                for it had finished. Note that we do this on the parent of the current BOX node because we need to
+                notify it AFTER the item containing BOX inside it finished the layout pass. */
+            // if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+            // {
+            //     Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
+            // }
+    
+            /* Currently only BOX type nodes support overflow handling */
+            if (node->getType() == AbstractNode::NodeType::BOX)
             {
-                auto frameBoxIdx = allFrameChildNodes_.size() - 1;
-                node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, Layout::TBLR{0});
+                Utils::as<Box>(node)->updateOverflow(overflow);
             }
-            /* Otherwise just compute viewable area as normal. */
-            else
+    
+            /* TODO: This shall be moved into layout process(). */
+            /* After updating the node layout, we need to update the viewable area of the node based on the parent's
+               viewable area. Raw parent is used for better performance (compared to locking each time). */
+            if (auto parent = node->getParentRaw())
             {
-                node->transform_.computeViewableArea(parent->transform_, parent->getLayout().border);
+                /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
+                   the area of the window itself instead. */
+                if (parent->getType() == AbstractNode::NodeType::DROPDOWN)
+                {
+                    auto frameBoxIdx = allFrameChildNodes_.size() - 1;
+                    node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, Layout::TBLR{0});
+                }
+                /* Otherwise just compute viewable area as normal. */
+                else
+                {
+                    node->transform_.computeViewableArea(parent->transform_, parent->getLayout().border);
+                }
             }
         }
     }
-
 
     /* Update text layouts if needed.
        1. If recalculation was requested specifically for text transform then each node will see for itself if
@@ -271,13 +274,13 @@ void WindowFrame::updateLayout()
     */
     if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
     {
-        const bool wasDueToLayoutChanges = frameState_->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM;
+        frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
+
         auto& textBuffer = TextBufferStore::get().buffer();
         for (auto& textData : textBuffer)
         {
-            textLayoutEngine_->process(textData, wasDueToLayoutChanges);
+            textLayoutEngine_->process(textData, isNodeTrRecalc);
         }
-        frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
     }
 }
 
