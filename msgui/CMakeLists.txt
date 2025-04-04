@@ -42,7 +42,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         Logger.cpp
         Mesh.cpp
         MeshLoader.cpp
-        FontLoader.cpp
+        loaders/FontLoader.cpp
         node/AbstractNode.cpp
         node/Box.cpp
         node/BoxDivider.cpp

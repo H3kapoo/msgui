@@ -26,14 +26,17 @@ private:
     TextRenderer& operator=(TextRenderer&&) = delete;
 
     void renderBatchContents();
+    void clearInternalBuffer();
 
+private:
     Logger log_{"TextRenderer"};
-    int32_t fontTexId_{0};
+    int32_t fallbackFontTexId_{0};
     Mesh* mesh_{nullptr};
     Shader* shader_{nullptr};
     glm::vec4 color_{1.0f};
     PerCodepointData shaderBuffer_;
+    int32_t batchCount{0};
 
-    static constexpr int32_t MAX_SHADER_BUFFER_SIZE{100};
+    static constexpr int32_t MAX_SHADER_BUFFER_SIZE{256};
 };
 } // namespace msgui::renderer::text

@@ -72,8 +72,7 @@ Texture TextureLoader::loadTextureInternal(const std::string& resPath,
 
     auto futureTask = task.get_future();
 
-    uint64_t threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
-    if (BELoadingQueue::get().isMainThread(threadId)) { task(); }
+    if (BELoadingQueue::get().isThisMainThread()) { task(); }
     /* This is not the main thread */
     else { BELoadingQueue::get().pushTask(std::move(task)); }
 

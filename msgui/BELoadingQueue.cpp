@@ -12,29 +12,49 @@ BELoadingQueue& BELoadingQueue::get()
 
 void BELoadingQueue::executeTasks()
 {
-    while (!tasks_.empty())
+    while (!uintTasks_.empty())
     {
-        auto& task = tasks_.front();
+        auto& task = uintTasks_.front();
         if (task.valid())
         {
             task();
             task.reset();
         }
-        tasks_.pop();
+        uintTasks_.pop();
+    }
+
+    while (!fontTasks_.empty())
+    {
+        auto& task = fontTasks_.front();
+        if (task.valid())
+        {
+            task();
+            task.reset();
+        }
+        fontTasks_.pop();
     }
 }
 
 void BELoadingQueue::pushTask(UIntTask&& task)
 {
     std::unique_lock lock{mtx_};
-    tasks_.emplace(std::move(task));
+    uintTasks_.emplace(std::move(task));
 
     /* We need to notify main thread to run it's UI loop */
     Window::requestEmptyEvent();
 }
 
-bool BELoadingQueue::isMainThread(const uint64_t threadId)
+void BELoadingQueue::pushTask(FontTask&& task)
 {
-    return mainThreadId_ == threadId;
+    std::unique_lock lock{mtx_};
+    fontTasks_.emplace(std::move(task));
+
+    /* We need to notify main thread to run it's UI loop */
+    Window::requestEmptyEvent();
+}
+
+bool BELoadingQueue::isThisMainThread()
+{
+    return mainThreadId_ == std::hash<std::thread::id>{}(std::this_thread::get_id());
 }
 } // namespace msgui

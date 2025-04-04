@@ -5,7 +5,7 @@ layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec2 vTex;
 layout (location = 2) in vec3 vCol;
 
-uniform mat4[100] uModelMatv;
+uniform mat4[256] uModelMatv;
 uniform mat4 uProjMat;
 
 out vec2 fTex;
@@ -22,7 +22,7 @@ void main()
 #version 330 core
 
 uniform sampler2DArray uTextureArray;
-uniform int[100] uCharIdxv;
+uniform int[256] uCharIdxv;
 uniform vec4 uColor;
 
 in vec2 fTex;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "msgui/FontLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
 #include "msgui/renderer/text/Types.hpp"
@@ -14,10 +13,15 @@ class TextLabel : public AbstractNode
 {
 public:
     TextLabel(const std::string& name);
+    ~TextLabel();
 
     TextLabel& setText(const std::string& text);
+    TextLabel& setFont(const std::string fontPath);
+    TextLabel& setFontSize(const int32_t fontSize);
 
     std::string getText() const;
+    std::string getFont() const;
+    int32_t getFontSize() const;
 
 private:
     void setShaderAttributes() override;
@@ -32,7 +36,6 @@ private:
 
     TexturePtr btnTex_{nullptr};
     uint32_t id_{0};
-    FontLoader loader_;
 };
 using TextLabelPtr = std::shared_ptr<TextLabel>;
 using TextLabelWPtr = std::weak_ptr<TextLabel>;

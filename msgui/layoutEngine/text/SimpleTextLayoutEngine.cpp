@@ -14,19 +14,23 @@ void SimpleTextLayoutEngine::process(TextData& data, const bool forceAllDirty)
     data.pcd.transform.clear();
     data.pcd.unicodeIndex.clear();
 
+    auto fontData = data.fontData;
     glm::vec3 startPos = data.transformPtr->pos;
-    // startPos.x += 10;
     for (char ch : data.text)
     {
+        int32_t idx = ch;
+        float x = startPos.x + fontData->codePointData[idx].bearing.x;
+        float y = startPos.y -  fontData->codePointData[idx].bearing.y;
+
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, startPos);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3{x, y, startPos.z});
         // modelMatrix = glm::scale(modelMatrix, glm::vec3{24, 24, 1});
-        modelMatrix = glm::scale(modelMatrix, glm::vec3{16, 16, 1});
+        modelMatrix = glm::scale(modelMatrix, glm::vec3{fontData->fontSize, fontData->fontSize, 1});
 
         data.pcd.transform.emplace_back(std::move(modelMatrix));
         data.pcd.unicodeIndex.push_back(ch);
 
-        startPos.x += 12;
+        startPos.x += fontData->codePointData[idx].hAdvance >> 6;
     }
 }
 } // namespace msgui::layoutengine::text

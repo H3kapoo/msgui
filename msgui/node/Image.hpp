@@ -1,6 +1,5 @@
 #pragma once
 
-#include "msgui/FontLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
 
@@ -29,7 +28,6 @@ private:
     std::string imagePath_;
     TexturePtr btnTex_{nullptr};
     uint32_t id_{0};
-    FontLoader loader_;
 };
 using ImagePtr = std::shared_ptr<Image>;
 using ImageWPtr = std::weak_ptr<Image>;

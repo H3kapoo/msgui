@@ -1,12 +1,15 @@
 #pragma once
 
+#include "msgui/renderer/text/Types.hpp"
 #include <future>
 #include <mutex>
 #include <queue>
+#include <functional>
 
 namespace msgui
 {
 using UIntTask = std::packaged_task<uint32_t()>;
+using FontTask = std::packaged_task<renderer::text::FontPtr()>;
 
 /* Class used to load backend resources from the main thread when loading was requested
    from secondary threads.
@@ -29,18 +32,25 @@ public:
     void executeTasks();
 
     /**
-        Push task that will return unsigned integer as a promise.
-
+        Push task that will resolve an unsigned integer return task.
+        
         @param task Task function to be executed
     */
     void pushTask(UIntTask&& task);
+
+    /**
+        Push task that will resolve a FontPtr return task.
+
+        @param task Task function to be executed
+    */
+    void pushTask(FontTask&& task);
 
     /**
         Check if the calling thread is the main UI one.
 
         @return True is the thread is the main one
     */
-    bool isMainThread(const uint64_t threadId);
+    bool isThisMainThread();
 
 private:
     /* Cannot be copied or moved */
@@ -51,7 +61,9 @@ private:
     BELoadingQueue& operator=(BELoadingQueue&&) = delete;
 
     uint64_t mainThreadId_{std::hash<std::thread::id>{}(std::this_thread::get_id())};
-    std::queue<UIntTask> tasks_;
+    // TODO: Ideally we shall have a single queue
+    std::queue<UIntTask> uintTasks_;
+    std::queue<FontTask> fontTasks_;
     std::mutex mtx_;
 };
 } // namespace msgui

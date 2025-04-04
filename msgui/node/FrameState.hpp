@@ -20,6 +20,7 @@ enum ELayoutPass : uint8_t
     EVERYTHING                 = EVERYTHING_NODE | EVERYTHING_TEXT
 };
 
+#define MAKE_TEXT_LAYOUT_DIRTY if (getState()) { getState()->layoutPassActions |= ELayoutPass::EVERYTHING_TEXT;  };
 #define MAKE_LAYOUT_DIRTY      if (getState()) { getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM; };
 #define REQUEST_STORE_RECREATE if (getState()) { getState()->layoutPassActions |= ELayoutPass::RESOLVE_NODE_RELATIONS; };
 #define REQUEST_NEW_FRAME      if (getState()) { getState()->requestNewFrameFunc(); };
