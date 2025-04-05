@@ -2,12 +2,10 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
-#include "msgui/renderer/text/Types.hpp"
-#include "msgui/renderer/text/TextBufferStore.hpp"
+#include "msgui/renderer/Types.hpp"
 
 namespace msgui
 {
-using namespace renderer::text;
 
 /* Node used to display text. */
 class TextLabel : public AbstractNode
@@ -21,10 +19,6 @@ public:
     TextLabel& setFont(const std::string fontPath);
     TextLabel& setFontSize(const int32_t fontSize);
 
-    void resetText()
-    {
-        TextBufferStore::get().remove(textData_);
-    }
     glm::vec4 getColor() const;
     std::string getText() const;
     std::string getFont() const;
@@ -39,7 +33,7 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
 
-    MaybeTextDataIt textData_{std::nullopt};
+    renderer::MaybeTextDataIt textData_{std::nullopt};
 
     TexturePtr btnTex_{nullptr};
     uint32_t id_{0};

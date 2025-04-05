@@ -1,7 +1,7 @@
 #include "BoxDivider.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
@@ -12,8 +12,8 @@ namespace msgui
 {
 BoxDivider::BoxDivider(const std::string& name) : AbstractNode(name, NodeType::BOX_DIVIDER)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("BoxDivider(" + name + ")");
 
     //TODO: Box divider should not be "active" with < 2 boxes
@@ -27,11 +27,11 @@ void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercS
     for (uint32_t i = 0; i < slotCount; i++)
     {
         auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
-        if (layout_.type == Layout::Type::HORIZONTAL)
+        if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
             ref->getLayout().scale = {initialPercSize[i], 1.0f};
         }
-        else if (layout_.type == Layout::Type::VERTICAL)
+        else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
             ref->getLayout().scale = {1.0f, initialPercSize[i]};
         }
@@ -63,7 +63,7 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
         AbstractNode::append(*thisBoxIt);
 
         (*thisBoxIt)->getLayout()
-            .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL});
+            .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::REL});
 
         if (i == 0 || i != size - 1)
         {

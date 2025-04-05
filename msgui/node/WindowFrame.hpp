@@ -6,28 +6,22 @@
 #include "msgui/layoutEngine/ILayoutEngine.hpp"
 #include "msgui/Window.hpp"
 #include "msgui/Input.hpp"
-#include "msgui/layoutEngine/text/ITextLayoutEngine.hpp"
+#include "msgui/layoutEngine/ITextLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/renderer/text/TextRenderer.hpp"
+#include "msgui/renderer/TextRenderer.hpp"
+#include "msgui/common/Constants.hpp"
 
 namespace msgui
 {
-using namespace layoutengine::text;
-using namespace renderer::text;
+using namespace layoutengine;
 
 class Application;
 
 /* UI Window content manager */
 class WindowFrame
 {
-/*  Since scrollbars and dropdowns need to be displayed on top of the container they attach to and kinda on top of
-    everything else, a custom Z start is needed. */
-static constexpr uint32_t SCROLL_LAYER_START = 250;
-static constexpr uint32_t DROPDOWN_LAYER_START = 300;
-static constexpr uint32_t FLOATING_LAYER_START = 400;
-
 public:
     /**
         Creates a new window frame.
@@ -88,15 +82,15 @@ private:
     Input input_;
     FrameStatePtr frameState_{nullptr};
     bool shouldWindowClose_{false};
-    ILayoutEnginePtr layoutEngine_{nullptr}; // this should be a singleton maybe as it doesnt depend on anything
-    TextRenderer textRenderer_;
+    ILayoutEnginePtr layoutEngine_{nullptr};
+    renderer::TextRenderer textRenderer_;
     ITextLayoutEnginePtr textLayoutEngine_{nullptr};
     std::vector<AbstractNodePtr> allFrameChildNodes_;
     BoxPtr frameBox_{nullptr};
     bool isPrimary_{false};
 
 
-    static std::array<GLFWcursor*, 6> standardCursors_;
+    static std::array<GLFWcursor*, common::MAX_DEFAULT_CURSORS> standardCursors_;
     static bool initCursors;
 };
 using WindowFramePtr = std::shared_ptr<WindowFrame>;

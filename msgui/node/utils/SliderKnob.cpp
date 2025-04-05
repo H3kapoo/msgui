@@ -1,27 +1,27 @@
 #include "SliderKnob.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/Slider.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBDrag.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBDrag.hpp"
+#include "msgui/events/NodeEventManager.hpp"
 
 namespace msgui
 {
 SliderKnob::SliderKnob(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
     setupLayoutReloadables();
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&SliderKnob::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&SliderKnob::onMouseDrag, this, std::placeholders::_1));
 }
 
@@ -37,7 +37,7 @@ void SliderKnob::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void SliderKnob::onMouseClick(const nodeevent::LMBClick& evt)
+void SliderKnob::onMouseClick(const events::LMBClick& evt)
 {
     /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
@@ -46,11 +46,11 @@ void SliderKnob::onMouseClick(const nodeevent::LMBClick& evt)
     Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    nodeevent::LMBClick ev{evt};
-    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBClick, nodeevent::InternalChannel>(ev);
+    events::LMBClick ev{evt};
+    sbParentRaw->getEvents().notifyEvent<events::LMBClick, events::InternalChannel>(ev);
 }
 
-void SliderKnob::onMouseDrag(const nodeevent::LMBDrag& evt)
+void SliderKnob::onMouseDrag(const events::LMBDrag& evt)
 {
     /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
@@ -59,8 +59,8 @@ void SliderKnob::onMouseDrag(const nodeevent::LMBDrag& evt)
     Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    nodeevent::LMBDrag ev{evt};
-    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBDrag, nodeevent::InternalChannel>(ev);
+    events::LMBDrag ev{evt};
+    sbParentRaw->getEvents().notifyEvent<events::LMBDrag, events::InternalChannel>(ev);
 }
 
 void SliderKnob::setupLayoutReloadables()

@@ -1,22 +1,22 @@
 #include "RecycleList.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders//MeshLoader.hpp"
+#include "msgui/loaders//ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/Slider.hpp"
-#include "msgui/nodeEvent/LMBItemRelease.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/Scroll.hpp"
+#include "msgui/events/LMBItemRelease.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/Scroll.hpp"
 #include <vector>
 
 namespace msgui
 {
 RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("RecycleList(" + name + ")");
 
     setupLayoutReloadables();
@@ -29,20 +29,20 @@ RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType:
     /* RL has a slider to scroll the items. This needs to exist but doesn't need to be appended if not needed. */
     slider_ = std::make_shared<Slider>("RLSlider");
     slider_->getLayout()
-        .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL})
+        .setType(utils::Layout::Type::VERTICAL)
+        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL})
         .setScale({20, 1.0f});
     slider_->setColor(Utils::hexToVec4("#ddaaffff"));
     slider_->setSlideFrom(0);
-    slider_->getEvents().listen<nodeevent::Scroll>(
+    slider_->getEvents().listen<events::Scroll>(
         std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
 
     /* RL has a box container to hold the items. This has to be appended from the start. */
     boxCont_ = std::make_shared<Box>("RLBox");
     boxCont_->getLayout()
         .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
-        .setType(Layout::Type::VERTICAL)
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::PX})
+        .setType(utils::Layout::Type::VERTICAL)
+        .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX})
         .setScale({1.0f, 1.0f});
     boxCont_->setColor(Utils::hexToVec4("#42056bff"));
     append(boxCont_);
@@ -127,14 +127,14 @@ void RecycleList::onLayoutUpdateNotify()
                     .setMargin(itemMargin_)
                     .setBorder(itemBorder_)
                     .setBorderRadius(itemBorderRadius_)
-                    .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
+                    .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::REL})
                     .setScale({1.0f, rowSize_});
                 ref->setColor(listItems_[topOfListIdx + i]);
 
-                ref->getEvents().listen<nodeevent::LMBRelease>([this, index = topOfListIdx + i](const auto&)
+                ref->getEvents().listen<events::LMBRelease>([this, index = topOfListIdx + i](const auto&)
                 {
-                    nodeevent::LMBItemRelease evt{index};
-                    getEvents().notifyEvent<nodeevent::LMBItemRelease>(evt);
+                    events::LMBItemRelease evt{index};
+                    getEvents().notifyEvent<events::LMBItemRelease>(evt);
                 });
                 boxCont_->append(ref);
             }
@@ -148,7 +148,7 @@ void RecycleList::onLayoutUpdateNotify()
     lastScaleY_ = scaleY;
 }
 
-void RecycleList::onSliderValueChanged(const nodeevent::Scroll& evt)
+void RecycleList::onSliderValueChanged(const events::Scroll& evt)
 {
     (void)evt.value;
     updateNodePositions();
@@ -215,7 +215,7 @@ RecycleList& RecycleList::setRowSize(const int32_t rowSize)
     return *this;
 }
 
-RecycleList& RecycleList::setItemMargin(const Layout::TBLR margin)
+RecycleList& RecycleList::setItemMargin(const utils::Layout::TBLR margin)
 {
     itemMargin_ = margin;
     listIsDirty_ = true;
@@ -223,7 +223,7 @@ RecycleList& RecycleList::setItemMargin(const Layout::TBLR margin)
     return *this;
 }
 
-RecycleList& RecycleList::setItemBorder(const Layout::TBLR border)
+RecycleList& RecycleList::setItemBorder(const utils::Layout::TBLR border)
 {
     itemBorder_ = border;
     listIsDirty_ = true;
@@ -231,7 +231,7 @@ RecycleList& RecycleList::setItemBorder(const Layout::TBLR border)
     return *this;
 }
 
-RecycleList& RecycleList::setItemBorderRadius(const Layout::TBLR borderRadius)
+RecycleList& RecycleList::setItemBorderRadius(const utils::Layout::TBLR borderRadius)
 {
     itemBorderRadius_ = borderRadius;
     listIsDirty_ = true;
@@ -245,11 +245,11 @@ glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 
 int32_t RecycleList::getRowSize() const { return rowSize_; }
 
-Layout::TBLR RecycleList::getItemMargin() const { return itemMargin_; }
+utils::Layout::TBLR RecycleList::getItemMargin() const { return itemMargin_; }
 
-Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
+utils::Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
 
-Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
+utils::Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
 
 SliderWPtr RecycleList::getSlider() { return slider_; }
 

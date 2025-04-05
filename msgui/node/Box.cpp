@@ -1,21 +1,21 @@
 #include "Box.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
+#include "msgui/events/FocusLost.hpp"
 
 namespace msgui
 {
 Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
 {
     log_ = Logger("Box(" + name +")");
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
     /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7");
@@ -25,11 +25,11 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     setupReloadables();
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::RMBRelease, nodeevent::InputChannel>(
+    getEvents().listen<events::RMBRelease, events::InputChannel>(
         std::bind(&Box::onRMBRelease, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&Box::onLMBRelease, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::FocusLost, nodeevent::InputChannel>(
+    getEvents().listen<events::FocusLost, events::InputChannel>(
         std::bind(&Box::onFocusLost, this, std::placeholders::_1));
 }
 
@@ -73,7 +73,7 @@ void Box::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Box::onLMBRelease(const nodeevent::LMBRelease&)
+void Box::onLMBRelease(const events::LMBRelease&)
 {
     /* Nothing to be done if no context menu is assigned. */
     if (!ctxMenuFloatingBox_) { return; }
@@ -83,7 +83,7 @@ void Box::onLMBRelease(const nodeevent::LMBRelease&)
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
 
-void Box::onFocusLost(const nodeevent::FocusLost&)
+void Box::onFocusLost(const events::FocusLost&)
 {
     /* Nothing to be done if no context menu is assigned or if focus is lost
        BUT the newly clicked node is a drop item (the menu's one most likely). */
@@ -95,7 +95,7 @@ void Box::onFocusLost(const nodeevent::FocusLost&)
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
 
-void Box::onRMBRelease(const nodeevent::RMBRelease& evt)
+void Box::onRMBRelease(const events::RMBRelease& evt)
 {
     if (!ctxMenuFloatingBox_) { return; }
 

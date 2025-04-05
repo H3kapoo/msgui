@@ -2,9 +2,9 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
-#include "msgui/nodeEvent/RMBRelease.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/events/FocusLost.hpp"
+#include "msgui/events/RMBRelease.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 namespace msgui
 {
@@ -44,9 +44,9 @@ private:
     Box& operator=(Box&&) = delete;
 
     void setShaderAttributes() override;
-    void onLMBRelease(const nodeevent::LMBRelease& evt);
-    void onRMBRelease(const nodeevent::RMBRelease& evt);
-    void onFocusLost(const nodeevent::FocusLost& evt);
+    void onLMBRelease(const events::LMBRelease& evt);
+    void onRMBRelease(const events::RMBRelease& evt);
+    void onFocusLost(const events::FocusLost& evt);
     void setupReloadables();
 
 private:

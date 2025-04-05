@@ -9,17 +9,18 @@
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/Image.hpp"
 #include "msgui/node/WindowFrame.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/utils/TreeItem.hpp"
-#include "msgui/nodeEvent/LMBItemRelease.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBTreeItemRelease.hpp"
+#include "msgui/events/LMBItemRelease.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBTreeItemRelease.hpp"
 
 #include <chrono>
 #include <string>
 #include <thread>
 
 using namespace msgui;
+using namespace msgui::layoutengine::utils;
 
 int main()
 {
@@ -41,7 +42,7 @@ int main()
     //     .setFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/LiberationSerif-Regular.ttf")
     //     .setFontSize(30);
 
-    // lbl->getEvents().listen<nodeevent::LMBRelease>(
+    // lbl->getEvents().listen<events::LMBRelease>(
     //     [ref = Utils::ref<TextLabel>(lbl), mainLogger](const auto&)
     //     {
     //         // mainLogger.debugLn("pe aici");
@@ -55,8 +56,7 @@ int main()
     tv->getLayout()
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
         .setScale({0.3f, 0.5f});
-    tv->setItemBorder({0, 1, 0, 0});
-    tv->setItemMargin({0, 5, 0, 0});
+    tv->setItemBorder({1});
 
     rootBox->append(tv);
 
@@ -111,7 +111,7 @@ int main()
     tv->addRootItem(root);
     // tv->addRootItem(root2);
 
-    tv->getEvents().listen<nodeevent::LMBTreeItemRelease>(
+    tv->getEvents().listen<events::LMBTreeItemRelease>(
         [ref = Utils::ref<TreeView>(tv), mainLogger](const auto& evt)
         {
             mainLogger.debugLn("clicked on %s", evt.item.lock()->stringInfo.c_str());

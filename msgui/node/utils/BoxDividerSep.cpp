@@ -1,13 +1,13 @@
 #include "BoxDividerSep.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -17,21 +17,21 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
     , secondBox_(secondBox)
 {
     log_ = ("BoxDividerSep(" + name + ")");
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 
     color_ = Utils::hexToVec4("#52161bff");
     layout_.onTypeChange();
 
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&BoxDividerSep::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&BoxDividerSep::onMouseRelease, this, std::placeholders::_1));
-        getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+        getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
             std::bind(&BoxDividerSep::onMouseReleaseNotHovered, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&BoxDividerSep::onMouseDrag, this, std::placeholders::_1));
 }
 
@@ -47,43 +47,43 @@ void BoxDividerSep::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void BoxDividerSep::onMouseClick(const nodeevent::LMBClick&)
+void BoxDividerSep::onMouseClick(const events::LMBClick&)
 {
-    if (layout_.type == Layout::Type::HORIZONTAL)
+    if (layout_.type == utils::Layout::Type::HORIZONTAL)
     {
         getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
     }
-    else if (layout_.type == Layout::Type::VERTICAL)
+    else if (layout_.type == utils::Layout::Type::VERTICAL)
     {
         getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
     }
 }
 
-void BoxDividerSep::onMouseRelease(const nodeevent::LMBRelease&)
+void BoxDividerSep::onMouseRelease(const events::LMBRelease&)
 {
     getState()->currentCursorId = GLFW_ARROW_CURSOR;
 }
 
-void BoxDividerSep::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+void BoxDividerSep::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
 {
-    nodeevent::LMBRelease evt{{0, 0}};
+    events::LMBRelease evt{{0, 0}};
     onMouseRelease(evt);
 }
 
-void BoxDividerSep::onMouseDrag(const nodeevent::LMBDrag&)
+void BoxDividerSep::onMouseDrag(const events::LMBDrag&)
 {
-    Layout& left = firstBox_->getLayout();
-    Layout& right = secondBox_->getLayout();
+    utils::Layout& left = firstBox_->getLayout();
+    utils::Layout& right = secondBox_->getLayout();
     // Temp is used here as we don't want to modify the original scale supplied by the user
     // Maybe there's a better way to do it..later.
 
-    if (layout_.type == Layout::Type::HORIZONTAL)
+    if (layout_.type == utils::Layout::Type::HORIZONTAL)
     {
         float diff = getState()->mouseX - getState()->lastMouseX;
         left.tempScale.x += diff;
         right.tempScale.x -= diff;
     }
-    else if (layout_.type == Layout::Type::VERTICAL)
+    else if (layout_.type == utils::Layout::Type::VERTICAL)
     {
         float diff = getState()->mouseY - getState()->lastMouseY;
         left.tempScale.y += diff;
@@ -101,13 +101,13 @@ void BoxDividerSep::onMouseDrag(const nodeevent::LMBDrag&)
 //     // Temp is used here as we don't want to modify the original scale supplied by the user
 //     // Maybe there's a better way to do it..later.
 
-//     if (layout_.type == Layout::Type::HORIZONTAL)
+//     if (layout_.type == utils::Layout::Type::HORIZONTAL)
 //     {
 //         float diff = getState()->mouseX - getState()->lastMouseX;
 //         left.tempScale.x += diff;
 //         right.tempScale.x -= diff;
 //     }
-//     else if (layout_.type == Layout::Type::VERTICAL)
+//     else if (layout_.type == utils::Layout::Type::VERTICAL)
 //     {
 //         float diff = getState()->mouseY - getState()->lastMouseY;
 //         left.tempScale.y += diff;
@@ -122,14 +122,14 @@ void BoxDividerSep::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()
     {
-        if (layout_.type == Layout::Type::HORIZONTAL)
+        if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            layout_.scaleType = {Layout::ScaleType::PX, Layout::ScaleType::REL};
+            layout_.scaleType = {utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL};
             layout_.scale = {10, 1.0f};
         }
-        else if (layout_.type == Layout::Type::VERTICAL)
+        else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            layout_.scaleType = {Layout::ScaleType::REL, Layout::ScaleType::PX};
+            layout_.scaleType = {utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX};
             layout_.scale = {1.0f, 10};
         }
     };

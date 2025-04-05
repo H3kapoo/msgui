@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/BELoadingQueue.hpp"
+#include "msgui/loaders/BELoadingQueue.hpp"
 #include "msgui/Window.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/WindowFrame.hpp"
@@ -68,7 +68,7 @@ void Application::run()
            any context invalidation shenenigans. Thread that requested resource loading will block until
            main thread finishes loading the resource in. If the resource is already in memory or trying to be
            loaded from the main thread, we will not reach this. */
-        BELoadingQueue::get().executeTasks();
+        loaders::BELoadingQueue::get().executeTasks();
 
         std::erase_if(frames_,
             [this](const WindowFramePtr& frame)

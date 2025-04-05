@@ -4,18 +4,18 @@
 #include <type_traits>
 #include <vector>
 
-#include "msgui/Mesh.hpp"
-#include "msgui/Shader.hpp"
-#include "msgui/Transform.hpp"
-#include "msgui/node/FrameState.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/Logger.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/Shader.hpp"
+#include "msgui/Mesh.hpp"
+#include "msgui/node/FrameState.hpp"
+#include "msgui/events/NodeEventManager.hpp"
+#include "msgui/layoutEngine/utils/Transform.hpp"
 #include "msgui/Utils.hpp"
 
 namespace msgui
 {
-using namespace nodeevent;
+using namespace layoutengine;
 
 /* Only some nodes are privilaged enough to add remove/nodes from the user's perspective. */
 #define ABSTRACT_NODE_ALLOW_APPEND_REMOVE\
@@ -206,20 +206,20 @@ public:
     void setMesh(Mesh* shader);
 
     /* Getters */
-    Transform& getTransform();
+    utils::Transform& getTransform();
     NodeType getType();
     Shader* getShader();
     Mesh* getMesh();
     FrameStatePtr getState();
     std::weak_ptr<AbstractNode> getParent();
-    const Transform& getTransform() const;
+    const utils::Transform& getTransform() const;
     const std::string& getName() const;
     const char* getCName() const;
     uint32_t getId() const;
     NodeType getType() const;
     AbstractNodePVec& getChildren();
-    Layout& getLayout();
-    NodeEventManager& getEvents();
+    utils::Layout& getLayout();
+    events::NodeEventManager& getEvents();
     bool isParented() const;
 
 private: // friend
@@ -246,12 +246,12 @@ protected:
     uint32_t id_{0};
     std::string name_;
     NodeType nodeType_{NodeType::COMMON};
-    Transform transform_;
-    Layout layout_;
+    utils::Transform transform_;
+    utils::Layout layout_;
     bool isParented_{false};
     std::weak_ptr<AbstractNode> parent_;
     AbstractNodePVec children_;
-    NodeEventManager eventManager_;
+    events::NodeEventManager eventManager_;
     Logger log_;
 };
 } // namespace msgui

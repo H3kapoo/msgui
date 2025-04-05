@@ -2,9 +2,9 @@
 
 #include "AbstractNode.hpp"
 #include "msgui/Texture.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -31,9 +31,9 @@ private:
     Button& operator=(Button&&) = delete;
 
     void setShaderAttributes() override;
-    void onMouseClick(const nodeevent::LMBClick& evt);
-    void onMouseRelease(const nodeevent::LMBRelease& evt);
-    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered& evt);
+    void onMouseClick(const events::LMBClick& evt);
+    void onMouseRelease(const events::LMBRelease& evt);
+    void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered& evt);
     void setupLayoutReloadables();
 
 private:

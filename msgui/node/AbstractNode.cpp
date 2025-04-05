@@ -228,7 +228,7 @@ void AbstractNode::setMesh(Mesh* mesh)
     mesh_ = mesh;
 }
 
-Transform& AbstractNode::getTransform()
+utils::Transform& AbstractNode::getTransform()
 {
     return transform_;
 }
@@ -266,7 +266,7 @@ AbstractNode* AbstractNode::getParentRaw()
     return parentRaw_;
 }
 
-const Transform& AbstractNode::getTransform() const
+const utils::Transform& AbstractNode::getTransform() const
 {
     return transform_;
 }
@@ -296,12 +296,12 @@ AbstractNodePVec& AbstractNode::getChildren()
     return children_;
 }
 
-Layout& AbstractNode::getLayout()
+utils::Layout& AbstractNode::getLayout()
 {
     return layout_;
 }
 
-NodeEventManager& AbstractNode::getEvents() { return eventManager_; }
+events::NodeEventManager& AbstractNode::getEvents() { return eventManager_; }
 
 bool AbstractNode::isParented() const { return isParented_; }
 

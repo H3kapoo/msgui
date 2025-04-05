@@ -4,22 +4,21 @@
 #include <ranges>
 #include <stack>
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
-#include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/TextLabel.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBTreeItemRelease.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBTreeItemRelease.hpp"
 
 namespace msgui
 {
 TreeView::TreeView(const std::string& name) : Box(name)
 {
     setType(AbstractNode::NodeType::TREEVIEW);
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
     log_ = ("TreeView(" + name + ")");
 
@@ -28,7 +27,7 @@ TreeView::TreeView(const std::string& name) : Box(name)
     /* Defaults */
     color_ = Utils::hexToVec4("#42056bff");
     layout_.setAllowOverflow({true, true})
-        .setType(Layout::Type::VERTICAL)
+        .setType(utils::Layout::Type::VERTICAL)
         .setScale({100, 100});
 }
 
@@ -131,7 +130,7 @@ void TreeView::onLayoutDirtyPost()
 
             append(ref);
 
-            ref->getEvents().listen<nodeevent::LMBRelease>(
+            ref->getEvents().listen<events::LMBRelease>(
                 [this, index](const auto&)
                 {
                     flattenedTreeBuffer[index]->toggle();
@@ -139,8 +138,8 @@ void TreeView::onLayoutDirtyPost()
                     internals_.isDirty = true;
                     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
 
-                    nodeevent::LMBTreeItemRelease evt{flattenedTreeBuffer[index]};
-                    getEvents().notifyEvent<nodeevent::LMBTreeItemRelease>(evt);
+                    events::LMBTreeItemRelease evt{flattenedTreeBuffer[index]};
+                    getEvents().notifyEvent<events::LMBTreeItemRelease>(evt);
                 });
         }
     }
@@ -193,7 +192,7 @@ TreeView& TreeView::setRowSize(const int32_t rowSize)
     return *this;
 }
 
-TreeView& TreeView::setItemMargin(const Layout::TBLR margin)
+TreeView& TreeView::setItemMargin(const utils::Layout::TBLR margin)
 {
     itemMargin_ = margin;
     internals_.isDirty = true;
@@ -201,7 +200,7 @@ TreeView& TreeView::setItemMargin(const Layout::TBLR margin)
     return *this;
 }
 
-TreeView& TreeView::setItemBorder(const Layout::TBLR border)
+TreeView& TreeView::setItemBorder(const utils::Layout::TBLR border)
 {
     itemBorder_ = border;
     internals_.isDirty = true;
@@ -209,7 +208,7 @@ TreeView& TreeView::setItemBorder(const Layout::TBLR border)
     return *this;
 }
 
-TreeView& TreeView::setItemBorderRadius(const Layout::TBLR borderRadius)
+TreeView& TreeView::setItemBorderRadius(const utils::Layout::TBLR borderRadius)
 {
     itemBorderRadius_ = borderRadius;
     internals_.isDirty = true;
@@ -230,11 +229,11 @@ glm::vec4 TreeView::getBorderColor() const { return borderColor_; }
 
 int32_t TreeView::getRowSize() const { return rowSize_; }
 
-Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
+utils::Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
 
-Layout::TBLR TreeView::getItemBorder() const { return itemBorder_; }
+utils::Layout::TBLR TreeView::getItemBorder() const { return itemBorder_; }
 
-Layout::TBLR TreeView::getItemBorderRadius() const { return itemBorderRadius_; }
+utils::Layout::TBLR TreeView::getItemBorderRadius() const { return itemBorderRadius_; }
 
 uint32_t TreeView::getMarginFactor() const { return internals_.marginFactor_; }
 

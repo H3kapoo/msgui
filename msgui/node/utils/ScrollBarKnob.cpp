@@ -1,24 +1,24 @@
 #include "ScrollBarKnob.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/utils/ScrollBar.hpp"
 
 namespace msgui
 {
 ScrollBarKnob::ScrollBarKnob() : AbstractNode("ScrollBarKnob", NodeType::SCROLL_KNOB)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
-    getLayout().border = Layout::TBLR{4};
-    getLayout().borderRadius = Layout::TBLR{8};
+    getLayout().border = utils::Layout::TBLR{4};
+    getLayout().borderRadius = utils::Layout::TBLR{8};
 
-    getEvents().listen<nodeevent::LMBClick, InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&ScrollBarKnob::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, InputChannel>(
+    getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&ScrollBarKnob::onMouseDrag, this, std::placeholders::_1));
 }
 
@@ -34,7 +34,7 @@ void ScrollBarKnob::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void ScrollBarKnob::onMouseClick(const nodeevent::LMBClick&)
+void ScrollBarKnob::onMouseClick(const events::LMBClick&)
 {
     /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
@@ -43,11 +43,11 @@ void ScrollBarKnob::onMouseClick(const nodeevent::LMBClick&)
     ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    nodeevent::LMBClick evt;
-    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBClick, InternalChannel>(evt);
+    events::LMBClick evt;
+    sbParentRaw->getEvents().notifyEvent<events::LMBClick, events::InternalChannel>(evt);
 }
 
-void ScrollBarKnob::onMouseDrag(const nodeevent::LMBDrag& evtIn)
+void ScrollBarKnob::onMouseDrag(const events::LMBDrag& evtIn)
 {
     /* Pass-through to parent */
     AbstractNodePtr sbParent = parent_.lock();
@@ -56,8 +56,8 @@ void ScrollBarKnob::onMouseDrag(const nodeevent::LMBDrag& evtIn)
     ScrollBar* sbParentRaw = static_cast<ScrollBar*>(sbParent.get());
     if (!sbParentRaw) { return; }
 
-    nodeevent::LMBDrag evt(evtIn);
-    sbParentRaw->getEvents().notifyEvent<nodeevent::LMBDrag, InternalChannel>(evt);
+    events::LMBDrag evt(evtIn);
+    sbParentRaw->getEvents().notifyEvent<events::LMBDrag, events::InternalChannel>(evt);
 }
 
 ScrollBarKnob& ScrollBarKnob::setColor(const glm::vec4& color)

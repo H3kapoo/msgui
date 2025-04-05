@@ -1,9 +1,9 @@
 #include "ScrollBar.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 
 namespace msgui
 {
@@ -12,22 +12,22 @@ ScrollBar::ScrollBar(const std::string& name, const ScrollBar::Type orientation)
     , log_("ScrollBar(" + name + ")")
     , orientation_(orientation)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
     knob_ = std::make_shared<ScrollBarKnob>();
-    layout_.borderRadius = Layout::TBLR{8};
+    layout_.borderRadius = utils::Layout::TBLR{8};
     color_ = Utils::hexToVec4("#eeffccff");
 
     setScrollbarSize(sbSize_);
 
-    getEvents().listen<nodeevent::LMBClick, InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&ScrollBar::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBClick, InternalChannel>(
+    getEvents().listen<events::LMBClick, events::InternalChannel>(
         std::bind(&ScrollBar::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, InputChannel>(
+    getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&ScrollBar::onMouseDrag, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, InternalChannel>(
+    getEvents().listen<events::LMBDrag, events::InternalChannel>(
         std::bind(&ScrollBar::onMouseDrag, this, std::placeholders::_1));
     append(knob_);
 }
@@ -58,7 +58,7 @@ void ScrollBar::updateKnobOffset()
     }
 }
 
-void ScrollBar::onMouseClick(const nodeevent::LMBClick&)
+void ScrollBar::onMouseClick(const events::LMBClick&)
 {
     glm::vec2 knobHalf = glm::vec2{knob_->getTransform().scale.x / 2, knob_->getTransform().scale.y / 2};
     glm::vec2 kPos = knob_->getTransform().pos;
@@ -78,7 +78,7 @@ void ScrollBar::onMouseClick(const nodeevent::LMBClick&)
     MAKE_LAYOUT_DIRTY
 }
 
-void ScrollBar::onMouseDrag(const nodeevent::LMBDrag&)
+void ScrollBar::onMouseDrag(const events::LMBDrag&)
 {
     updateKnobOffset();
     MAKE_LAYOUT_DIRTY

@@ -1,33 +1,32 @@
 #include "WindowFrame.hpp"
-#include "msgui/layoutEngine/text/SimpleTextLayoutEngine.hpp"
-#include "msgui/node/RecycleList.hpp"
-#include "msgui/node/TreeView.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBDrag.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
-#include "msgui/nodeEvent/RMBRelease.hpp"
-#include "msgui/renderer/text/TextBufferStore.hpp"
 
-#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <memory>
-#include <ranges>
 #include <queue>
+#include <ranges>
+
+#include <GLFW/glfw3.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "msgui/vendor/stb_image_write.h"
-
-#include "msgui/layoutEngine/SimpleLayoutEngine.hpp"
-#include "msgui/Renderer.hpp"
+#include "msgui/layoutEngine/BasicLayoutEngine.hpp"
+#include "msgui/layoutEngine/BasicTextLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/FrameState.hpp"
+#include "msgui/node/TreeView.hpp"
+#include "msgui/events/FocusLost.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBDrag.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/events/NodeEventManager.hpp"
+#include "msgui/events/RMBRelease.hpp"
+#include "msgui/renderer/NodeRenderer.hpp"
+#include "msgui/renderer/TextBufferStore.hpp"
+#include "msgui/vendor/stb_image_write.h"
 
 namespace msgui
 {
-std::array<GLFWcursor*, 6> WindowFrame::standardCursors_ = {0};
+std::array<GLFWcursor*, common::MAX_DEFAULT_CURSORS> WindowFrame::standardCursors_ = {0};
 bool WindowFrame::initCursors = true;
 
 WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height, const bool isPrimary)
@@ -35,8 +34,8 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     , window_(windowName, width, height)
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
-    , layoutEngine_(std::make_shared<SimpleLayoutEngine>())
-    , textLayoutEngine_(std::make_shared<SimpleTextLayoutEngine>())
+    , layoutEngine_(std::make_shared<BasicLayoutEngine>())
+    , textLayoutEngine_(std::make_shared<BasicTextLayoutEngine>())
     , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
 {
@@ -202,7 +201,7 @@ void WindowFrame::renderLayout()
     for (auto& node : allFrameChildNodes_ | std::views::reverse) // -> back to front Z
     // for (auto& node : allFrameChildNodes_) // -> front to back Z
     {
-        Renderer::render(node, pMat, frameState_->frameSize.y);
+        renderer::NodeRenderer::render(node, pMat, frameState_->frameSize.y);
     }
 
     /* Render text after the nodes themselves. */
@@ -254,7 +253,7 @@ void WindowFrame::updateLayout()
                 if (parent->getType() == AbstractNode::NodeType::DROPDOWN)
                 {
                     auto frameBoxIdx = allFrameChildNodes_.size() - 1;
-                    node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, Layout::TBLR{0});
+                    node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, utils::Layout::TBLR{0});
                 }
                 /* Otherwise just compute viewable area as normal. */
                 else
@@ -275,7 +274,7 @@ void WindowFrame::updateLayout()
     // if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
     {
         frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
-        auto& textBuffer = TextBufferStore::get().buffer();
+        auto& textBuffer = renderer::TextBufferStore::get().buffer();
         for (auto& textData : textBuffer)
         {
             textLayoutEngine_->process(textData, isNodeTrRecalc);
@@ -307,9 +306,9 @@ void WindowFrame::resolveNodeRelations()
                 bool isFloatingBoxNode = ch->getType() == AbstractNode::NodeType::FLOATING_BOX;
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
-                ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? SCROLL_LAYER_START : 1);
-                ch->transform_.pos.z += isDropdownNodeBox ? DROPDOWN_LAYER_START : 0;
-                ch->transform_.pos.z = isFloatingBoxNode ? FLOATING_LAYER_START : ch->transform_.pos.z;
+                ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? common::SCROLL_LAYER_START : 1);
+                ch->transform_.pos.z += isDropdownNodeBox ? common::DROPDOWN_LAYER_START : 0;
+                ch->transform_.pos.z = isFloatingBoxNode ? common::FLOATING_LAYER_START : ch->transform_.pos.z;
                 ch->state_ = frameState_;
             }
 
@@ -348,19 +347,19 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 auto hoveredNode = frameState_->hoveredNodePtr.lock();
                 if (prevNode && prevNode != node)
                 {
-                    nodeevent::FocusLost evt;
-                    prevNode->getEvents().notifyAllChannels<nodeevent::FocusLost>(evt);
+                    events::FocusLost evt;
+                    prevNode->getEvents().notifyAllChannels<events::FocusLost>(evt);
                 }
                 
                 if (btn == GLFW_MOUSE_BUTTON_LEFT)
                 {
-                    nodeevent::LMBClick evt;
-                    node->getEvents().notifyAllChannels<nodeevent::LMBClick>(evt);
+                    events::LMBClick evt;
+                    node->getEvents().notifyAllChannels<events::LMBClick>(evt);
                 }
                 else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
                 {
-                    // nodeevent::RMBClick evt;
-                    // node->getEvents().notifyAllChannels<nodeevent::RMBClick>(evt);
+                    // events::RMBClick evt;
+                    // node->getEvents().notifyAllChannels<events::RMBClick>(evt);
                 }
             }
             else if (!frameState_->mouseButtonState[btn])
@@ -370,9 +369,9 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 {
                     if (btn == GLFW_MOUSE_BUTTON_LEFT)
                     {
-                        nodeevent::LMBReleaseNotHovered evt;
+                        events::LMBReleaseNotHovered evt;
                         frameState_->prevClickedNodePtr.lock()->getEvents()
-                            .notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
+                            .notifyAllChannels<events::LMBReleaseNotHovered>(evt);
                     }
                     else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
                     {
@@ -384,13 +383,13 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                 
                 if (btn == GLFW_MOUSE_BUTTON_LEFT)
                 {
-                    nodeevent::LMBRelease evt{{mX, mY}};
-                    node->getEvents().notifyAllChannels<nodeevent::LMBRelease>(evt);
+                    events::LMBRelease evt{{mX, mY}};
+                    node->getEvents().notifyAllChannels<events::LMBRelease>(evt);
                 }
                 else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
                 {
-                    nodeevent::RMBRelease evt{{mX, mY}};
-                    node->getEvents().notifyAllChannels<nodeevent::RMBRelease>(evt);
+                    events::RMBRelease evt{{mX, mY}};
+                    node->getEvents().notifyAllChannels<events::RMBRelease>(evt);
                 }
             }
             break; // event was consumed
@@ -401,8 +400,8 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     if (!foundNode)
     {
         frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
-        nodeevent::LMBReleaseNotHovered evt;
-        frameState_->prevClickedNodePtr.lock()->getEvents().notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
+        events::LMBReleaseNotHovered evt;
+        frameState_->prevClickedNodePtr.lock()->getEvents().notifyAllChannels<events::LMBReleaseNotHovered>(evt);
         frameState_->clickedNodePtr = NO_PTR;
     }
 }
@@ -431,8 +430,8 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     /* Having a selectedNodeId && currently holding down left click means we want to drag only. */
     if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr.lock() != NO_PTR)
     {
-        nodeevent::LMBDrag evt(x, y);
-        frameState_->clickedNodePtr.lock()->getEvents().notifyAllChannels<nodeevent::LMBDrag>(evt);
+        events::LMBDrag evt(x, y);
+        frameState_->clickedNodePtr.lock()->getEvents().notifyAllChannels<events::LMBDrag>(evt);
         return;
     }
 }

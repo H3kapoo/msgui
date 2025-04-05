@@ -5,23 +5,23 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/MeshLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/Utils.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/events/FocusLost.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/events/NodeEventManager.hpp"
 
 namespace msgui
 {
 Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPDOWN)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("Dropdown(" + name + ")");
 
     setupLayoutReloadables();
@@ -37,18 +37,18 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
     layout_.setScale({70, 34});
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&Dropdown::onMouseRelease, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
         std::bind(&Dropdown::onMouseReleaseNotHovered, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&Dropdown::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::FocusLost, nodeevent::InputChannel>(
+    getEvents().listen<events::FocusLost, events::InputChannel>(
         std::bind(&Dropdown::onFocusLost, this, std::placeholders::_1));
 
     container_ = Utils::make<Box>("ItemsContainer");
     container_->setColor(Utils::hexToVec4("#4aabeb00"));
-    container_->getLayout().setType(Layout::Type::VERTICAL);
+    container_->getLayout().setType(utils::Layout::Type::VERTICAL);
 
     dropdownId_ = getId();
 }
@@ -66,7 +66,7 @@ void Dropdown::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Dropdown::onMouseClick(const nodeevent::LMBClick&)
+void Dropdown::onMouseClick(const events::LMBClick&)
 {
     currentColor_ = pressedColor_;
 
@@ -74,7 +74,7 @@ void Dropdown::onMouseClick(const nodeevent::LMBClick&)
     MAKE_LAYOUT_DIRTY;
 }
 
-void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
+void Dropdown::onMouseRelease(const events::LMBRelease&)
 {
     closeDropdownsOnTheSameLevelAsMe();
     toggleDropdown();
@@ -84,14 +84,14 @@ void Dropdown::onMouseRelease(const nodeevent::LMBRelease&)
     MAKE_LAYOUT_DIRTY;
 }
 
-void Dropdown::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+void Dropdown::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
 {
     /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acrs just like LMBRelease. */
-    const nodeevent::LMBRelease evt{{0, 0}};
+    const events::LMBRelease evt{{0, 0}};
     onMouseRelease(evt);
 }
 
-void Dropdown::onFocusLost(const nodeevent::FocusLost&)
+void Dropdown::onFocusLost(const events::FocusLost&)
 {
     if (!dropdownOpen_) { return; }
     const auto& state = getState();
@@ -110,7 +110,7 @@ DropdownWPtr Dropdown::createSubMenuItem()
     DropdownPtr subMenu = Utils::make<Dropdown>("SubDropdown");
     subMenu->setColor(color_);
     subMenu->getLayout()
-        .setScaleType(Layout::ScaleType::PX)
+        .setScaleType(utils::Layout::ScaleType::PX)
         .setScale(itemSize_);
     subMenu->dropdownId_ = dropdownId_;
     container_->append(subMenu);

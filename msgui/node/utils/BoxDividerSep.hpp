@@ -3,10 +3,10 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBDrag.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBDrag.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -30,10 +30,10 @@ private:
     BoxDividerSep& operator=(const BoxDividerSep&) = delete;
     BoxDividerSep& operator=(BoxDividerSep&&) = delete;
 
-    void onMouseClick(const nodeevent::LMBClick& evt);
-    void onMouseRelease(const nodeevent::LMBRelease& evt);
-    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered& evt);
-    void onMouseDrag(const nodeevent::LMBDrag& evt);
+    void onMouseClick(const events::LMBClick& evt);
+    void onMouseRelease(const events::LMBRelease& evt);
+    void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered& evt);
+    void onMouseDrag(const events::LMBDrag& evt);
 
     void setupLayoutReloadables();
 

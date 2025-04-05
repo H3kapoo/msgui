@@ -1,6 +1,5 @@
 #pragma once
 
-#include "msgui/layoutEngine/SimpleLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/utils/TreeItem.hpp"
@@ -8,7 +7,7 @@
 namespace msgui
 {
 
-class SimpleLayoutEngine;
+class BasicLayoutEngine;
 
 /* Node used for efficiently handling lists with a large amount of entries. */
 class TreeView : public Box
@@ -51,22 +50,22 @@ public:
     TreeView& setColor(const glm::vec4& color);
     TreeView& setBorderColor(const glm::vec4& color);
     TreeView& setRowSize(const int32_t rowSize);
-    TreeView& setItemMargin(const Layout::TBLR margin);
-    TreeView& setItemBorder(const Layout::TBLR border);
-    TreeView& setItemBorderRadius(const Layout::TBLR borderRadius);
+    TreeView& setItemMargin(const utils::Layout::TBLR margin);
+    TreeView& setItemBorder(const utils::Layout::TBLR border);
+    TreeView& setItemBorderRadius(const utils::Layout::TBLR borderRadius);
     TreeView& setMarginFactor(const uint32_t marginFactor);
     
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
-    Layout::TBLR getItemMargin() const;
-    Layout::TBLR getItemBorder() const;
-    Layout::TBLR getItemBorderRadius() const;
+    utils::Layout::TBLR getItemMargin() const;
+    utils::Layout::TBLR getItemBorder() const;
+    utils::Layout::TBLR getItemBorderRadius() const;
     uint32_t getMarginFactor() const;
     Internals& getInternalsRef();
 
 private: // friend
-    friend SimpleLayoutEngine;
+    friend BasicLayoutEngine;
     friend WindowFrame;
     void onLayoutDirtyPost();
 
@@ -79,9 +78,9 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
     int32_t rowSize_{20};
-    Layout::TBLR itemMargin_{0};
-    Layout::TBLR itemBorder_{0};
-    Layout::TBLR itemBorderRadius_{0};
+    utils::Layout::TBLR itemMargin_{0};
+    utils::Layout::TBLR itemBorder_{0};
+    utils::Layout::TBLR itemBorderRadius_{0};
     std::vector<TreeItem> listItems_;
     
     TreeItemPtrVec treeItems_;

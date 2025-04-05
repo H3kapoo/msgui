@@ -2,7 +2,7 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 namespace msgui
 {
@@ -25,7 +25,7 @@ public:
 
     void setShaderAttributes() override;
 
-    void onMouseRelease(const nodeevent::LMBRelease& evt);
+    void onMouseRelease(const events::LMBRelease& evt);
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};

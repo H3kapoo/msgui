@@ -32,39 +32,40 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     add_library(${PROJECT_NAME} SHARED
         Application.cpp
-        BELoadingQueue.cpp
         Debug.cpp
         Input.cpp
-        layoutEngine/SimpleLayoutEngine.cpp
-        layoutEngine/text/SimpleTextLayoutEngine.cpp
-        renderer/text/TextBufferStore.cpp
-        renderer/text/TextRenderer.cpp
+        layoutEngine/BasicLayoutEngine.cpp
+        layoutEngine/BasicTextLayoutEngine.cpp
+        layoutEngine/utils/LayoutData.cpp
+        loaders/BELoadingQueue.cpp
+        loaders/FontLoader.cpp
+        loaders/MeshLoader.cpp
+        loaders/ShaderLoader.cpp
+        loaders/TextureLoader.cpp
         Logger.cpp
         Mesh.cpp
-        MeshLoader.cpp
-        loaders/FontLoader.cpp
         node/AbstractNode.cpp
         node/Box.cpp
         node/BoxDivider.cpp
         node/Button.cpp
         node/Dropdown.cpp
-        node/Image.cpp
-        node/TreeView.cpp
         node/FloatingBox.cpp
+        node/Image.cpp
         node/RecycleList.cpp
         node/Slider.cpp
         node/TextLabel.cpp
+        node/TreeView.cpp
         node/utils/BoxDividerSep.cpp
-        node/utils/LayoutData.cpp
         node/utils/ScrollBar.cpp
         node/utils/ScrollBarKnob.cpp
         node/utils/SliderKnob.cpp
         node/WindowFrame.cpp
+        renderer/NodeRenderer.cpp
+        renderer/TextBufferStore.cpp
+        renderer/TextRenderer.cpp
         Shader.cpp
-        ShaderLoader.cpp
         Texture.cpp
-        TextureLoader.cpp
-        Transform.cpp
+        layoutEngine/utils/Transform.cpp
         Window.cpp
     )
 

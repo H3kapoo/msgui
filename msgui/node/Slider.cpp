@@ -1,21 +1,21 @@
 #include "Slider.hpp"
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
-#include "msgui/nodeEvent/LMBDrag.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
-#include "msgui/nodeEvent/Scroll.hpp"
+#include "msgui/events/LMBDrag.hpp"
+#include "msgui/events/NodeEventManager.hpp"
+#include "msgui/events/Scroll.hpp"
 
 namespace msgui
 {
 Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
@@ -23,7 +23,7 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
     /* Assume default horizontal slider. */
     knobNode_->getLayout()
         .setScale({20, 1.0f})
-        .setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL});
+        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
 
     append(knobNode_);
 
@@ -35,13 +35,13 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
     layout_.setScale({200, 34});
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InternalChannel>(
+    getEvents().listen<events::LMBClick, events::InternalChannel>(
         std::bind(&Slider::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBDrag, nodeevent::InternalChannel>(
+    getEvents().listen<events::LMBDrag, events::InternalChannel>(
         std::bind(&Slider::onMouseDrag, this, std::placeholders::_1));
 }
 
@@ -60,12 +60,12 @@ void Slider::setShaderAttributes()
 void Slider::updateSliderValue()
 {
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
-    if (layout_.type == Layout::Type::VERTICAL)
+    if (layout_.type == utils::Layout::Type::VERTICAL)
     {
         knobOffsetPerc_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
     }
-    else if (layout_.type == Layout::Type::HORIZONTAL)
+    else if (layout_.type == utils::Layout::Type::HORIZONTAL)
     {
         knobOffsetPerc_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
@@ -73,11 +73,11 @@ void Slider::updateSliderValue()
 
     slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
 
-    nodeevent::Scroll evt{slideValue_};
-    getEvents().notifyAllChannels<nodeevent::Scroll>(evt);
+    events::Scroll evt{slideValue_};
+    getEvents().notifyAllChannels<events::Scroll>(evt);
 }
 
-void Slider::onMouseClick(const nodeevent::LMBClick&)
+void Slider::onMouseClick(const events::LMBClick&)
 {
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     glm::vec2 kPos = knobNode_->getTransform().pos;
@@ -96,7 +96,7 @@ void Slider::onMouseClick(const nodeevent::LMBClick&)
     }
 }
 
-void Slider::onMouseDrag(const nodeevent::LMBDrag&)
+void Slider::onMouseDrag(const events::LMBDrag&)
 {
     updateSliderValue();
     MAKE_LAYOUT_DIRTY
@@ -121,13 +121,13 @@ void Slider::setupLayoutReloadables()
     layout_.onTypeChange = [this]()
     {
         std::swap(knobNode_->getLayout().scale.x, knobNode_->getLayout().scale.y);
-        if (layout_.type == Layout::Type::HORIZONTAL)
+        if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            knobNode_->getLayout().setScaleType({Layout::ScaleType::PX, Layout::ScaleType::REL});
+            knobNode_->getLayout().setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
         }
-        else if (layout_.type == Layout::Type::VERTICAL)
+        else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            knobNode_->getLayout().setScaleType({Layout::ScaleType::REL, Layout::ScaleType::PX});
+            knobNode_->getLayout().setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX});
         }
         MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
     };

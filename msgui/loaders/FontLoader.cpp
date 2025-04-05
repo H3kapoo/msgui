@@ -9,14 +9,14 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "msgui/vendor/stb_image_write.h"
+#include "msgui/loaders/BELoadingQueue.hpp"
 #include "msgui/Logger.hpp"
-#include "msgui/renderer/text/Types.hpp"
-#include "msgui/BELoadingQueue.hpp"
+#include "msgui/renderer/Types.hpp"
+#include "msgui/vendor/stb_image_write.h"
 
 namespace msgui::loaders
 {
-std::unordered_map<std::string, std::shared_ptr<Font>> FontLoader::fontPathToObject_ = {};
+std::unordered_map<std::string, std::shared_ptr<renderer::Font>> FontLoader::fontPathToObject_ = {};
 
 FontLoader& FontLoader::get()
 {
@@ -38,7 +38,7 @@ FontLoader::~FontLoader()
     log_.debugLn("Deallocated.");
 }
 
-FontPtr FontLoader::loadFont(const std::string& fontPath, const int32_t fontSize)
+renderer::FontPtr FontLoader::loadFont(const std::string& fontPath, const int32_t fontSize)
 {
     std::string fontKey = fontPath + std::to_string(fontSize);
     if (fontPathToObject_.count(fontKey))
@@ -46,7 +46,7 @@ FontPtr FontLoader::loadFont(const std::string& fontPath, const int32_t fontSize
         return fontPathToObject_.at(fontKey);
     }
 
-    std::packaged_task<FontPtr()> task([this, fontPath, fontSize]()
+    std::packaged_task<renderer::FontPtr()> task([this, fontPath, fontSize]()
     {
         return loadFontInternal(fontPath, fontSize);
     });
@@ -62,13 +62,13 @@ FontPtr FontLoader::loadFont(const std::string& fontPath, const int32_t fontSize
     return fontPathToObject_.at(fontKey);
 }
 
-FontPtr FontLoader::loadFontInternal(const std::string& fontPath, const int32_t fontSize)
+renderer::FontPtr FontLoader::loadFontInternal(const std::string& fontPath, const int32_t fontSize)
 {
-    FontPtr font = std::make_shared<Font>();
+    renderer::FontPtr font = std::make_shared<renderer::Font>();
     font->fontSize = fontSize;
     font->fontPath = fontPath;
 
-    if (fontSize < MIN_FONT_SIZE || fontSize > MAX_FONT_SIZE)
+    if (fontSize < renderer::MIN_FONT_SIZE || fontSize > renderer::MAX_FONT_SIZE)
     {
         log_.errorLn("Failed to load font: \"%s\". Size is out of bounds: %d. Will keep previous font size.",
             fontPath.c_str(), fontSize);
@@ -99,7 +99,7 @@ FontPtr FontLoader::loadFontInternal(const std::string& fontPath, const int32_t 
     glBindTexture(GL_TEXTURE_2D_ARRAY, font->texId);
 
     /* Generate MAX_CODEPOINTS levels deep texture. */
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RED, fontSize, fontSize, MAX_CODEPOINTS, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RED, fontSize, fontSize, renderer::MAX_CODEPOINTS, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 
     /* Wrapping, mag & min settings. */
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -108,7 +108,7 @@ FontPtr FontLoader::loadFontInternal(const std::string& fontPath, const int32_t 
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     FT_Int32 load_flags = FT_LOAD_RENDER;
-    for (int32_t i = 32; i < MAX_CODEPOINTS; i++)
+    for (int32_t i = 32; i < renderer::MAX_CODEPOINTS; i++)
     {
         /* Loads i'th char in font atlas */
         if (FT_Load_Char(ftFace, i, load_flags))
@@ -120,7 +120,7 @@ FontPtr FontLoader::loadFontInternal(const std::string& fontPath, const int32_t 
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, ftFace->glyph->bitmap.width, ftFace->glyph->bitmap.rows, 1,
             GL_RED, GL_UNSIGNED_BYTE, ftFace->glyph->bitmap.buffer);
 
-        CodePointData ch =
+        renderer::CodePointData ch =
         {
             .charCode = uint32_t(i),
             .hAdvance = ftFace->glyph->advance.x,

@@ -2,22 +2,22 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
-#include "msgui/TextureLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
+#include "msgui/loaders/TextureLoader.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
-#include "msgui/nodeEvent/NodeEventManager.hpp"
+#include "msgui/events/FocusLost.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/events/NodeEventManager.hpp"
 
 namespace msgui
 {
 Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("Button(" + name + ")");
 
     setupLayoutReloadables();
@@ -32,11 +32,11 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     layout_.setScale({70, 34});
 
     /* Register only the events you need. */
-    getEvents().listen<nodeevent::LMBClick, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&Button::onMouseClick, this, std::placeholders::_1));
-    getEvents().listen<nodeevent::LMBRelease, nodeevent::InputChannel>(
+    getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&Button::onMouseRelease, this, std::placeholders::_1));
-        getEvents().listen<nodeevent::LMBReleaseNotHovered, nodeevent::InputChannel>(
+        getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
             std::bind(&Button::onMouseReleaseNotHovered, this, std::placeholders::_1));
 }
 
@@ -52,7 +52,7 @@ void Button::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Button::onMouseClick(const nodeevent::LMBClick&)
+void Button::onMouseClick(const events::LMBClick&)
 {
     currentColor_ = pressedColor_;
 
@@ -60,7 +60,7 @@ void Button::onMouseClick(const nodeevent::LMBClick&)
     MAKE_LAYOUT_DIRTY;
 }
 
-void Button::onMouseRelease(const nodeevent::LMBRelease&)
+void Button::onMouseRelease(const events::LMBRelease&)
 {
     currentColor_ = color_;
     
@@ -68,10 +68,10 @@ void Button::onMouseRelease(const nodeevent::LMBRelease&)
     MAKE_LAYOUT_DIRTY;
 }
 
-void Button::onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&)
+void Button::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
 {
     /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acts just like LMBRelease. */
-    const nodeevent::LMBRelease evt{{0,0}};
+    const events::LMBRelease evt{{0,0}};
     onMouseRelease(evt);
 }
 
@@ -118,7 +118,7 @@ Button& Button::setBorderColor(const glm::vec4& color)
 Button& Button::setTexture(const std::string texturePath)
 {
     texturePath_ = texturePath;
-    btnTex_ = TextureLoader::loadTexture(texturePath);
+    btnTex_ = loaders::TextureLoader::loadTexture(texturePath);
     REQUEST_NEW_FRAME;
     return *this;
 }
@@ -136,7 +136,7 @@ Button& Button::setEnabled(const bool value)
         currentColor_ = disabledColor_;
         getEvents().pauseAllEvents();
         /* This is mainly needed in case the Button is a menu item in a dropdown. */
-        getEvents().pauseEvent<nodeevent::FocusLost, InternalChannel>(false);
+        getEvents().pauseEvent<events::FocusLost, events::InternalChannel>(false);
     }
 
     REQUEST_NEW_FRAME;

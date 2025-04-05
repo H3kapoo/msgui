@@ -2,13 +2,13 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/loaders/FontLoader.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/renderer/text/TextBufferStore.hpp"
-#include "msgui/renderer/text/Types.hpp"
+#include "msgui/renderer/TextBufferStore.hpp"
+#include "msgui/renderer/Types.hpp"
 
 namespace msgui
 {
@@ -16,8 +16,8 @@ using namespace loaders;
 
 TextLabel::TextLabel(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("TextLabel(" + name + ")");
 
     setupLayoutReloadables();
@@ -33,7 +33,7 @@ TextLabel::~TextLabel()
 {
     if (!textData_) { return; }
 
-    TextBufferStore::get().remove(textData_);
+    renderer::TextBufferStore::get().remove(textData_);
 }
 
 void TextLabel::setShaderAttributes()
@@ -79,9 +79,9 @@ TextLabel& TextLabel::setText(const std::string& text)
 {
     if (!textData_)
     {
-        textData_ = TextBufferStore::get().newLocation();
+        textData_ = renderer::TextBufferStore::get().newLocation();
         textData_.value()->transformPtr = &transform_;
-        textData_.value()->fontData = FontLoader::get().loadFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
+        textData_.value()->fontData = FontLoader::get().loadFont(renderer::DEFAULT_FONT_PATH, renderer::DEFAULT_FONT_SIZE);
     }
 
     textData_.value()->text = std::move(text);

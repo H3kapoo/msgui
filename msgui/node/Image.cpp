@@ -2,9 +2,9 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/MeshLoader.hpp"
-#include "msgui/ShaderLoader.hpp"
-#include "msgui/TextureLoader.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
+#include "msgui/loaders/TextureLoader.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/node/FrameState.hpp"
 
@@ -12,8 +12,8 @@ namespace msgui
 {
 Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(ShaderLoader::loadShader("assets/shader/basicTex.glsl"));
-    setMesh(MeshLoader::loadQuad());
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/basicTex.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("Image(" + name + ")");
 
     setupLayoutReloadables();
@@ -68,7 +68,7 @@ Image& Image::setTint(const glm::vec4& color)
 Image& Image::setImage(const std::string& imagePath)
 {
     imagePath_ = imagePath;
-    btnTex_ = TextureLoader::loadTexture(imagePath_);
+    btnTex_ = loaders::TextureLoader::loadTexture(imagePath_);
     REQUEST_NEW_FRAME;
     return *this;
 }

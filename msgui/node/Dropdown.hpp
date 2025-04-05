@@ -2,10 +2,10 @@
 
 #include "AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/nodeEvent/FocusLost.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
-#include "msgui/nodeEvent/LMBReleaseNotHovered.hpp"
+#include "msgui/events/FocusLost.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/LMBReleaseNotHovered.hpp"
 
 namespace msgui
 {
@@ -36,16 +36,16 @@ public:
     {
         std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
         nodeItem->getLayout()
-            .setScaleType(Layout::ScaleType::PX)
+            .setScaleType(utils::Layout::ScaleType::PX)
             .setScale(itemSize_);
-        nodeItem->getEvents().template listen<nodeevent::LMBRelease, nodeevent::InternalChannel>([this](const auto&)
+        nodeItem->getEvents().template listen<events::LMBRelease, events::InternalChannel>([this](const auto&)
         {
             /* Close any open downwards and upwards dropdowns from here. */
             setDropdownOpen(false);
             recursivelyCloseDropdownsUpwards();
         });
 
-        nodeItem->getEvents().template listen<nodeevent::FocusLost, nodeevent::InternalChannel>([this](const auto& evt)
+        nodeItem->getEvents().template listen<events::FocusLost, events::InternalChannel>([this](const auto& evt)
         {
             /* This is mainly used when the menu item has it's events disabled and we click somewhere else.
                We need to notify the parent to run the close dropdown logic only when dropdown is still open. */
@@ -101,10 +101,10 @@ public:
 private:
     void setShaderAttributes() override;
 
-    void onMouseRelease(const nodeevent::LMBRelease&);
-    void onMouseReleaseNotHovered(const nodeevent::LMBReleaseNotHovered&);
-    void onMouseClick(const nodeevent::LMBClick&);
-    void onFocusLost(const nodeevent::FocusLost&);
+    void onMouseRelease(const events::LMBRelease&);
+    void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&);
+    void onMouseClick(const events::LMBClick&);
+    void onFocusLost(const events::FocusLost&);
 
     void closeDropdownsOnTheSameLevelAsMe();
     void recursivelyCloseDropdownsUpwards();
