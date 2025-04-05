@@ -67,6 +67,14 @@ void TextLabel::setupLayoutReloadables()
     layout_.onMaxScaleChange = updateCb;
 }
 
+TextLabel& TextLabel::setColor(const glm::vec4& color)
+{
+    color_ = color;
+    REQUEST_NEW_FRAME;
+
+    return *this;
+}
+
 TextLabel& TextLabel::setText(const std::string& text)
 {
     if (!textData_)
@@ -79,7 +87,7 @@ TextLabel& TextLabel::setText(const std::string& text)
     textData_.value()->text = std::move(text);
     textData_.value()->isDirty = true;
 
-    MAKE_TEXT_LAYOUT_DIRTY;
+    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }
@@ -96,7 +104,7 @@ TextLabel& TextLabel::setFont(const std::string fontPath)
     textData_.value()->fontData = loadedFont;
     textData_.value()->isDirty = true;
 
-    MAKE_TEXT_LAYOUT_DIRTY;
+    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }
@@ -113,10 +121,12 @@ TextLabel& TextLabel::setFontSize(const int32_t fontSize)
     textData_.value()->fontData = loadedFont;
     textData_.value()->isDirty = true;
 
-    MAKE_TEXT_LAYOUT_DIRTY;
+    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }
+
+glm::vec4 TextLabel::getColor() const { return color_; }
 
 std::string TextLabel::getText() const { return textData_ ? textData_.value()->text : ""; }
 

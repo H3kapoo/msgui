@@ -95,7 +95,7 @@ void Dropdown::onFocusLost(const nodeevent::FocusLost&)
 {
     if (!dropdownOpen_) { return; }
     const auto& state = getState();
-    const auto& parentBoxCont = state->clickedNodePtr->getParent().lock();
+    const auto& parentBoxCont = state->clickedNodePtr.lock()->getParent().lock();
     const auto& grandParentDd = parentBoxCont ? parentBoxCont->getParent().lock() : nullptr;
     if (!grandParentDd || grandParentDd->getType() != AbstractNode::NodeType::DROPDOWN ||
         Utils::as<Dropdown>(grandParentDd)->getDropdownId() != dropdownId_)

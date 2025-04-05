@@ -206,7 +206,7 @@ void WindowFrame::renderLayout()
     }
 
     /* Render text after the nodes themselves. */
-    textRenderer_.render(pMat);
+    textRenderer_.render(pMat, frameState_->frameSize.y);
 }
 
 void WindowFrame::updateLayout()
@@ -229,7 +229,7 @@ void WindowFrame::updateLayout()
         for (const auto& node : allFrameChildNodes_ | std::views::reverse)
         {
             glm::ivec2 overflow = layoutEngine_->process(node);
-    
+
             /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
                 for it had finished. Note that we do this on the parent of the current BOX node because we need to
                 notify it AFTER the item containing BOX inside it finished the layout pass. */
@@ -272,10 +272,9 @@ void WindowFrame::updateLayout()
           means the user modified the layout (i.e. positioning of nodes) and as a consequence all text must be
           forcefully be recalculated.
     */
-    if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
+    // if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
     {
         frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
-
         auto& textBuffer = TextBufferStore::get().buffer();
         for (auto& textData : textBuffer)
         {
@@ -295,6 +294,7 @@ void WindowFrame::resolveNodeRelations()
     {
         AbstractNodePtr node = q.front();
         q.pop();
+
         allFrameChildNodes_.push_back(node);
 
         for (auto& ch : node->getChildren())
@@ -344,8 +344,8 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             if (frameState_->mouseButtonState[btn])
             {
                 frameState_->clickedNodePtr = node;
-                auto& prevNode = frameState_->prevClickedNodePtr;
-                auto& hoveredNode = frameState_->hoveredNodePtr;
+                auto prevNode = frameState_->prevClickedNodePtr.lock();
+                auto hoveredNode = frameState_->hoveredNodePtr.lock();
                 if (prevNode && prevNode != node)
                 {
                     nodeevent::FocusLost evt;
@@ -366,12 +366,12 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
             else if (!frameState_->mouseButtonState[btn])
             {
                 frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
-                if (frameState_->prevClickedNodePtr && node != frameState_->prevClickedNodePtr)
+                if (frameState_->prevClickedNodePtr.lock() && node != frameState_->prevClickedNodePtr.lock())
                 {
                     if (btn == GLFW_MOUSE_BUTTON_LEFT)
                     {
                         nodeevent::LMBReleaseNotHovered evt;
-                        frameState_->prevClickedNodePtr->getEvents()
+                        frameState_->prevClickedNodePtr.lock()->getEvents()
                             .notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
                     }
                     else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
@@ -402,7 +402,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     {
         frameState_->prevClickedNodePtr = frameState_->clickedNodePtr;
         nodeevent::LMBReleaseNotHovered evt;
-        frameState_->prevClickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
+        frameState_->prevClickedNodePtr.lock()->getEvents().notifyAllChannels<nodeevent::LMBReleaseNotHovered>(evt);
         frameState_->clickedNodePtr = NO_PTR;
     }
 }
@@ -429,10 +429,10 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     }
 
     /* Having a selectedNodeId && currently holding down left click means we want to drag only. */
-    if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr != NO_PTR)
+    if (frameState_->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT] && frameState_->clickedNodePtr.lock() != NO_PTR)
     {
         nodeevent::LMBDrag evt(x, y);
-        frameState_->clickedNodePtr->getEvents().notifyAllChannels<nodeevent::LMBDrag>(evt);
+        frameState_->clickedNodePtr.lock()->getEvents().notifyAllChannels<nodeevent::LMBDrag>(evt);
         return;
     }
 }

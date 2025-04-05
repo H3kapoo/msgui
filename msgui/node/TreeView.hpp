@@ -54,13 +54,15 @@ public:
     TreeView& setItemMargin(const Layout::TBLR margin);
     TreeView& setItemBorder(const Layout::TBLR border);
     TreeView& setItemBorderRadius(const Layout::TBLR borderRadius);
-
+    TreeView& setMarginFactor(const uint32_t marginFactor);
+    
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
     int32_t getRowSize() const;
     Layout::TBLR getItemMargin() const;
     Layout::TBLR getItemBorder() const;
     Layout::TBLR getItemBorderRadius() const;
+    uint32_t getMarginFactor() const;
     Internals& getInternalsRef();
 
 private: // friend
@@ -80,12 +82,11 @@ private:
     Layout::TBLR itemMargin_{0};
     Layout::TBLR itemBorder_{0};
     Layout::TBLR itemBorderRadius_{0};
-    int32_t pushFactor_{60};
     std::vector<TreeItem> listItems_;
-
+    
     TreeItemPtrVec treeItems_;
     TreeItemPtrVec flattenedTreeBuffer; //TODO: Consider using a list instead
-
+    
     struct Internals
     {
         bool isDirty{true};
@@ -94,6 +95,7 @@ private:
         int32_t oldVisibleNodes{0};
         int32_t visibleNodes{0};
         int32_t maxDepth_{0};
+        uint32_t marginFactor_{30};
         float lastScaleY{0};
         float lastScaleX{0};
         int32_t flatTreeElements{0};

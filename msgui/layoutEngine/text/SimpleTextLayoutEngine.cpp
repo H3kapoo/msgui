@@ -16,15 +16,16 @@ void SimpleTextLayoutEngine::process(TextData& data, const bool forceAllDirty)
 
     auto fontData = data.fontData;
     glm::vec3 startPos = data.transformPtr->pos;
+    float inc = 0.001f;
     for (char ch : data.text)
     {
+        inc += 0.001f;
         int32_t idx = ch;
         float x = startPos.x + fontData->codePointData[idx].bearing.x;
-        float y = startPos.y -  fontData->codePointData[idx].bearing.y;
+        float y = startPos.y - fontData->codePointData[idx].bearing.y + fontData->fontSize;
 
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3{x, y, startPos.z});
-        // modelMatrix = glm::scale(modelMatrix, glm::vec3{24, 24, 1});
+        modelMatrix = glm::translate(modelMatrix, glm::vec3{x, y, startPos.z + inc});
         modelMatrix = glm::scale(modelMatrix, glm::vec3{fontData->fontSize, fontData->fontSize, 1});
 
         data.pcd.transform.emplace_back(std::move(modelMatrix));

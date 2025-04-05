@@ -21,7 +21,7 @@ TextRenderer::TextRenderer()
     shaderBuffer_.unicodeIndex.reserve(MAX_SHADER_BUFFER_SIZE);
 }
 
-void TextRenderer::render(const glm::mat4& projMat)
+void TextRenderer::render(const glm::mat4& projMat, const int32_t frameHeight)
 {
     batchCount = 0;
 
@@ -36,6 +36,8 @@ void TextRenderer::render(const glm::mat4& projMat)
     auto& storeBuffer = TextBufferStore::get().buffer();
     for (auto& element : storeBuffer)
     {
+        doScissorMask(element.transformPtr, frameHeight);
+
         /* Use a fallback font in case the main one is not provided for some reason. */
         element.fontData->texId
             ? shader_->setTexture2DArray("uTextureArray", GL_TEXTURE1, element.fontData->texId)
@@ -56,32 +58,26 @@ void TextRenderer::render(const glm::mat4& projMat)
 
             copiedSize += (copyEnd - copyStart);
             copyStart = copyEnd;
-
+            
+            /* Render part of the text that made the buffer get full. */
             if (shaderBuffer_.transform.size() >= MAX_SHADER_BUFFER_SIZE)
             {
                 renderBatchContents();
             }
         }
 
-        /* In case the element fit perfectly inside the buffer and there's no more space in it: render immediatelly. */
-        if (shaderBuffer_.transform.size() >= MAX_SHADER_BUFFER_SIZE)
+        /* In order to make use of glScissor we need to render one text buffer item per drawcall instead of
+           filling the shader buffer with many text buffer items.. */
+        if (shaderBuffer_.transform.size())
         {
             renderBatchContents();
         }
     }
-
-    /* Render the elements that didnt reach max batch capacity. */
-    if (shaderBuffer_.transform.size())
-    {
-        renderBatchContents();
-    }
-
-    // log_.debugLn("Batch count: %d", batchCount);
 };
 
 void TextRenderer::renderBatchContents()
 {
-    Window::setDepthTest(false);
+    // Window::setDepthTest(false);
 
     shader_->setMat4fv("uModelMatv",  shaderBuffer_.transform);
     shader_->setIntv("uCharIdxv",  shaderBuffer_.unicodeIndex);
@@ -99,5 +95,14 @@ void TextRenderer::clearInternalBuffer()
 {
     shaderBuffer_.transform.clear();
     shaderBuffer_.unicodeIndex.clear();
+}
+
+void TextRenderer::doScissorMask(const TransformPtr tr, const int32_t frameHeight)
+{
+    glScissor(
+        tr->vPos.x,
+        frameHeight - tr->vPos.y - tr->vScale.y,
+        tr->vScale.x,
+        tr->vScale.y);
 }
 } // namespace msgui::renderer::text

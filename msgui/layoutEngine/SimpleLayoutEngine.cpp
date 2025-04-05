@@ -601,9 +601,11 @@ bool SimpleLayoutEngine::processTreeView(const AbstractNodePtr& node)
         tvPtr->onLayoutDirtyPost();
     }
 
+    //TODO: 20 magic number
     const int32_t hBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::HORIZONTAL) ? 20 : 0;
     const int32_t vBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::VERTICAL) ? 20 : 0;
 
+    //TODO: 250 & 60 magic number
     internalsRef.overflow.x = (250+60*internalsRef.maxDepth_) - nScale.x + vBarActiveSize;
     internalsRef.overflow.y = internalsRef.flatTreeElements * rowSizeAndMargin - nScale.y + hBarActiveSize;
     internalsRef.overflow.x = std::max(0, internalsRef.overflow.x);

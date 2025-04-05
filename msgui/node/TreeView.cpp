@@ -9,6 +9,7 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
+#include "msgui/node/TextLabel.hpp"
 #include "msgui/nodeEvent/LMBRelease.hpp"
 #include "msgui/nodeEvent/LMBTreeItemRelease.hpp"
 
@@ -60,7 +61,7 @@ void TreeView::refreshTree()
     flattenedTreeBuffer.clear();
 
     std::stack<TreeItemPtr> traversalStack;
-    for (auto& item : treeItems_)
+    for (auto& item : treeItems_ | std::views::reverse)
     {
         traversalStack.push(item);
     }
@@ -117,13 +118,17 @@ void TreeView::onLayoutDirtyPost()
         int32_t index = internals_.topOfListIdx + i;
         if (index < internals_.flatTreeElements)
         {
-            auto ref = std::make_shared<Button>("TreeViewItem");
+            // auto ref = std::make_shared<Button>("TreeViewItem");
+            auto ref = std::make_shared<TextLabel>("TreeViewItem");
             ref->getLayout()
                 .setMargin(itemMargin_)
                 .setBorder(itemBorder_)
-                .setScale({250, rowSize_})
-                .setMargin({0, 0, float(flattenedTreeBuffer[index]->depth*pushFactor_), 0});
-            ref->setColor(flattenedTreeBuffer[index]->color);
+                // .setScale({250, rowSize_})
+                .setScale({flattenedTreeBuffer[index]->stringInfo.size()*5+50, rowSize_});
+            ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
+            ref->setColor(flattenedTreeBuffer[index]->color)
+                .setText(flattenedTreeBuffer[index]->stringInfo);
+
             append(ref);
 
             ref->getEvents().listen<nodeevent::LMBRelease>(
@@ -212,6 +217,13 @@ TreeView& TreeView::setItemBorderRadius(const Layout::TBLR borderRadius)
     return *this;
 }
 
+TreeView& TreeView::setMarginFactor(const uint32_t marginFactor)
+{
+    internals_.marginFactor_ = marginFactor;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
 glm::vec4 TreeView::getColor() const { return color_; }
 
 glm::vec4 TreeView::getBorderColor() const { return borderColor_; }
@@ -223,6 +235,8 @@ Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
 Layout::TBLR TreeView::getItemBorder() const { return itemBorder_; }
 
 Layout::TBLR TreeView::getItemBorderRadius() const { return itemBorderRadius_; }
+
+uint32_t TreeView::getMarginFactor() const { return internals_.marginFactor_; }
 
 TreeView::Internals& TreeView::getInternalsRef() { return internals_; }
 } // msgui

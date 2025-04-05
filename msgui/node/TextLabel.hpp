@@ -3,6 +3,7 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Texture.hpp"
 #include "msgui/renderer/text/Types.hpp"
+#include "msgui/renderer/text/TextBufferStore.hpp"
 
 namespace msgui
 {
@@ -15,10 +16,16 @@ public:
     TextLabel(const std::string& name);
     ~TextLabel();
 
+    TextLabel& setColor(const glm::vec4& text);
     TextLabel& setText(const std::string& text);
     TextLabel& setFont(const std::string fontPath);
     TextLabel& setFontSize(const int32_t fontSize);
 
+    void resetText()
+    {
+        TextBufferStore::get().remove(textData_);
+    }
+    glm::vec4 getColor() const;
     std::string getText() const;
     std::string getFont() const;
     int32_t getFontSize() const;

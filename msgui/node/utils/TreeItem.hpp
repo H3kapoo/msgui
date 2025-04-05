@@ -22,8 +22,11 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
 
     void toggle() { isOpen ? close() : open(); }
 
-    void open() { isOpen = true; }
-
+    void open()
+    {
+        isOpen = true;
+    }
+    
     void close()
     {
         if (!isOpen) { return; }

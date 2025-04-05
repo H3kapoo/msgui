@@ -32,6 +32,7 @@ enum ELayoutPass : uint8_t
 /* Cannot include AbstractNode.hpp due to imminent gl/glfw conflicts */
 class AbstractNode;
 using AbstractNodePtr = std::shared_ptr<AbstractNode>;
+using AbstractNodeWPtr = std::weak_ptr<AbstractNode>;
 
 static constexpr int32_t NO_ID = 0;
 static constexpr int32_t NO_VALUE = 0;
@@ -46,11 +47,11 @@ struct FrameState
     int32_t lastMouseX                              {NO_VALUE};
     int32_t lastMouseY                              {NO_VALUE};
     glm::ivec2 frameSize                            {NO_VALUE, NO_VALUE};
-    AbstractNodePtr clickedNodePtr                  {NO_PTR};
-    AbstractNodePtr prevClickedNodePtr              {NO_PTR};
-    AbstractNodePtr hoveredNodePtr                  {NO_PTR};
+    AbstractNodeWPtr clickedNodePtr                 {NO_PTR};
+    AbstractNodeWPtr prevClickedNodePtr             {NO_PTR};
+    AbstractNodeWPtr hoveredNodePtr                  {NO_PTR};
     std::function<void()> requestNewFrameFunc       {nullptr};
-    uint8_t layoutPassActions                       {ELayoutPass::EVERYTHING};
+    uint8_t layoutPassActions                       {ELayoutPass::EVERYTHING_NODE};
     int32_t currentCursorId                         {GLFW_ARROW_CURSOR};
     int32_t prevCursorId                            {GLFW_ARROW_CURSOR};
 };

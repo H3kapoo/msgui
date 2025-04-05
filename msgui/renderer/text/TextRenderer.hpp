@@ -6,6 +6,7 @@
 #include "msgui/Logger.hpp"
 #include "msgui/Mesh.hpp"
 #include "msgui/Shader.hpp"
+#include "msgui/Transform.hpp"
 #include "msgui/renderer/text/Types.hpp"
 
 namespace msgui::renderer::text
@@ -16,7 +17,7 @@ class TextRenderer
 public:
     TextRenderer();
 
-    void render(const glm::mat4& projMat);
+    void render(const glm::mat4& projMat, const int32_t frameHeight);
 
 private:
     /* Cannot be copied or moved */
@@ -27,6 +28,7 @@ private:
 
     void renderBatchContents();
     void clearInternalBuffer();
+    void doScissorMask(const TransformPtr tr, const int32_t frameHeight);
 
 private:
     Logger log_{"TextRenderer"};

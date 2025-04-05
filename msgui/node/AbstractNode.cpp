@@ -36,7 +36,8 @@ void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const int
     children_.insert(children_.begin() + idx, node);
     if (state_)
     {
-        state_->layoutPassActions |= ELayoutPass::EVERYTHING;
+        // state_->layoutPassActions |= ELayoutPass::EVERYTHING;
+        state_->layoutPassActions |= ELayoutPass::EVERYTHING_NODE;
     }
 }
 

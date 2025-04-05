@@ -34,4 +34,5 @@ public:
     glm::ivec2 vScale{1};
     glm::mat4 modelMatrix;
 };
+using TransformPtr = Transform*;
 } // namespace msgui
