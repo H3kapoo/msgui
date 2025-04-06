@@ -119,7 +119,10 @@ void Application::setPollMode(const PollMode mode)
 
 void Application::setVSync(const bool vsyncValue)
 {
-    Window::setVSync(vsyncValue);
+    for (auto& frame : frames_)
+    {
+        frame->window_.setVSync(vsyncValue);
+    }
 }
 
 WindowFrameWPtr Application::getFrameBy(const std::function<bool(const WindowFramePtr&)>& pred)

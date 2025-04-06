@@ -4,38 +4,15 @@
 #include <string>
 #include <vector>
 #include <list>
-#include <memory>
 
 #include <glm/glm.hpp>
 
 #include "msgui/layoutEngine/utils/Transform.hpp"
+#include "msgui/Font.hpp"
 
 namespace msgui::renderer
 {
 using namespace msgui::layoutengine;
-
-static constexpr int32_t MAX_CODEPOINTS{256};
-static constexpr int32_t DEFAULT_FONT_SIZE{16};
-static constexpr int32_t MIN_FONT_SIZE{10};
-static constexpr int32_t MAX_FONT_SIZE{88};
-static const std::string DEFAULT_FONT_PATH{"/home/hekapoo/Documents/probe/newgui/assets/fonts/Arial.ttf"};
-
-struct CodePointData
-{
-    uint32_t charCode;
-    int64_t hAdvance;
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-};
-
-struct Font
-{
-    CodePointData codePointData[MAX_CODEPOINTS];
-    uint32_t texId{0};
-    int32_t fontSize{16};
-    std::string fontPath;
-};
-using FontPtr = std::shared_ptr<Font>;
 
 struct PerCodepointData
 {

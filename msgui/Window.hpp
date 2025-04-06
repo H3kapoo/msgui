@@ -62,6 +62,7 @@ public:
     void setContextCurrent() const;
     void setCurrentViewport() const;
     void setCurrentScissorArea() const;
+    void setVSync(const int32_t interval) const;
 
     /* Trivial getters */
     GLFWwindow* getHandle() const;
@@ -80,7 +81,6 @@ public:
     static void setDepthTest(const bool state);
     static void setScissorTest(const bool state);
     static void setScissorArea(const int32_t x, const int32_t y, const int32_t width, const int32_t height);
-    static void setVSync(const int32_t interval);
     static GLFWwindow* getSharedContexWindowHandle();
 
     /**

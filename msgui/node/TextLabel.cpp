@@ -81,7 +81,7 @@ TextLabel& TextLabel::setText(const std::string& text)
     {
         textData_ = renderer::TextBufferStore::get().newLocation();
         textData_.value()->transformPtr = &transform_;
-        textData_.value()->fontData = FontLoader::get().loadFont(renderer::DEFAULT_FONT_PATH, renderer::DEFAULT_FONT_SIZE);
+        textData_.value()->fontData = FontLoader::get().loadFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
     }
 
     textData_.value()->text = std::move(text);

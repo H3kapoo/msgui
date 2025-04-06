@@ -1,12 +1,11 @@
 #pragma once
 
 #include "msgui/node/AbstractNode.hpp"
-#include "msgui/Texture.hpp"
 #include "msgui/renderer/Types.hpp"
+#include "msgui/Texture.hpp"
 
 namespace msgui
 {
-
 /* Node used to display text. */
 class TextLabel : public AbstractNode
 {

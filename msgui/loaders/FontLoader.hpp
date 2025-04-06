@@ -10,6 +10,7 @@
 #include "msgui/vendor/stb_image_write.h"
 #include "msgui/Logger.hpp"
 #include "msgui/renderer/Types.hpp"
+#include "msgui/Font.hpp"
 
 namespace msgui::loaders
 {
@@ -20,13 +21,13 @@ class FontLoader
 public:
     static FontLoader& get();
 
-    renderer::FontPtr loadFont(const std::string& fontPath, const int32_t fontSize = renderer::DEFAULT_FONT_SIZE);
+    FontPtr loadFont(const std::string& fontPath, const int32_t fontSize = DEFAULT_FONT_SIZE);
 
 private:
     FontLoader();
     ~FontLoader();
 
-    renderer::FontPtr loadFontInternal(const std::string& fontPath, const int32_t fontSize);
+    FontPtr loadFontInternal(const std::string& fontPath, const int32_t fontSize);
 
     /* Cannot be copied or moved */
     FontLoader(const FontLoader&) = delete;
@@ -38,6 +39,6 @@ private:
     Logger log_{"FontLoader"};
     FT_Library ftLib_;
 
-    static std::unordered_map<std::string, renderer::FontPtr> fontPathToObject_;
+    static std::unordered_map<std::string, FontPtr> fontPathToObject_;
 };
 } // namespace msgui::loaders

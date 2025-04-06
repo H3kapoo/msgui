@@ -7,12 +7,13 @@
 
 #include "msgui/renderer/Types.hpp"
 #include "msgui/common/Defines.hpp"
+#include "msgui/Font.hpp"
 
 namespace msgui::loaders
 {
 
 using UIntTask = std::packaged_task<uint32_t()>;
-using FontTask = std::packaged_task<renderer::FontPtr()>;
+using FontTask = std::packaged_task<FontPtr()>;
 
 /* Class used to load backend resources from the main thread when loading was requested
    from secondary threads.

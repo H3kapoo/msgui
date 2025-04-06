@@ -42,6 +42,7 @@ Window::Window(const std::string& windowName, const uint32_t width, const uint32
         uniqueContextAquired = true;
     }
 
+    setVSync(1);
     setBlending(true);
     maskUnnecessaryEvents();
     onResizeEvent(width, height);
@@ -160,8 +161,10 @@ void Window::setScissorArea(const int32_t x, const int32_t y, const int32_t widt
     glScissor(x, y, width, height);
 }
 
-void Window::setVSync(const int32_t internal)
+void Window::setVSync(const int32_t internal) const
 {
+    setContextCurrent();
+
 #ifdef __linux__
     typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
     PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(
