@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Dropdown.hpp"
@@ -84,7 +85,7 @@ glm::vec2 BasicLayoutEngine::process(const AbstractNodePtr& node)
     }
 
     /* Compute node children scale */
-    computeNodeScale(nShrunkScale, children);
+    computeNodeScale(nShrunkScale, node);
 
     /* Compute floating boxes separately as their positioning is special */
     if (node->getType() == AbstractNode::NodeType::FLOATING_BOX)
@@ -268,9 +269,14 @@ glm::vec2 BasicLayoutEngine::computeSpacing(const AbstractNodePtr& node, const f
     return {spacing, additionalStartPush};
 }
 
-void BasicLayoutEngine::computeNodeScale(const glm::vec2& pScale, const AbstractNodePVec& children)
+void BasicLayoutEngine::computeNodeScale(const glm::vec2& pScale, const AbstractNodePtr& node)
 {
-    glm::vec2 newParentScale = pScale - getTotalChildrenAbsScale(children);
+    auto& children = node->getChildren();
+    const glm::vec2 total = getTotalChildrenAbsScale(children);
+    glm::vec2 newParentScale = pScale;
+
+    newParentScale.x -= node->getLayout().type == utils::Layout::Type::HORIZONTAL ? total.x : 0;
+    newParentScale.y -= node->getLayout().type == utils::Layout::Type::VERTICAL ? total.y : 0;
     for (auto& ch : children)
     {
         /* Shall not be taken into consideration as these are calculated differently */
@@ -777,7 +783,7 @@ void BasicLayoutEngine::processDropdown(const AbstractNodePtr& node)
                 chZeroLayout.border.top + chZeroLayout.border.bot
         };
 
-        computeNodeScale({0, 0}, children);
+        computeNodeScale({0, 0}, node);
 
         /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
             be positioned to the bottom, right, top, left. */

@@ -8,11 +8,11 @@
 
 namespace msgui
 {
-static constexpr int32_t MAX_CODEPOINTS{256};
-static constexpr int32_t DEFAULT_FONT_SIZE{16};
-static constexpr int32_t MIN_FONT_SIZE{10};
-static constexpr int32_t MAX_FONT_SIZE{88};
-static const std::string DEFAULT_FONT_PATH{"/home/hekapoo/Documents/probe/newgui/assets/fonts/Arial.ttf"};
+static constexpr int32_t MAX_CODEPOINTS    {256};
+static constexpr int32_t DEFAULT_FONT_SIZE {16};
+static constexpr int32_t MIN_FONT_SIZE     {10};
+static constexpr int32_t MAX_FONT_SIZE     {88};
+static const std::string DEFAULT_FONT_PATH {"/home/hekapoo/Documents/probe/newgui/assets/fonts/Arial.ttf"};
 
 struct Font
 {
@@ -30,5 +30,4 @@ struct Font
     std::string fontPath;
 };
 using FontPtr = std::shared_ptr<Font>;
-
 } // namespace msgui

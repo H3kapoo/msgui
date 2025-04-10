@@ -84,5 +84,5 @@ void main()
     /* Set the color of the border */
     finalColor += mix(vec4(0.0), uBorderColor, inOutDiffSdf);
 
-    gl_FragColor = vec4(finalColor.xyz, 1.0);
+    gl_FragColor = finalColor;
 }

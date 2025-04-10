@@ -1,4 +1,5 @@
 #include "WindowFrame.hpp"
+#include "msgui/events/WheelScroll.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -39,6 +40,7 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
 {
+    /* Setup GLFW input events */
     input_.onWindowResize([this](uint32_t newWidth, uint32_t newHeight)
     {
         frameBox_->transform_.scale = {newWidth, newHeight, 1};
@@ -70,6 +72,12 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
             &WindowFrame::resolveOnMouseMoveFromInput,
             this, std::placeholders::_1, std::placeholders::_2));
 
+    input_.onMouseWheel(
+        std::bind(
+            &WindowFrame::resolveOnMouseWheelFromInput,
+            this, std::placeholders::_1, std::placeholders::_2));
+
+    /* Setup internal objects */
     frameState_->requestNewFrameFunc = Window::requestEmptyEvent;
     frameState_->frameSize = {width, height};
 
@@ -264,21 +272,12 @@ void WindowFrame::updateLayout()
         }
     }
 
-    /* Update text layouts if needed.
-       1. If recalculation was requested specifically for text transform then each node will see for itself if
-          it shall be updated.
-       2. If in addition to this the layout is also in need of node transform recalculation, then it probably
-          means the user modified the layout (i.e. positioning of nodes) and as a consequence all text must be
-          forcefully be recalculated.
-    */
-    // if (frameState_->layoutPassActions & ELayoutPass::RECALCULATE_TEXT_TRANSFORM)
+    /* Update text layouts if needed. */
+    frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
+    auto& textBuffer = renderer::TextBufferStore::get().buffer();
+    for (auto& textData : textBuffer)
     {
-        frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
-        auto& textBuffer = renderer::TextBufferStore::get().buffer();
-        for (auto& textData : textBuffer)
-        {
-            textLayoutEngine_->process(textData, isNodeTrRecalc);
-        }
+        textLayoutEngine_->process(textData, isNodeTrRecalc);
     }
 }
 
@@ -334,6 +333,9 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
     bool foundNode{false};
     for (const auto& node : allFrameChildNodes_)
     {
+        /* Skip nodes marked as transparent. Events will be bubbled down to the next valid node. */
+        if (node->isEventTransparent()) { continue; }
+
         glm::ivec2& nodePos = node->transform_.vPos;
         glm::ivec2& nodeScale = node->transform_.vScale;
         if ((mX >= nodePos.x && mX <= nodePos.x + nodeScale.x) &&
@@ -371,7 +373,7 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                     {
                         events::LMBReleaseNotHovered evt;
                         frameState_->prevClickedNodePtr.lock()->getEvents()
-                            .notifyAllChannels<events::LMBReleaseNotHovered>(evt);
+                        .notifyAllChannels<events::LMBReleaseNotHovered>(evt);
                     }
                     else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
                     {
@@ -379,18 +381,21 @@ void WindowFrame::resolveOnMouseButtonFromInput(const int32_t btn, const int32_t
                     }
                 }
 
-                frameState_->clickedNodePtr = NO_PTR;
-                
                 if (btn == GLFW_MOUSE_BUTTON_LEFT)
                 {
-                    events::LMBRelease evt{{mX, mY}};
-                    node->getEvents().notifyAllChannels<events::LMBRelease>(evt);
+                    if (frameState_->clickedNodePtr.lock() == frameState_->prevClickedNodePtr.lock())
+                    {
+                        events::LMBRelease evt{{mX, mY}};
+                        node->getEvents().notifyAllChannels<events::LMBRelease>(evt);
+                    }
                 }
                 else if (btn == GLFW_MOUSE_BUTTON_RIGHT)
                 {
                     events::RMBRelease evt{{mX, mY}};
                     node->getEvents().notifyAllChannels<events::RMBRelease>(evt);
                 }
+
+                frameState_->clickedNodePtr = NO_PTR;
             }
             break; // event was consumed
         }
@@ -414,6 +419,7 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->mouseY = y;
 
     frameState_->hoveredNodePtr = NO_PTR;
+    frameState_->nearScrollNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
         glm::ivec2& nodePos = node->transform_.vPos;
@@ -422,8 +428,18 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
             (y >= nodePos.y && y <= nodePos.y + nodeScale.y))
         {
             frameState_->hoveredNodePtr = node;
-            // node->onMouseHoverNotify();
-            break; // event was consumed
+
+            if (node->parent_.lock() && node->parent_.lock()->getType() == AbstractNode::NodeType::SLIDER)
+            {
+                frameState_->nearScrollNodePtr = node->parent_;
+                break; // event was consumed
+            }
+            else if (node->getType() == AbstractNode::NodeType::SLIDER)
+            {
+                frameState_->nearScrollNodePtr = node;
+                break; // event was consumed
+            }
+            // break; // event was consumed
         }
     }
 
@@ -433,6 +449,18 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
         events::LMBDrag evt(x, y);
         frameState_->clickedNodePtr.lock()->getEvents().notifyAllChannels<events::LMBDrag>(evt);
         return;
+    }
+}
+
+void WindowFrame::resolveOnMouseWheelFromInput(const int32_t x, const int32_t y)
+{
+    /* Note: Yes. GLFW will return to us "double" for this input event and not int32 BUT
+        at least on Linux, the return values are -1, 0, 1 and so we can just treat them as ints.
+    */
+    if (auto node = frameState_->nearScrollNodePtr.lock())
+    {
+        events::WheelScroll evt{y};
+        node->getEvents().notifyAllChannels(evt);
     }
 }
 

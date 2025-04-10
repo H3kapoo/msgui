@@ -23,11 +23,12 @@ struct PerCodepointData
 struct TextData
 {
     std::string text;
-    utils::Transform* transformPtr{nullptr};
     glm::vec4 color{1.0f};
     bool isDirty{true};
     PerCodepointData pcd;
     FontPtr fontData{nullptr};
+    utils::Transform* transformPtr{nullptr};
+    glm::ivec2 textBounds{0, 0};
     // other data
 };
 

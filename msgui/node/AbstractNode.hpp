@@ -204,6 +204,7 @@ public:
     void setType(const NodeType type);
     void setShader(Shader* shader);
     void setMesh(Mesh* shader);
+    void setEventTransparent(const bool isEventTransparent);
 
     /* Getters */
     utils::Transform& getTransform();
@@ -221,6 +222,7 @@ public:
     utils::Layout& getLayout();
     events::NodeEventManager& getEvents();
     bool isParented() const;
+    bool isEventTransparent() const;
 
 private: // friend
     friend WindowFrame;
@@ -249,6 +251,7 @@ protected:
     utils::Transform transform_;
     utils::Layout layout_;
     bool isParented_{false};
+    bool isEventTransparent_{false};
     std::weak_ptr<AbstractNode> parent_;
     AbstractNodePVec children_;
     events::NodeEventManager eventManager_;

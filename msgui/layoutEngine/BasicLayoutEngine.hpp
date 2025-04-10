@@ -39,7 +39,7 @@ private:
     void trySpreadBoxDivUnsatMinimum(const AbstractNodePtr& chNode, const glm::vec2 nScale, glm::vec2& unsatMin);
     glm::vec2 computeTotalRealNodesScale(const AbstractNodePVec& children);
     glm::vec2 computeSpacing(const AbstractNodePtr& node, const float nScale, const float totalChildSize);
-    void computeNodeScale(const glm::vec2& nScale, const AbstractNodePVec& children);
+    void computeNodeScale(const glm::vec2& nScale, const AbstractNodePtr& node);
     void resolveAlignSelf(const AbstractNodePVec& children, const uint32_t idxStart, const uint32_t idxEnd,
         const int32_t max, const utils::Layout::Type type);
     glm::vec2 computeOverflow(const glm::vec2& nScale, const AbstractNodePVec& children);

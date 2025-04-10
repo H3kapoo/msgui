@@ -16,23 +16,26 @@ using namespace loaders;
 
 TextLabel::TextLabel(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
+    log_ = ("TextLabel(" + name + ")");
+
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    log_ = ("TextLabel(" + name + ")");
 
     setupLayoutReloadables();
 
     /* Defaults */
-    color_ = Utils::hexToVec4("#ad0f0f");
+    color_ = Utils::hexToVec4("#ad0f0fff");
 
     layout_.setScale({100, 100});
-    // color_ = Utils::hexToVec4("#ff00ffff");
+
+    /* Text */
+    textData_ = renderer::TextBufferStore::get().newLocation();
+    textData_.value()->transformPtr = &transform_;
+    textData_.value()->fontData = FontLoader::get().loadFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
 }
 
 TextLabel::~TextLabel()
 {
-    if (!textData_) { return; }
-
     renderer::TextBufferStore::get().remove(textData_);
 }
 
@@ -77,26 +80,15 @@ TextLabel& TextLabel::setColor(const glm::vec4& color)
 
 TextLabel& TextLabel::setText(const std::string& text)
 {
-    if (!textData_)
-    {
-        textData_ = renderer::TextBufferStore::get().newLocation();
-        textData_.value()->transformPtr = &transform_;
-        textData_.value()->fontData = FontLoader::get().loadFont(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
-    }
-
     textData_.value()->text = std::move(text);
     textData_.value()->isDirty = true;
 
-    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }
 
 TextLabel& TextLabel::setFont(const std::string fontPath)
 {
-    if (!textData_) { return *this; }
-    if (textData_.value()->fontData->fontPath == fontPath) { return *this; }
-
     const int32_t previousFontSize = textData_.value()->fontData->fontSize;
     const auto loadedFont = FontLoader::get().loadFont(fontPath, previousFontSize);
     if (!loadedFont->texId) { return *this; }
@@ -104,16 +96,12 @@ TextLabel& TextLabel::setFont(const std::string fontPath)
     textData_.value()->fontData = loadedFont;
     textData_.value()->isDirty = true;
 
-    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }
 
 TextLabel& TextLabel::setFontSize(const int32_t fontSize)
 {
-    if (!textData_) { return *this; }
-    if (textData_.value()->fontData->fontSize == fontSize) { return *this; }
-
     const std::string previousFontPath = textData_.value()->fontData->fontPath;
     const auto loadedFont = FontLoader::get().loadFont(previousFontPath, fontSize);
     if (!loadedFont->texId) { return *this; }
@@ -121,7 +109,6 @@ TextLabel& TextLabel::setFontSize(const int32_t fontSize)
     textData_.value()->fontData = loadedFont;
     textData_.value()->isDirty = true;
 
-    // MAKE_TEXT_LAYOUT_DIRTY;
     REQUEST_NEW_FRAME;
     return *this;
 }

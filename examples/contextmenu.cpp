@@ -5,8 +5,8 @@
 #include "msgui/Utils.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/WindowFrame.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 using namespace msgui;
 
@@ -27,8 +27,8 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#4aabebff"));
     rootBox->getLayout()
-        .setSpacing(Layout::Spacing::EVEN_WITH_NO_START_GAP)
-        .setAlignChild(Layout::Align::CENTER);
+        .setSpacing(utils::Layout::Spacing::EVEN_WITH_NO_START_GAP)
+        .setAlignChild(utils::Layout::Align::CENTER);
 
     /* Create two random boxes */
     for (int i = 0; i < 2; i++)
@@ -52,7 +52,7 @@ int main()
             btn.lock()->setColor(Utils::randomRGB());
             btn.lock()->getLayout().setBorder({1, 0});
 
-            btn.lock()->getEvents().listen<nodeevent::LMBRelease>(
+            btn.lock()->getEvents().listen<events::LMBRelease>(
                 [ref = Utils::ref<Box>(box)](const auto&)
             {
                 ref.lock()->setColor(Utils::randomRGB());
@@ -75,7 +75,7 @@ int main()
         btn.lock()->setColor(Utils::randomRGB());
         btn.lock()->getLayout().setBorder({1, 0});
 
-        btn.lock()->getEvents().listen<nodeevent::LMBRelease>(
+        btn.lock()->getEvents().listen<events::LMBRelease>(
             [ref = Utils::ref<Box>(boxOne)](const auto&)
         {
             ref.lock()->setColor(Utils::randomRGB());

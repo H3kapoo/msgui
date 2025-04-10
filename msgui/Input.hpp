@@ -18,6 +18,7 @@ class Input
 {
 using MouseMoveCallback = std::function<void(const double x, const double y)>;
 using MouseClickCallback = std::function<void(const int32_t btn, const int32_t action)>;
+using MouseWheelCallback = std::function<void(const double offsetX, const double offsetY)>;
 using WindowResizeCallback = std::function<void(const uint32_t width, const uint32_t height)>;
 using KeyCallback = std::function<void(const int32_t key, const int32_t scanCode, const int32_t mods)>;
 using RefreshCallback = std::function<void()>;
@@ -38,6 +39,13 @@ public:
         @param callback Function to be ran
     */
     void onMouseButton(const MouseClickCallback& callback);
+
+    /**
+        Set handler for when a mouse wheel scroll event occurs.
+
+        @param callback Function to be ran
+    */
+    void onMouseWheel(const MouseWheelCallback& callback);
 
     /**
         Set handler for when the window is resized.
@@ -92,6 +100,7 @@ private:
 
     MouseMoveCallback mouseMoveCb_{nullptr};
     MouseClickCallback mouseClickCb_{nullptr};
+    MouseWheelCallback mouseWheelCb_{nullptr};
     WindowResizeCallback winResizeCb_{nullptr};
     KeyCallback keyPressCb_{nullptr};
     KeyCallback keyReleaseCb_{nullptr};

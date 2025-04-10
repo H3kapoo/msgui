@@ -1,5 +1,6 @@
 #include "SliderKnob.hpp"
 
+#include "msgui/events/LMBRelease.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
@@ -21,6 +22,8 @@ SliderKnob::SliderKnob(const std::string& name) : AbstractNode(name, NodeType::C
     /* Register only the events you need. */
     getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&SliderKnob::onMouseClick, this, std::placeholders::_1));
+    getEvents().listen<events::LMBRelease, events::InputChannel>(
+        std::bind(&SliderKnob::onMouseRelease, this, std::placeholders::_1));
     getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&SliderKnob::onMouseDrag, this, std::placeholders::_1));
 }
@@ -48,6 +51,19 @@ void SliderKnob::onMouseClick(const events::LMBClick& evt)
 
     events::LMBClick ev{evt};
     sbParentRaw->getEvents().notifyEvent<events::LMBClick, events::InternalChannel>(ev);
+}
+
+void SliderKnob::onMouseRelease(const events::LMBRelease& evt)
+{
+    /* Pass-through to parent */
+    AbstractNodePtr sbParent = parent_.lock();
+    if (!sbParent) { return; }
+
+    Slider* sbParentRaw = static_cast<Slider*>(sbParent.get());
+    if (!sbParentRaw) { return; }
+
+    events::LMBRelease ev{evt};
+    sbParentRaw->getEvents().notifyEvent<events::LMBRelease, events::InternalChannel>(ev);
 }
 
 void SliderKnob::onMouseDrag(const events::LMBDrag& evt)

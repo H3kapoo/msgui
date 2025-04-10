@@ -5,12 +5,12 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/WindowFrame.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
-#include "msgui/nodeEvent/LMBClick.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
+#include "msgui/events/LMBClick.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 using namespace msgui;
-
+using namespace msgui::layoutengine::utils;
 int main()
 {
     /*
@@ -57,7 +57,7 @@ int main()
     if (ourButton)
     {
         mainLog.debugLn("Found our button!");
-        ourButton->getEvents().listen<LMBRelease>([mainLog](const auto&)
+        ourButton->getEvents().listen<events::LMBRelease>([mainLog](const auto&)
         {
             mainLog.debugLn("Clicked me");
         });
@@ -65,7 +65,7 @@ int main()
 
     /* Let's now dynamically querry for the window frame, then, since we know all our children are buttons, disable
        clicks on all of them as long as the click is held on the parent box. On release, enable buttons back up. */
-    rootBox->getEvents().listen<LMBClick>([](const auto&)
+    rootBox->getEvents().listen<events::LMBClick>([](const auto&)
     {   
         auto pred = [](const auto& wf) -> bool
         {
@@ -82,7 +82,7 @@ int main()
         }
     });
 
-    rootBox->getEvents().listen<LMBRelease>([](const auto&)
+    rootBox->getEvents().listen<events::LMBRelease>([](const auto&)
     {
         Application& appInner = Application::get();
         if (auto wf = appInner.getFrameNamed("MainWindow").lock())

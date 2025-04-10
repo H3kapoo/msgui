@@ -70,6 +70,9 @@ private: // friend
     void onLayoutDirtyPost();
 
 private:
+    ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
+
+private:
     void setShaderAttributes() override;
     void updateNodePositions();
     void setupLayoutReloadables();

@@ -19,7 +19,7 @@ Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     setupLayoutReloadables();
 
     /* Defaults */
-    color_ = Utils::hexToVec4("#F9F8F7");
+    color_ = Utils::hexToVec4("#f9f8f7ff");
 
     layout_.setScale({100, 100});
 }

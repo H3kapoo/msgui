@@ -2,15 +2,17 @@
 
 #include <GLFW/glfw3.h>
 
-#include "msgui/loaders/MeshLoader.hpp"
-#include "msgui/loaders/ShaderLoader.hpp"
-#include "msgui/loaders/TextureLoader.hpp"
-#include "msgui/Utils.hpp"
-#include "msgui/node/FrameState.hpp"
 #include "msgui/events/FocusLost.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
 #include "msgui/events/NodeEventManager.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
+#include "msgui/loaders/MeshLoader.hpp"
+#include "msgui/loaders/ShaderLoader.hpp"
+#include "msgui/node/FrameState.hpp"
+#include "msgui/Utils.hpp"
+#include "msgui/node/Image.hpp"
+#include "msgui/node/TextLabel.hpp"
 
 namespace msgui
 {
@@ -23,8 +25,8 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     setupLayoutReloadables();
 
     /* Defaults */
-    color_ = Utils::hexToVec4("#F9F8F7");
-    pressedColor_ = Utils::hexToVec4("#dadada");
+    color_ = Utils::hexToVec4("#F9F8F7FF");
+    pressedColor_ = Utils::hexToVec4("#dadadaff");
     borderColor_ = Utils::hexToVec4("#D2CCC8");
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
@@ -52,29 +54,6 @@ void Button::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Button::onMouseClick(const events::LMBClick&)
-{
-    currentColor_ = pressedColor_;
-
-    layout_.shrink = {2, 2};
-    MAKE_LAYOUT_DIRTY;
-}
-
-void Button::onMouseRelease(const events::LMBRelease&)
-{
-    currentColor_ = color_;
-    
-    layout_.shrink = {0, 0};
-    MAKE_LAYOUT_DIRTY;
-}
-
-void Button::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
-{
-    /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acts just like LMBRelease. */
-    const events::LMBRelease evt{{0,0}};
-    onMouseRelease(evt);
-}
-
 void Button::setupLayoutReloadables()
 {
     auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
@@ -91,6 +70,29 @@ void Button::setupLayoutReloadables()
     layout_.onScaleChange = updateCb;
     layout_.onMinScaleChange = updateCb;
     layout_.onMaxScaleChange = updateCb;
+}
+
+void Button::onMouseClick(const events::LMBClick&)
+{
+    currentColor_ = pressedColor_;
+
+    layout_.shrink = {2, 2};
+    MAKE_LAYOUT_DIRTY;
+}
+
+void Button::onMouseRelease(const events::LMBRelease&)
+{
+    currentColor_ = color_;
+
+    layout_.shrink = {0, 0};
+    MAKE_LAYOUT_DIRTY;
+}
+
+void Button::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
+{
+    /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acts just like LMBRelease. */
+    const events::LMBRelease evt{{0,0}};
+    onMouseRelease(evt);
 }
 
 Button& Button::setColor(const glm::vec4& color)
@@ -115,14 +117,6 @@ Button& Button::setBorderColor(const glm::vec4& color)
     return *this;
 }
 
-Button& Button::setTexture(const std::string texturePath)
-{
-    texturePath_ = texturePath;
-    btnTex_ = loaders::TextureLoader::loadTexture(texturePath);
-    REQUEST_NEW_FRAME;
-    return *this;
-}
-
 Button& Button::setEnabled(const bool value)
 {
     isEnabled_ = value;
@@ -143,9 +137,67 @@ Button& Button::setEnabled(const bool value)
     return *this;
 }
 
+Button& Button::setText(const std::string& text)
+{
+    /* Remove the label if text is empty. */
+    if (!text.size())
+    {
+        if (textLabel_)
+        {
+            remove(textLabel_->getId());
+            textLabel_.reset();
+        }
+        return *this;
+    }
+
+    if (!textLabel_)
+    {
+        textLabel_ = Utils::make<TextLabel>(getName() + "_Label");
+        textLabel_->setEventTransparent(true);
+        textLabel_->getLayout().setScaleType(utils::Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+        append(textLabel_);
+    }
+
+    textLabel_->setText(text);
+
+    return *this;
+}
+
+Button& Button::setImagePath(const std::string& path)
+{
+    /* Remove the image if path is empty. */
+    if (!path.size())
+    {
+        if (image_)
+        {
+            remove(image_->getId());
+            image_.reset();
+        }
+        return *this;
+    }
+
+    if (!image_)
+    {
+        image_ = Utils::make<Image>(getName() + "_Image");
+        image_->setImage(path);
+        image_->setEventTransparent(true);
+
+        append(image_);
+    }
+
+    return *this;
+}
+
 glm::vec4 Button::getColor() const { return color_; }
 
 glm::vec4 Button::getBorderColor() const { return borderColor_; }
 
-std::string Button::getTexturePath() const { return texturePath_; }
+std::string Button::getText() const { return textLabel_ ? textLabel_->getText() : ""; }
+
+std::string Button::getImagePath() const { return image_->getImagePath(); }
+
+TextLabelWPtr Button::getTextLabel() { return textLabel_; }
+
+ImageWPtr Button::getImage() {return image_; }
+
 } // msgui

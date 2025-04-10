@@ -67,5 +67,5 @@ void main()
 
     vec4 finalColor = mix(texColor, vec4(0.0), sdfValue2);
     finalColor += mix(vec4(0.0), uBorderColor, sdfValue3);
-    gl_FragColor = vec4(finalColor.xyz, 1.0);
+    gl_FragColor = finalColor;
 }

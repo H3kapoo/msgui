@@ -15,6 +15,8 @@ void Input::onMouseMove(const MouseMoveCallback& callback) { mouseMoveCb_ = call
 
 void Input::onMouseButton(const MouseClickCallback& callback) { mouseClickCb_ = callback; }
 
+void Input::onMouseWheel(const MouseWheelCallback& callback) { mouseWheelCb_ = callback; }
+
 void Input::onWindowResize(const WindowResizeCallback& callback) { winResizeCb_ = callback; }
 
 void Input::onKeyPress(const KeyCallback& callback) { keyPressCb_ = callback; }
@@ -78,7 +80,7 @@ void Input::setupEventCallbacks()
     glfwSetKeyCallback(windowHandle,
         [](GLFWwindow* win, int32_t key, int32_t scancode, int32_t action, int32_t mods)
         {
-            Input* input =  static_cast<Input*>(glfwGetWindowUserPointer(win));
+            Input* input = static_cast<Input*>(glfwGetWindowUserPointer(win));
             if (input->keyPressCb_ && action == GLFW_PRESS)
             {
                 input->keyPressCb_(key, scancode, mods);
@@ -95,6 +97,16 @@ void Input::setupEventCallbacks()
             if (input->keyPressAndHoldCb_ && (action == GLFW_PRESS || action == GLFW_REPEAT))
             {
                 input->keyPressAndHoldCb_(key, scancode, mods);
+            }
+        });
+
+    glfwSetScrollCallback(windowHandle,
+        [](GLFWwindow* win, double offsetX, double offsetY)
+        {
+            Input* input = static_cast<Input*>(glfwGetWindowUserPointer(win));
+            if (input->mouseWheelCb_)
+            {
+                input->mouseWheelCb_(offsetX, offsetY);
             }
         });
 }

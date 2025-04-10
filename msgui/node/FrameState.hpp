@@ -49,7 +49,8 @@ struct FrameState
     glm::ivec2 frameSize                            {NO_VALUE, NO_VALUE};
     AbstractNodeWPtr clickedNodePtr                 {NO_PTR};
     AbstractNodeWPtr prevClickedNodePtr             {NO_PTR};
-    AbstractNodeWPtr hoveredNodePtr                  {NO_PTR};
+    AbstractNodeWPtr hoveredNodePtr                 {NO_PTR};
+    AbstractNodeWPtr nearScrollNodePtr              {NO_PTR};
     std::function<void()> requestNewFrameFunc       {nullptr};
     uint8_t layoutPassActions                       {ELayoutPass::EVERYTHING_NODE};
     int32_t currentCursorId                         {GLFW_ARROW_CURSOR};

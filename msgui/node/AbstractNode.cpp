@@ -228,6 +228,11 @@ void AbstractNode::setMesh(Mesh* mesh)
     mesh_ = mesh;
 }
 
+void AbstractNode::setEventTransparent(const bool isEventTransparent)
+{
+    isEventTransparent_ = isEventTransparent;
+}
+
 utils::Transform& AbstractNode::getTransform()
 {
     return transform_;
@@ -304,6 +309,8 @@ utils::Layout& AbstractNode::getLayout()
 events::NodeEventManager& AbstractNode::getEvents() { return eventManager_; }
 
 bool AbstractNode::isParented() const { return isParented_; }
+
+bool AbstractNode::isEventTransparent() const { return isEventTransparent_; };
 
 void AbstractNode::onMouseDragNotify() {}
 

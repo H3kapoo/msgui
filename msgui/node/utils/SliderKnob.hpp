@@ -1,5 +1,6 @@
 #pragma once
 
+#include "msgui/events/LMBRelease.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/Utils.hpp"
 #include "msgui/events/LMBClick.hpp"
@@ -19,9 +20,12 @@ public:
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
 
+    ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
+
 private:
     void setShaderAttributes() override;
     void onMouseClick(const events::LMBClick& evt);
+    void onMouseRelease(const events::LMBRelease& evt);
     void onMouseDrag(const events::LMBDrag& evt);
 
     void setupLayoutReloadables();
