@@ -29,14 +29,41 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#252525ff"));
     rootBox->getLayout()
-        // .setType(Layout::Type::VERTICAL)
-        .setAllowOverflow({true, false})
+        .setType(Layout::Type::VERTICAL)
+        .setAllowOverflow({true, true})
         .setAlignChild(Layout::Align::CENTER);
 
     BoxPtr b = Utils::make<Box>("mbox");
-    b->getLayout().setScale({1000, 100});
+    b->getLayout().setScale({200, 300});
 
-    rootBox->append(b);
+{    SliderPtr sl = rootBox->getHBar().lock();
+    sl->getLayout().setBorderRadius({5});
+    if (auto knob = sl->getKnob().lock())
+    {
+        knob->setBorderColor(Utils::randomRGB());
+        knob->getLayout()
+            .setBorderRadius({5})
+            .setBorder({5})
+            ;
+    }}
+
+    {    SliderPtr sl = rootBox->getVBar().lock();
+    sl->getLayout().setBorderRadius({5});
+
+        if (auto knob = sl->getKnob().lock())
+        {
+            knob->setBorderColor(Utils::randomRGB());
+            knob->getLayout()
+                .setBorderRadius({5})
+                .setBorder({5})
+                ;
+        }}
+
+    BoxPtr c = Utils::make<Box>("mbox");
+    c->getLayout().setScale({1500, 400});
+    c->setColor(Utils::randomRGB());
+
+    rootBox->appendMany({b, c});
     // rootBox->append(lbl);
 
     /* Blocks from here on */

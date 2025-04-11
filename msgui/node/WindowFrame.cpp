@@ -1,6 +1,4 @@
 #include "WindowFrame.hpp"
-#include "msgui/events/WheelScroll.hpp"
-#include "msgui/node/utils/ScrollBar.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -22,6 +20,7 @@
 #include "msgui/events/LMBReleaseNotHovered.hpp"
 #include "msgui/events/NodeEventManager.hpp"
 #include "msgui/events/RMBRelease.hpp"
+#include "msgui/events/WheelScroll.hpp"
 #include "msgui/renderer/NodeRenderer.hpp"
 #include "msgui/renderer/TextBufferStore.hpp"
 #include "msgui/vendor/stb_image_write.h"
@@ -441,10 +440,10 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
             }
             else if (node->getType() == AbstractNode::NodeType::BOX)
             {
-                if (Utils::as<Box>(node)->isScrollBarActive(ScrollBar::Type::HORIZONTAL))
+                if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::HORIZONTAL))
                 {
                     frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getHBar();
-                    log_.debugLn("got it");
+                    // log_.debugLn("got it");
                     break; // event was consumed
                 }
             }

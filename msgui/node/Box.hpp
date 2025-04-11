@@ -1,7 +1,7 @@
 #pragma once
 
 #include "msgui/node/AbstractNode.hpp"
-#include "msgui/node/utils/ScrollBar.hpp"
+#include "msgui/node/Slider.hpp"
 #include "msgui/events/FocusLost.hpp"
 #include "msgui/events/RMBRelease.hpp"
 #include "msgui/events/LMBRelease.hpp"
@@ -25,11 +25,11 @@ public:
     Box& setColor(const glm::vec4& color);
     Box& setBorderColor(const glm::vec4& color);
     
-    bool isScrollBarActive(const ScrollBar::Type orientation);
+    bool isScrollBarActive(const utils::Layout::Type type);
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
-    ScrollBarWPtr getHBar();
-    ScrollBarWPtr getVBar();
+    SliderWPtr getHBar();
+    SliderWPtr getVBar();
 
     ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
 
@@ -53,8 +53,8 @@ private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
     glm::ivec2 overflow_{0, 0};
-    ScrollBarPtr vScrollBar_{nullptr};
-    ScrollBarPtr hScrollBar_{nullptr};
+    SliderPtr vScrollBar_{nullptr};
+    SliderPtr hScrollBar_{nullptr};
     AbstractNodePtr ctxMenuFloatingBox_{nullptr};
 };
 using BoxPtr = std::shared_ptr<Box>;

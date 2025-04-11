@@ -56,8 +56,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         node/TextLabel.cpp
         node/TreeView.cpp
         node/utils/BoxDividerSep.cpp
-        node/utils/ScrollBar.cpp
-        node/utils/ScrollBarKnob.cpp
         node/utils/SliderKnob.cpp
         node/WindowFrame.cpp
         renderer/NodeRenderer.cpp

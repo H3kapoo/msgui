@@ -11,7 +11,6 @@
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
-#include "msgui/node/utils/ScrollBar.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
 
 namespace msgui
@@ -470,33 +469,35 @@ BasicLayoutEngine::ScrollBarsData BasicLayoutEngine::processScrollbars(const Abs
     ScrollBarsData data;
 
     //TODO: The else/if shall be refactored
-    bool bothSbOn{false};
+    bool bothSlOn{false};
     if (parent->getType() == AbstractNode::NodeType::BOX)
     {
         BoxPtr castBox = Utils::as<Box>(parent);
-        if (castBox->isScrollBarActive(ScrollBar::Type::NONE))
+        if (!castBox->isScrollBarActive(utils::Layout::Type::HORIZONTAL)
+            && !castBox->isScrollBarActive(utils::Layout::Type::VERTICAL))
         {
             return ScrollBarsData{};
         }
 
-        if (castBox->isScrollBarActive(ScrollBar::Type::ALL))
+        if (castBox->isScrollBarActive(utils::Layout::Type::HORIZONTAL)
+            && castBox->isScrollBarActive(utils::Layout::Type::VERTICAL))
         {
-            bothSbOn = true;
+            bothSlOn = true;
         }
     }
-    else if (parent->getType() == AbstractNode::NodeType::TREEVIEW)
-    {
-        TreeViewPtr castTv = Utils::as<TreeView>(parent);
-        if (castTv->isScrollBarActive(ScrollBar::Type::NONE))
-        {
-            return ScrollBarsData{};
-        }
+    // else if (parent->getType() == AbstractNode::NodeType::TREEVIEW)
+    // {
+    //     TreeViewPtr castTv = Utils::as<TreeView>(parent);
+    //     if (castTv->isScrollBarActive(ScrollBar::Type::NONE))
+    //     {
+    //         return ScrollBarsData{};
+    //     }
 
-        if (castTv->isScrollBarActive(ScrollBar::Type::ALL))
-        {
-            bothSbOn = true;
-        }
-    }
+    //     if (castTv->isScrollBarActive(ScrollBar::Type::ALL))
+    //     {
+    //         bothSbOn = true;
+    //     }
+    // }
 
     auto& nPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;
@@ -507,70 +508,73 @@ BasicLayoutEngine::ScrollBarsData BasicLayoutEngine::processScrollbars(const Abs
         /* Ignore non-Scrollbar elements */
         if (ch->getType() != AbstractNode::NodeType::SCROLL) { continue; }
 
-        ScrollBarPtr sb = Utils::as<ScrollBar>(ch);
-        if (!sb)
+        SliderPtr sl = Utils::as<Slider>(ch);
+        if (!sl)
         {
             log_.errorLn("Failed to cast to ScrollBar!");
+            return ScrollBarsData{};
         }
 
         auto& pos = ch->getTransform().pos;
         auto& scale = ch->getTransform().scale;
 
-        if (sb->getOrientation() == ScrollBar::Type::VERTICAL)
+        if (sl->getLayout().type == utils::Layout::Type::VERTICAL)
         {
             /* Scrollbar positioning */
             pos.x = nPos.x + pScale.x - scale.x - layout.border.right;
             pos.y = nPos.y + layout.border.top;
-            scale.y = pScale.y - (bothSbOn ? scale.x : 0)
+            scale.y = pScale.y - (bothSlOn ? scale.x : 0)
              - (layout.border.top + layout.border.bot);
+            scale.x = ch->getLayout().scale.x;
 
             /* Knob positioning */
-            AbstractNodePtr knob = sb->getChildren()[0]; /* Always exists */
+            AbstractNodePtr knob = sl->getChildren()[0]; /* Always exists */
             auto& kScale = knob->getTransform().scale;
             auto& kPos = knob->getTransform().pos;
-            float sbOffset = sb->getKnobOffset();
+            float slOffset = sl->getOffsetPerc();
 
-            int32_t sbOverflowSize = sb->getOverflowSize();
+            int32_t slOverflowSize = sl->getSlideTo();
             kScale.x = scale.x;
-            kScale.y = scale.y - sbOverflowSize;
+            kScale.y = scale.y - slOverflowSize;
             kScale.y = std::max(scale.x, kScale.y);
 
-            float newY = Utils::remap(sbOffset,
+            float newY = Utils::remap(slOffset,
                 0.0f, 1.0f, pos.y + kScale.y / 2, pos.y + scale.y - kScale.y / 2);
             kPos.x = pos.x;
             kPos.y = newY - kScale.y / 2;
 
             /* Horizontal available space needs to decrease & current offset in px */
             data.shrinkBy.x = scale.x;
-            data.offsetPx.y = sb->geOverflowOffset();
+            data.offsetPx.y = sl->getSlideCurrentValue();
         }
-        else if (sb->getOrientation() == ScrollBar::Type::HORIZONTAL)
+        else if (sl->getLayout().type == utils::Layout::Type::HORIZONTAL)
         {
             /* Scrollbar positioning */
             pos.y = nPos.y + pScale.y - scale.y - layout.border.bot;
             pos.x = nPos.x + layout.border.left;
-            scale.x = pScale.x - (bothSbOn ? scale.y : 0)
+            scale.x = pScale.x - (bothSlOn ? scale.y : 0)
                 - (layout.border.left + layout.border.right);
+            scale.y = ch->getLayout().scale.y;
 
             /* Knob positioning */
-            AbstractNodePtr knob = sb->getChildren()[0]; // Always exists
+            AbstractNodePtr knob = sl->getChildren()[0]; // Always exists
             auto& kScale = knob->getTransform().scale;
             auto& kPos = knob->getTransform().pos;
-            float sbOffset = sb->getKnobOffset();
+            float slOffset = sl->getOffsetPerc();
 
-            int32_t sbOverflowSize = sb->getOverflowSize();
-            kScale.x = scale.x - sbOverflowSize;
+            int32_t slOverflowSize = sl->getSlideTo();
+            kScale.x = scale.x - slOverflowSize;
             kScale.x = std::max(scale.y, kScale.x);
             kScale.y = scale.y;
 
-            float newX = Utils::remap(sbOffset,
+            float newX = Utils::remap(slOffset,
                 0.0f, 1.0f, pos.x + kScale.x / 2, pos.x + scale.x - kScale.x / 2);
             kPos.y = pos.y;
             kPos.x = newX - kScale.x / 2;
 
             /* Vertical available space needs to decrease & current offset in px */
             data.shrinkBy.y = scale.y;
-            data.offsetPx.x = sb->geOverflowOffset();
+            data.offsetPx.x = sl->getSlideCurrentValue();
         }
     }
 
@@ -584,56 +588,56 @@ BasicLayoutEngine::ScrollBarsData BasicLayoutEngine::processScrollbars(const Abs
 
 bool BasicLayoutEngine::processTreeView(const AbstractNodePtr& node)
 {
-    const TreeViewPtr tvPtr = Utils::as<TreeView>(node);
-    if (!tvPtr)
-    {
-        log_.errorLn("Could not cast to TreeView: %s", node->getCName());
-        return false;
-    }
+    // const TreeViewPtr tvPtr = Utils::as<TreeView>(node);
+    // if (!tvPtr)
+    // {
+    //     log_.errorLn("Could not cast to TreeView: %s", node->getCName());
+    //     return false;
+    // }
 
-    TreeView::Internals& internalsRef = tvPtr->getInternalsRef();
-    const int32_t rowSize = tvPtr->getRowSize();
-    const glm::vec3 nScale = node->getTransform().scale;
-    utils::Layout::TBLR itemMargin = tvPtr->getItemMargin();
+    // TreeView::Internals& internalsRef = tvPtr->getInternalsRef();
+    // const int32_t rowSize = tvPtr->getRowSize();
+    // const glm::vec3 nScale = node->getTransform().scale;
+    // utils::Layout::TBLR itemMargin = tvPtr->getItemMargin();
 
-    int32_t rowSizeAndMargin = rowSize + itemMargin.top + itemMargin.bot;
-    int32_t maxDisplayAmt = nScale.y / rowSizeAndMargin + 1;
-    internalsRef.topOfListIdx = tvPtr->getVBar().lock()->geOverflowOffset() / rowSizeAndMargin;
-    internalsRef.visibleNodes = maxDisplayAmt + 1;
-    if (internalsRef.isDirty || internalsRef.topOfListIdx != internalsRef.oldTopOfListIdx
-        || internalsRef.oldVisibleNodes != internalsRef.visibleNodes)
-    {
-        internalsRef.isDirty = false;
-        tvPtr->onLayoutDirtyPost();
-    }
+    // int32_t rowSizeAndMargin = rowSize + itemMargin.top + itemMargin.bot;
+    // int32_t maxDisplayAmt = nScale.y / rowSizeAndMargin + 1;
+    // internalsRef.topOfListIdx = tvPtr->getVBar().lock()->geOverflowOffset() / rowSizeAndMargin;
+    // internalsRef.visibleNodes = maxDisplayAmt + 1;
+    // if (internalsRef.isDirty || internalsRef.topOfListIdx != internalsRef.oldTopOfListIdx
+    //     || internalsRef.oldVisibleNodes != internalsRef.visibleNodes)
+    // {
+    //     internalsRef.isDirty = false;
+    //     tvPtr->onLayoutDirtyPost();
+    // }
 
-    //TODO: 20 magic number
-    const int32_t hBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::HORIZONTAL) ? 20 : 0;
-    const int32_t vBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::VERTICAL) ? 20 : 0;
+    // //TODO: 20 magic number
+    // const int32_t hBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::HORIZONTAL) ? 20 : 0;
+    // const int32_t vBarActiveSize = tvPtr->isScrollBarActive(ScrollBar::Type::VERTICAL) ? 20 : 0;
 
-    //TODO: 250 & 60 magic number
-    internalsRef.overflow.x = (250+60*internalsRef.maxDepth_) - nScale.x + vBarActiveSize;
-    internalsRef.overflow.y = internalsRef.flatTreeElements * rowSizeAndMargin - nScale.y + hBarActiveSize;
-    internalsRef.overflow.x = std::max(0, internalsRef.overflow.x);
-    internalsRef.overflow.y = std::max(0, internalsRef.overflow.y);
+    // //TODO: 250 & 60 magic number
+    // internalsRef.overflow.x = (250+60*internalsRef.maxDepth_) - nScale.x + vBarActiveSize;
+    // internalsRef.overflow.y = internalsRef.flatTreeElements * rowSizeAndMargin - nScale.y + hBarActiveSize;
+    // internalsRef.overflow.x = std::max(0, internalsRef.overflow.x);
+    // internalsRef.overflow.y = std::max(0, internalsRef.overflow.y);
 
-    tvPtr->updateOverflow(internalsRef.overflow);
+    // tvPtr->updateOverflow(internalsRef.overflow);
 
-    internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
-    internalsRef.oldVisibleNodes = internalsRef.visibleNodes;
-    internalsRef.lastScaleY = nScale.y;
-    internalsRef.lastScaleX = nScale.x;
+    // internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
+    // internalsRef.oldVisibleNodes = internalsRef.visibleNodes;
+    // internalsRef.lastScaleY = nScale.y;
+    // internalsRef.lastScaleX = nScale.x;
 
-    int32_t maxX{0};
-    auto& children = node->getChildren();
-    uint32_t size = children.size();
-    for (uint32_t i = 0; i < size; i++)
-    {
-        if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
-        children[i]->getTransform().pos.y -= tvPtr->getVBar().lock()->geOverflowOffset() % rowSizeAndMargin;
-        children[i]->getTransform().pos.x -= tvPtr->getHBar().lock()->geOverflowOffset();
-        maxX = std::max(maxX, (int32_t)children[i]->getTransform().scale.x);
-    }
+    // int32_t maxX{0};
+    // auto& children = node->getChildren();
+    // uint32_t size = children.size();
+    // for (uint32_t i = 0; i < size; i++)
+    // {
+    //     if (children[i]->getType() == AbstractNode::NodeType::SCROLL) { continue; }
+    //     children[i]->getTransform().pos.y -= tvPtr->getVBar().lock()->geOverflowOffset() % rowSizeAndMargin;
+    //     children[i]->getTransform().pos.x -= tvPtr->getHBar().lock()->geOverflowOffset();
+    //     maxX = std::max(maxX, (int32_t)children[i]->getTransform().scale.x);
+    // }
 
     return false;
 }

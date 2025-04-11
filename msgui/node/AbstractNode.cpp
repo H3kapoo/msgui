@@ -339,6 +339,6 @@ void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
     node->isParented_ = false;
     node->parent_.reset();
     node->parentRaw_ = nullptr;
-
+    node->transform_.vScale = {0, 0};
 }
 } // namespace msgui

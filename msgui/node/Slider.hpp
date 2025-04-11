@@ -75,4 +75,5 @@ private:
 };
 using SliderPtr = std::shared_ptr<Slider>;
 using SliderWPtr = std::weak_ptr<Slider>;
+
 } // namespace msgui

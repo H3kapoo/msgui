@@ -76,7 +76,8 @@ void Slider::updateSliderValue()
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     if (layout_.type == utils::Layout::Type::VERTICAL)
     {
-        knobOffsetPerc_ = common::ONE - Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
+        // knobOffsetPerc_ = common::ONE - Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
+        knobOffsetPerc_ =  Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, common::ZERO, common::ONE);
     }
     else if (layout_.type == utils::Layout::Type::HORIZONTAL)
@@ -209,6 +210,7 @@ Slider& Slider::setSlideTo(const float value)
 {
     slideTo_ = value;
     slideValue_ = Utils::remap(knobOffsetPerc_, common::ZERO, common::ONE, slideFrom_, slideTo_);
+    updateTextValue();
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }

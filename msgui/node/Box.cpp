@@ -1,12 +1,13 @@
 #include "Box.hpp"
 
+#include "msgui/common/Constants.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/FloatingBox.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/utils/ScrollBar.hpp"
 #include "msgui/events/FocusLost.hpp"
 
 namespace msgui
@@ -105,22 +106,15 @@ void Box::onRMBRelease(const events::RMBRelease& evt)
     Utils::as<Dropdown>(ddd)->setDropdownOpen(true);
 }
 
-bool Box::isScrollBarActive(const ScrollBar::Type orientation)
+bool Box::isScrollBarActive(const utils::Layout::Type type)
 {
-    const bool isHParented = hScrollBar_ && hScrollBar_->isParented();
-    const bool isVParented = vScrollBar_ && vScrollBar_->isParented();
-    switch (orientation)
+    if (type == utils::Layout::Type::HORIZONTAL)
     {
-        case ScrollBar::Type::HORIZONTAL:
-            return isHParented;
-        case ScrollBar::Type::VERTICAL:
-            return isVParented;
-        case ScrollBar::Type::ALL:
-            return (isHParented && isVParented);
-        case ScrollBar::Type::NONE:
-            return !(isHParented || isVParented);
-        default:
-            log_.errorLn("Invalid orientation!");
+        return hScrollBar_ && hScrollBar_->isParented();;
+    }
+    else if (type == utils::Layout::Type::VERTICAL)
+    {
+        return vScrollBar_ && vScrollBar_->isParented();;
     }
 
     return false;
@@ -132,25 +126,39 @@ void Box::updateOverflow(const glm::ivec2& overflow)
 
     if (hScrollBar_)
     {
-        if (overflow.x > 0 && !hScrollBar_->isParented()) { append(hScrollBar_); }
-        else if (overflow.x <= 0 && hScrollBar_->isParented()) { remove(hScrollBar_->getId()); }
+        if (overflow.x > 0 && !hScrollBar_->isParented())
+        {
+            append(hScrollBar_);
+        }
+        else if (overflow.x <= 0 && hScrollBar_->isParented())
+        {
+            hScrollBar_->setSlideCurrentValue(0);
+            remove(hScrollBar_->getId());
+        }
 
         if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM)
-            && hScrollBar_->setOverflow(overflow.x))
+            && (int32_t)hScrollBar_->getSlideTo() != overflow.x)
         {
-            getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM;
+            hScrollBar_->setSlideTo(overflow.x);
         }
     }
 
     if (vScrollBar_)
     {
-        if (overflow.y > 0 && !vScrollBar_->isParented()) { append(vScrollBar_); }
-        else if (overflow.y <= 0 && vScrollBar_->isParented()) { remove(vScrollBar_->getId()); }
+        if (overflow.y > 0 && !vScrollBar_->isParented())
+        {
+            append(vScrollBar_);
+        }
+        else if (overflow.y <= 0 && vScrollBar_->isParented())
+        {
+            vScrollBar_->setSlideCurrentValue(0);
+            remove(vScrollBar_->getId());
+        }
 
         if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM)
-            && vScrollBar_->setOverflow(overflow.y))
+            && (int32_t)vScrollBar_->getSlideTo() != overflow.y)
         {
-            getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM;
+            vScrollBar_->setSlideTo(overflow.y);
         }
     }
 }
@@ -176,7 +184,13 @@ void Box::setupReloadables()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)
         {
-            hScrollBar_ = std::make_shared<ScrollBar>("HBar", ScrollBar::Type::HORIZONTAL);
+            log_.debugLn("baa");
+            hScrollBar_ = std::make_shared<Slider>("HSlider");
+            hScrollBar_->enableViewValue(false);
+            hScrollBar_->setType(AbstractNode::NodeType::SCROLL);
+            hScrollBar_->getLayout().setScale({common::ONE, common::SCROLL_BAR_SIZE});
+            hScrollBar_->getKnob().lock()->setType(AbstractNode::NodeType::SCROLL_KNOB);
+
             if (overflow_.x > 0) { append(hScrollBar_); }
         }
         else if (!layout_.allowOverflow.x && hScrollBar_)
@@ -187,7 +201,14 @@ void Box::setupReloadables()
 
         if (layout_.allowOverflow.y && !vScrollBar_)
         {
-            vScrollBar_ = std::make_shared<ScrollBar>("VBar", ScrollBar::Type::VERTICAL);
+            vScrollBar_ = std::make_shared<Slider>("VSlider");
+            vScrollBar_->enableViewValue(false);
+            vScrollBar_->getLayout()
+                .setType(utils::Layout::Type::VERTICAL)
+                .setScale({common::SCROLL_BAR_SIZE, common::ONE});
+            vScrollBar_->setType(AbstractNode::NodeType::SCROLL);
+            vScrollBar_->getKnob().lock()->setType(AbstractNode::NodeType::SCROLL_KNOB);
+
             if (overflow_.x > 0) { append(hScrollBar_); }
         }
         else if (!layout_.allowOverflow.y && vScrollBar_)
@@ -214,7 +235,7 @@ glm::vec4 Box::getColor() const { return color_; }
 
 glm::vec4 Box::getBorderColor() const { return borderColor_; }
 
-ScrollBarWPtr Box::getHBar() { return hScrollBar_; }
+SliderWPtr Box::getHBar() { return hScrollBar_; }
 
-ScrollBarWPtr Box::getVBar() { return vScrollBar_; }
+SliderWPtr Box::getVBar() { return vScrollBar_; }
 } // namespace msgui
