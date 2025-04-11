@@ -24,7 +24,7 @@ TextLabel::TextLabel(const std::string& name) : AbstractNode(name, NodeType::COM
     setupLayoutReloadables();
 
     /* Defaults */
-    color_ = Utils::hexToVec4("#ad0f0fff");
+    color_ = Utils::hexToVec4("#ad0f0f00");
 
     layout_.setScale({100, 100});
 
@@ -112,6 +112,15 @@ TextLabel& TextLabel::setFontSize(const int32_t fontSize)
     REQUEST_NEW_FRAME;
     return *this;
 }
+
+TextLabel& TextLabel::setTextColor(const glm::vec4& color)
+{
+    textData_.value()->color = color;
+
+    REQUEST_NEW_FRAME;
+    return *this;
+}
+
 
 glm::vec4 TextLabel::getColor() const { return color_; }
 

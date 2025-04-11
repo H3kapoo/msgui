@@ -29,39 +29,15 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#252525ff"));
     rootBox->getLayout()
+        // .setType(Layout::Type::VERTICAL)
+        .setAllowOverflow({true, false})
         .setAlignChild(Layout::Align::CENTER);
 
-    SliderPtr slider = Utils::make<Slider>("my slider");
-    slider->setSlideFrom(0)
-        .setSlideTo(100)
-        .setSlideCurrentValue(59)
-        .setSensitivity(4)
-        // .enableViewValue(false)
-        .setColor(Utils::hexToVec4("#ba30beff"));
-        ;
-    // slider->getLayout()
-    //     .setType(Layout::Type::VERTICAL);
-    // slider->getLayout().setBorderRadius({17}).setType(Layout::Type::VERTICAL);
-    slider->getKnob().lock()->getLayout().setScale({40, 1.0f});
-    slider->getLayout()
-        .setScale({300, 40})
-        .setMargin({0, 0, 0, 5})
-        ;
-    // slider->getKnob().lock()->getLayout().setScale({1.0f, 40});
+    BoxPtr b = Utils::make<Box>("mbox");
+    b->getLayout().setScale({1000, 100});
 
-    TextLabelPtr lbl = Utils::make<TextLabel>("mylbl");
-    lbl->setText(std::to_string(int32_t(slider->getSlideCurrentValue())));
-    lbl->getLayout().setScale({40, 40});
-
-    slider->getEvents().listen<events::Scroll>(
-        [label = Utils::ref<TextLabel>(lbl)](const auto& evt)
-        {
-            label.lock()->setText(std::to_string(int32_t(evt.value)));
-            // ref.lock()->getLayout().setType(Layout::Type::HORIZONTAL);
-        });
-
-    rootBox->append(slider);
-    rootBox->append(lbl);
+    rootBox->append(b);
+    // rootBox->append(lbl);
 
     /* Blocks from here on */
     app.run();

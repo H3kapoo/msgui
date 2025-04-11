@@ -667,7 +667,7 @@ void BasicLayoutEngine::processSlider(const AbstractNodePtr& node)
     }
     else if (sliderPtr->getLayout().type == utils::Layout::Type::VERTICAL)
     {
-        float newY = Utils::remap(sliderOffset,
+        float newY = Utils::remap(1.0f - sliderOffset,
             0.0f, 1.0f, nPos.y + kScale.y / 2, nPos.y + pScale.y - kScale.y / 2);
         kPos.x = nPos.x + nLayout.border.left;
         kPos.y = newY - kScale.y / 2 + nLayout.border.top;

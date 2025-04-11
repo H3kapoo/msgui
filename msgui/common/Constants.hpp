@@ -12,4 +12,7 @@ static constexpr uint32_t MAX_DEFAULT_CURSORS = 6;
 static constexpr uint32_t SCROLL_LAYER_START = 250;
 static constexpr uint32_t DROPDOWN_LAYER_START = 300;
 static constexpr uint32_t FLOATING_LAYER_START = 400;
+
+static constexpr float ZERO = 0.0f;
+static constexpr float ONE = 1.0f;
 } // namespace msgui::common

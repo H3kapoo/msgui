@@ -13,10 +13,11 @@ public:
     TextLabel(const std::string& name);
     ~TextLabel();
 
-    TextLabel& setColor(const glm::vec4& text);
+    TextLabel& setColor(const glm::vec4& color);
     TextLabel& setText(const std::string& text);
     TextLabel& setFont(const std::string fontPath);
     TextLabel& setFontSize(const int32_t fontSize);
+    TextLabel& setTextColor(const glm::vec4& color);
 
     glm::vec4 getColor() const;
     std::string getText() const;

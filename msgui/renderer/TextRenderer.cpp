@@ -3,7 +3,6 @@
 #include "msgui/loaders/FontLoader.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
-#include "msgui/Window.hpp"
 #include "msgui/renderer/TextBufferStore.hpp"
 #include "msgui/renderer/Types.hpp"
 
@@ -26,20 +25,20 @@ void TextRenderer::render(const glm::mat4& projMat, const int32_t frameHeight)
     mesh_->bind();
     shader_->bind();
     shader_->setMat4f("uProjMat", projMat);
-    shader_->setVec4f("uColor", color_);
     shader_->setTexture2DArray("uTextureArray", GL_TEXTURE1, fallbackFontTexId_);
-
+    
     clearInternalBuffer();
 
     auto& storeBuffer = TextBufferStore::get().buffer();
     for (auto& element : storeBuffer)
     {
         doScissorMask(element.transformPtr, frameHeight);
-
+        
         /* Use a fallback font in case the main one is not provided for some reason. */
         element.fontData->texId
             ? shader_->setTexture2DArray("uTextureArray", GL_TEXTURE1, element.fontData->texId)
             : shader_->setTexture2DArray("uTextureArray", GL_TEXTURE1, fallbackFontTexId_);
+        shader_->setVec4f("uColor", element.color);
 
         int32_t copiedSize = 0;
         int32_t copyStart = 0;
@@ -75,8 +74,6 @@ void TextRenderer::render(const glm::mat4& projMat, const int32_t frameHeight)
 
 void TextRenderer::renderBatchContents()
 {
-    // Window::setDepthTest(false);
-
     shader_->setMat4fv("uModelMatv",  shaderBuffer_.transform);
     shader_->setIntv("uCharIdxv",  shaderBuffer_.unicodeIndex);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, shaderBuffer_.transform.size());
@@ -85,8 +82,6 @@ void TextRenderer::renderBatchContents()
     batchCount++;
 
     clearInternalBuffer();
-
-    Window::setDepthTest(true);
 }
 
 void TextRenderer::clearInternalBuffer()

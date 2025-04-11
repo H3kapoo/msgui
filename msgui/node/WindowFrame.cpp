@@ -1,5 +1,6 @@
 #include "WindowFrame.hpp"
 #include "msgui/events/WheelScroll.hpp"
+#include "msgui/node/utils/ScrollBar.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -273,7 +274,6 @@ void WindowFrame::updateLayout()
     }
 
     /* Update text layouts if needed. */
-    frameState_->layoutPassActions &= ~ELayoutPass::RECALCULATE_TEXT_TRANSFORM;
     auto& textBuffer = renderer::TextBufferStore::get().buffer();
     for (auto& textData : textBuffer)
     {
@@ -439,6 +439,15 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
                 frameState_->nearScrollNodePtr = node;
                 break; // event was consumed
             }
+            else if (node->getType() == AbstractNode::NodeType::BOX)
+            {
+                if (Utils::as<Box>(node)->isScrollBarActive(ScrollBar::Type::HORIZONTAL))
+                {
+                    frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getHBar();
+                    log_.debugLn("got it");
+                    break; // event was consumed
+                }
+            }
             // break; // event was consumed
         }
     }
@@ -466,8 +475,7 @@ void WindowFrame::resolveOnMouseWheelFromInput(const int32_t x, const int32_t y)
 
 void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
 {
-    // frameState_->isLayoutDirty = true;
-    frameState_->layoutPassActions = ELayoutPass::EVERYTHING;
+    frameState_->layoutPassActions = ELayoutPass::EVERYTHING_NODE;
     frameState_->frameSize = {newWidth, newHeight};
     for (const auto& node : allFrameChildNodes_)
     {

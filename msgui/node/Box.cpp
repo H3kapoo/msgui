@@ -18,7 +18,7 @@ Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
     setMesh(loaders::MeshLoader::loadQuad());
 
     /* Defaults */
-    color_ = Utils::hexToVec4("#F9F8F7");
+    color_ = Utils::hexToVec4("#F9F8F7FF");
 
     layout_.setScale({200, 100});
 
@@ -135,8 +135,8 @@ void Box::updateOverflow(const glm::ivec2& overflow)
         if (overflow.x > 0 && !hScrollBar_->isParented()) { append(hScrollBar_); }
         else if (overflow.x <= 0 && hScrollBar_->isParented()) { remove(hScrollBar_->getId()); }
 
-        // if (!getState()->isLayoutDirty) { getState()->isLayoutDirty = hScrollBar_->setOverflow(overflow.x); };
-        if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM) && hScrollBar_->setOverflow(overflow.x))
+        if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM)
+            && hScrollBar_->setOverflow(overflow.x))
         {
             getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM;
         }
@@ -147,8 +147,8 @@ void Box::updateOverflow(const glm::ivec2& overflow)
         if (overflow.y > 0 && !vScrollBar_->isParented()) { append(vScrollBar_); }
         else if (overflow.y <= 0 && vScrollBar_->isParented()) { remove(vScrollBar_->getId()); }
 
-        // if (!getState()->isLayoutDirty) { getState()->isLayoutDirty = vScrollBar_->setOverflow(overflow.y); };
-        if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM) && vScrollBar_->setOverflow(overflow.y))
+        if (!(getState()->layoutPassActions & ELayoutPass::RECALCULATE_NODE_TRANSFORM)
+            && vScrollBar_->setOverflow(overflow.y))
         {
             getState()->layoutPassActions |= ELayoutPass::RECALCULATE_NODE_TRANSFORM;
         }
@@ -196,8 +196,6 @@ void Box::setupReloadables()
             vScrollBar_.reset();
         }
     };
-
-
 }
 
 Box& Box::setColor(const glm::vec4& color)
@@ -216,7 +214,7 @@ glm::vec4 Box::getColor() const { return color_; }
 
 glm::vec4 Box::getBorderColor() const { return borderColor_; }
 
-ScrollBarWPtr Box::getHBar() { return Utils::ref<ScrollBar>(hScrollBar_); }
+ScrollBarWPtr Box::getHBar() { return hScrollBar_; }
 
-ScrollBarWPtr Box::getVBar() { return Utils::ref<ScrollBar>(vScrollBar_); }
+ScrollBarWPtr Box::getVBar() { return vScrollBar_; }
 } // namespace msgui

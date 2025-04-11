@@ -66,9 +66,8 @@ glm::ivec2 BasicTextLayoutEngine::computeTextLengthAndHeight(const renderer::Tex
     {
         const auto& cp = fontData->codePointData[uint32_t(ch)];
         result.x += cp.hAdvance >> 6;
-        result.y = std::max(result.y, cp.size.y); // We only need max height for horizontal text.
+        result.y = std::max(result.y, cp.size.y - 1); // We only need max height for horizontal text.
     }
     return result;
 }
-
 } // namespace msgui::layoutengine

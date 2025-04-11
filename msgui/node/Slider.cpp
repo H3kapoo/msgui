@@ -1,44 +1,48 @@
 #include "Slider.hpp"
 
+#include "msgui/common/Constants.hpp"
+#include "msgui/events/LMBDrag.hpp"
 #include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/NodeEventManager.hpp"
+#include "msgui/events/Scroll.hpp"
 #include "msgui/events/WheelScroll.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/TextLabel.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
-#include "msgui/events/LMBDrag.hpp"
-#include "msgui/events/NodeEventManager.hpp"
-#include "msgui/events/Scroll.hpp"
 #include <string>
 
 namespace msgui
 {
 Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
 {
+    /* Setup defaults */
+    log_ = Logger("Slider(" + name + ")");
+
+    setType(AbstractNode::NodeType::SLIDER);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    knobNode_ = std::make_shared<SliderKnob>("Knob");
-    knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
-
-    /* Assume default horizontal slider. */
-    knobNode_->getLayout()
-        .setScale({20, 1.0f})
-        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
-
-    append(knobNode_);
-
-    setupLayoutReloadables();
-    enableViewValue(true);
-
-    /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7FF");
-
     layout_.setScale({200, 34});
 
+    textViewPred_ = [](float val) -> std::string
+    {
+        return std::to_string(int32_t(val));
+    };
+
+    knobNode_ = std::make_shared<SliderKnob>("Knob");
+    knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
+    knobNode_->getLayout()
+        .setScale({34, common::ONE})
+        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
+    append(knobNode_);
+
+    enableViewValue(true);
+    setupLayoutReloadables();
 
     /* Register only the events you need. */
     getEvents().listen<events::WheelScroll, events::InputChannel>(
@@ -72,19 +76,16 @@ void Slider::updateSliderValue()
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     if (layout_.type == utils::Layout::Type::VERTICAL)
     {
-        knobOffsetPerc_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
-            transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, 0.0f, 1.0f);
-        slideValue_ = Utils::remap(1.0f - knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
+        knobOffsetPerc_ = common::ONE - Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
+            transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, common::ZERO, common::ONE);
     }
     else if (layout_.type == utils::Layout::Type::HORIZONTAL)
     {
         knobOffsetPerc_ = Utils::remap(getState()->mouseX - mouseDistFromKnobCenter_.x,
-            transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, 0.0f, 1.0f);
-        slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
+            transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, common::ZERO, common::ONE);
     }
 
-    // slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
-
+    slideValue_ = Utils::remap(knobOffsetPerc_, common::ZERO, common::ONE, slideFrom_, slideTo_);
     updateTextValue();
 
     events::Scroll evt{slideValue_};
@@ -93,35 +94,31 @@ void Slider::updateSliderValue()
 
 void Slider::updateTextValue()
 {
-    if (textLabel_)
-    {
-        textLabel_->setText(std::to_string(int32_t(slideValue_)));
-    }
+    if (textLabel_ && textViewPred_) { textLabel_->setText(textViewPred_(slideValue_)); }
 }
 
 void Slider::onMouseWheel(const events::WheelScroll& evt)
 {
-    slideValue_ -= evt.value * sensitivity_;
-    setSlideCurrentValue(slideValue_);
+    setSlideCurrentValue(slideValue_ - evt.value * sensitivity_);
+
+    events::Scroll scrollEv{slideValue_};
+    getEvents().notifyAllChannels<events::Scroll>(scrollEv);
 }
 
 void Slider::onMouseClick(const events::LMBClick&)
 {
+    /* Compute distance offset to the knob center for more natural knob dragging behavior. */
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     glm::vec2 kPos = knobNode_->getTransform().pos;
-    // if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT])
-    {
-        /* Compute distance offset to the knob center for more natural knob dragging behavior. */
-        mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
-        mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
-            ? 0 : mouseDistFromKnobCenter_.x;
-        mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
-        mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
-            ? 0 : mouseDistFromKnobCenter_.y;
+    mouseDistFromKnobCenter_.x = getState()->mouseX - (kPos.x + knobHalf.x);
+    mouseDistFromKnobCenter_.x = std::abs(mouseDistFromKnobCenter_.x) > knobHalf.x
+        ? 0 : mouseDistFromKnobCenter_.x;
+    mouseDistFromKnobCenter_.y = getState()->mouseY - (kPos.y + knobHalf.y);
+    mouseDistFromKnobCenter_.y = std::abs(mouseDistFromKnobCenter_.y) > knobHalf.y
+        ? 0 : mouseDistFromKnobCenter_.y;
 
-        updateSliderValue();
-        MAKE_LAYOUT_DIRTY
-    }
+    updateSliderValue();
+    MAKE_LAYOUT_DIRTY
 }
 
 void Slider::onMouseRelease(const events::LMBRelease& evt)
@@ -149,26 +146,37 @@ void Slider::setupLayoutReloadables()
     layout_.onScaleTypeChange = updateCb;
     layout_.onGridStartRCChange = updateCb;
     layout_.onGridSpanRCChange = updateCb;
-    layout_.onScaleChange = updateCb;
     layout_.onMinScaleChange = updateCb;
     layout_.onMaxScaleChange = updateCb;
+    layout_.onScaleChange = [this]
+    {
+        auto& knobLayout = knobNode_->getLayout();
+        if (layout_.type == utils::Layout::Type::HORIZONTAL)
+        {
+            knobLayout.setScale({layout_.scale.y, common::ONE});
+        }
+        else if (layout_.type == utils::Layout::Type::VERTICAL)
+        {
+            knobLayout.setScale({common::ONE, layout_.scale.x});
+        }
+    };
+
     layout_.onTypeChange = [this]()
     {
+        auto& knobLayout = knobNode_->getLayout();
         if (layout_.type == utils::Layout::Type::HORIZONTAL &&
             knobNode_->getLayout().scaleType.x == utils::Layout::ScaleType::REL)
         {
-            knobNode_->getLayout()
-                .setScale({20, 1.0f})
-                .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
             std::swap(layout_.scale.x, layout_.scale.y);
+            std::swap(knobLayout.scale.x, knobLayout.scale.y);
+            std::swap(knobLayout.scaleType.x, knobLayout.scaleType.y);
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL &&
             knobNode_->getLayout().scaleType.y == utils::Layout::ScaleType::REL)
         {
-            knobNode_->getLayout()
-                .setScale({1.0f, 20})
-                .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX});
             std::swap(layout_.scale.x, layout_.scale.y);
+            std::swap(knobLayout.scale.x, knobLayout.scale.y);
+            std::swap(knobLayout.scaleType.x, knobLayout.scaleType.y);
         }
 
         setSlideCurrentValue(slideValue_);
@@ -192,7 +200,7 @@ Slider& Slider::setBorderColor(const glm::vec4& color)
 Slider& Slider::setSlideFrom(const float value)
 {
     slideFrom_ = value;
-    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
+    slideValue_ = Utils::remap(knobOffsetPerc_, common::ZERO, common::ONE, slideFrom_, slideTo_);
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -200,15 +208,15 @@ Slider& Slider::setSlideFrom(const float value)
 Slider& Slider::setSlideTo(const float value)
 {
     slideTo_ = value;
-    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
+    slideValue_ = Utils::remap(knobOffsetPerc_, common::ZERO, common::ONE, slideFrom_, slideTo_);
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
 
 Slider& Slider::setSlideCurrentValue(const float value)
 {
-    slideValue_ = value;
-    knobOffsetPerc_ = Utils::remap(slideValue_, slideFrom_, slideTo_, 0.0f, 1.0f);
+    slideValue_ = std::clamp(value, slideFrom_, slideTo_);
+    knobOffsetPerc_ = Utils::remap(slideValue_, slideFrom_, slideTo_, common::ZERO, common::ONE);
 
     updateTextValue();
 
@@ -225,22 +233,32 @@ Slider& Slider::setSensitivity(const float value)
     return *this;
 }
 
+Slider& Slider::setViewValueFormatPredicate(const std::function<std::string(float)>& pred)
+{
+    textViewPred_ = pred;
+    updateTextValue();
+
+    REQUEST_NEW_FRAME;
+    return *this;
+}
+
 Slider& Slider::enableViewValue(const bool value)
 {
     isViewValueEnabled_ = value;
 
     if (isViewValueEnabled_)
     {
-        textLabel_ = Utils::make<TextLabel>(getName() + "_Label");
-        textLabel_->setFontSize(14);
+        textLabel_ = Utils::make<TextLabel>("internalLabel");
+        textLabel_->setFontSize(12);
         textLabel_->setEventTransparent(true);
         textLabel_->getLayout()
             .setScaleType(utils::Layout::ScaleType::REL)
-            .setScale({1.0f, 1.0f});
+            .setScale({common::ONE, common::ONE});
 
         updateTextValue();
 
         knobNode_->append(textLabel_);
+        knobNode_->getLayout().setAlignChild(utils::Layout::Align::CENTER);
     }
     else if (!isViewValueEnabled_ && textLabel_)
     {
@@ -265,5 +283,4 @@ float Slider::getOffsetPerc() const { return knobOffsetPerc_; }
 SliderKnobWPtr Slider::getKnob() { return knobNode_; }
 
 TextLabelWPtr Slider::getTextLabel() { return textLabel_; }
-
 } // msgui

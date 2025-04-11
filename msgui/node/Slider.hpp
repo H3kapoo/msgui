@@ -12,16 +12,10 @@
 
 namespace msgui
 {
+
 /* Class for handling sliding values on a bar. */
 class Slider : public AbstractNode
 {
-public:
-    enum class Orientation
-    {
-        HORIZONTAL,
-        VERTICAL
-    };
-
 public:
     Slider(const std::string& name);
 
@@ -31,6 +25,7 @@ public:
     Slider& setSlideTo(const float value);
     Slider& setSlideCurrentValue(const float value);
     Slider& setSensitivity(const float value);
+    Slider& setViewValueFormatPredicate(const std::function<std::string(float)>& pred);
     Slider& enableViewValue(const bool value);
 
     glm::vec4 getColor() const;
@@ -49,6 +44,12 @@ private:
     void updateTextValue();
     void setupLayoutReloadables();
 
+    /* Can't be copied or moved. */
+    Slider(const Slider&) = delete;
+    Slider(Slider&&) = delete;
+    Slider& operator=(const Slider&) = delete;
+    Slider& operator=(Slider&&) = delete;
+
 private: // friend
     friend SliderKnob;
 
@@ -58,17 +59,17 @@ private: // friend
     void onMouseDrag(const events::LMBDrag& evt);
 
 private:
-    Logger log_{"Slider"};
-
-    glm::vec4 color_{Utils::hexToVec4("#000000ff")};
-    glm::vec4 borderColor_{Utils::hexToVec4("#ff0000ff")};
+    glm::vec4 color_{Utils::hexToVec4("#ffffffff")};
+    glm::vec4 borderColor_{Utils::hexToVec4("#ffffffff")};
     float slideFrom_{0};
     float slideTo_{0};
     float slideValue_{0};
     float sensitivity_{1};
     bool isViewValueEnabled_{true};
-    glm::ivec2 mouseDistFromKnobCenter_{0};
     float knobOffsetPerc_{0};
+    glm::ivec2 mouseDistFromKnobCenter_{0};
+    std::function<std::string(float)> textViewPred_{nullptr};
+
     SliderKnobPtr knobNode_{nullptr};
     TextLabelPtr textLabel_{nullptr};
 };
