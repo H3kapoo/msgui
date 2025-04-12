@@ -64,7 +64,7 @@ private:
     float slideFrom_{0};
     float slideTo_{0};
     float slideValue_{0};
-    float sensitivity_{1};
+    float sensitivity_{4};
     bool isViewValueEnabled_{true};
     float knobOffsetPerc_{0};
     glm::ivec2 mouseDistFromKnobCenter_{0};

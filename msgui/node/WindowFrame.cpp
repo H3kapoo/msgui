@@ -312,9 +312,14 @@ void WindowFrame::resolveNodeRelations()
                 bool isFloatingBoxNode = ch->getType() == AbstractNode::NodeType::FLOATING_BOX;
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
-                ch->transform_.pos.z = node->transform_.pos.z + (isScrollNode ? common::SCROLL_LAYER_START : 1);
+                ch->transform_.pos.z = node->transform_.pos.z + 1;
                 ch->transform_.pos.z += isDropdownNodeBox ? common::DROPDOWN_LAYER_START : 0;
                 ch->transform_.pos.z = isFloatingBoxNode ? common::FLOATING_LAYER_START : ch->transform_.pos.z;
+                
+                if (isScrollNode)
+                {
+                    ch->transform_.pos.z = common::SCROLL_LAYER_START - node->transform_.pos.z;
+                }
                 ch->state_ = frameState_;
             }
 
@@ -425,7 +430,6 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->mouseX = x;
     frameState_->mouseY = y;
 
-    frameState_->nearScrollNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
         /* Skip nodes marked as transparent. Events will be bubbled down to the next valid node. */
@@ -449,28 +453,43 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
                 frameState_->hoveredNodePtr = node;
             }
 
-            if (node->parent_.lock() && node->parent_.lock()->getType() == AbstractNode::NodeType::SLIDER)
-            {
-                frameState_->nearScrollNodePtr = node->parent_;
-            }
-            else if (node->getType() == AbstractNode::NodeType::SLIDER)
-            {
-                frameState_->nearScrollNodePtr = node;
-            }
-            else if (node->getType() == AbstractNode::NodeType::BOX) // TODO: || NodeType is TreeView/RecycleList
-            {
-                if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::VERTICAL))
-                {
-                    frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getVBar();
-                }
-                // TODO: When CTRL is held pick the horizontal direction instead of the verical one
-                else if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::HORIZONTAL))
-                {
-                    frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getHBar();
-                }
-            }
             break; // event was consumed
         }
+    }
+
+    /* Following will try to find the nearest scrollbar from the hovered node's position.
+       This loop will run at most MAX_HEIGHT_OF_UI_TREE times in the worst case. */
+    frameState_->nearScrollNodePtr = NO_PTR;
+    AbstractNodePtr p = frameState_->hoveredNodePtr.lock();
+    while (p != NO_PTR)
+    {
+        if (p->getType() == AbstractNode::NodeType::SLIDER_KNOB)
+        {
+            frameState_->nearScrollNodePtr = p->getParent();
+        }
+        else if (p->getType() == AbstractNode::NodeType::SLIDER)
+        {
+            frameState_->nearScrollNodePtr = p;
+        }
+        else if (p->getType() == AbstractNode::NodeType::BOX) // TODO: || NodeType is TreeView/RecycleList
+        {
+            auto box = Utils::as<Box>(p);
+            if (box->isScrollBarActive(utils::Layout::Type::VERTICAL))
+            {
+                frameState_->nearScrollNodePtr = box->getVBar();
+            }
+            // TODO: When CTRL is held pick the horizontal direction instead of the verical one
+            else if (box->isScrollBarActive(utils::Layout::Type::HORIZONTAL))
+            {
+                frameState_->nearScrollNodePtr = box->getHBar();
+            }
+        }
+
+        if (frameState_->nearScrollNodePtr.lock())
+        {
+            break;
+        }
+        p = p->getParent().lock();
     }
 
     /* Having a selectedNodeId && currently holding down left click means we want to drag only. */

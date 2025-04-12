@@ -51,6 +51,7 @@ public:
         RECYCLE_LIST,
         TREEVIEW,
         DROPDOWN,
+        SLIDER_KNOB,
         SCROLL,
         SCROLL_KNOB
     };

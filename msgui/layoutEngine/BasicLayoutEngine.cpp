@@ -541,7 +541,7 @@ BasicLayoutEngine::ScrollBarsData BasicLayoutEngine::processScrollbars(const Abs
             float newY = Utils::remap(slOffset,
                 0.0f, 1.0f, pos.y + kScale.y / 2, pos.y + scale.y - kScale.y / 2);
             kPos.x = pos.x;
-            kPos.y = newY - kScale.y / 2;
+            kPos.y =  newY - kScale.y / 2;
 
             /* Horizontal available space needs to decrease & current offset in px */
             data.shrinkBy.x = scale.x;

@@ -31,34 +31,63 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#252525ff"));
     rootBox->getLayout()
-        .setType(Layout::Type::VERTICAL)
+        // .setType(Layout::Type::VERTICAL)
         .setAllowOverflow({true, true})
         .setAlignChild(Layout::Align::CENTER);
 
-    for (int32_t i = 0; i < 10; i++)
+    rootBox->getVBar().lock()->setSensitivity(5);
+
+    BoxPtr a, b;
+    a = Utils::make<Box>("leftbox");
+    a->setColor(Utils::randomRGB());
+    a->getLayout()
+        .setType(Layout::Type::VERTICAL)
+        .setAllowOverflow({true, true})
+        .setScale({400, 200})
+        .setMargin({0, 0, 0, 5});
+
+    b = Utils::make<Box>("rightbox");
+    b->setColor(Utils::randomRGB());
+    b->getLayout()
+        .setAllowOverflow({true, true})
+        .setScale({300, 200});
+
+    for (int32_t i = 0; i < 20; i++)
     {
-        ButtonPtr b = Utils::make<Button>("mbutton");
-        b->setColor(Utils::hexToVec4("#cf1616ff"))
+        ButtonPtr btn = Utils::make<Button>("mbutton");
+        btn->setColor(Utils::hexToVec4("#cf1616ff"))
             .setText("My text is very huge and it will not fit in but im trying it anyway")
         ;
-        b->getLayout().setScale({800, 40});
-    
-        rootBox->appendMany({b});
+        btn->getLayout().setScale({300, 40});
+        
+        if (i < 10)
+        {
+            a->append(btn);
+        }
+        else
+        {
+            b->append(btn);
+        }
+        // rootBox->appendMany({b});
     }
-    rootBox->getEvents().listen<events::MouseExit>(
-        [&mainLogger](const auto&)
-        {
-            mainLogger.debugLn("Something exit");
-        });
-    rootBox->getEvents().listen<events::MouseEnter>(
-        [&mainLogger](const auto&)
-        {
-            mainLogger.debugLn("Something entered");
-        });
+
+    rootBox->appendMany({a, b});
+
+
+    // rootBox->getEvents().listen<events::MouseExit>(
+    //     [&mainLogger](const auto&)
+    //     {
+    //         mainLogger.debugLn("Something exit");
+    //     });
+    // rootBox->getEvents().listen<events::MouseEnter>(
+    //     [&mainLogger](const auto&)
+    //     {
+    //         mainLogger.debugLn("Something entered");
+    //     });
     // rootBox->append(lbl);
 
     /* Blocks from here on */
-    Application::get().setPollMode(Application::PollMode::CONTINUOUS);
+    // Application::get().setPollMode(Application::PollMode::CONTINUOUS);
     app.run();
     return 0;
 }

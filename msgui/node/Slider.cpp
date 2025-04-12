@@ -13,7 +13,6 @@
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/TextLabel.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
-#include <string>
 
 namespace msgui
 {
@@ -76,9 +75,12 @@ void Slider::updateSliderValue()
     glm::vec2 knobHalf = glm::vec2{knobNode_->getTransform().scale.x / 2, knobNode_->getTransform().scale.y / 2};
     if (layout_.type == utils::Layout::Type::VERTICAL)
     {
-        // knobOffsetPerc_ = common::ONE - Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
-        knobOffsetPerc_ =  Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
+        knobOffsetPerc_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, common::ZERO, common::ONE);
+
+        knobOffsetPerc_ = getType() == AbstractNode::NodeType::SLIDER
+            ? common::ONE - knobOffsetPerc_
+            : knobOffsetPerc_;
     }
     else if (layout_.type == utils::Layout::Type::HORIZONTAL)
     {
@@ -100,7 +102,11 @@ void Slider::updateTextValue()
 
 void Slider::onMouseWheel(const events::WheelScroll& evt)
 {
-    setSlideCurrentValue(slideValue_ - evt.value * sensitivity_);
+    /* In scrollBar mode, the wheel direction needs to be inverted since the values start
+       increasing from top to bottom as opposed to values in Slider mode. */
+    getType() == AbstractNode::NodeType::SLIDER
+        ? setSlideCurrentValue(slideValue_ + evt.value * sensitivity_)
+        : setSlideCurrentValue(slideValue_ - evt.value * sensitivity_);
 
     events::Scroll scrollEv{slideValue_};
     getEvents().notifyAllChannels<events::Scroll>(scrollEv);

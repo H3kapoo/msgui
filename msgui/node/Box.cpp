@@ -201,7 +201,7 @@ void Box::setupReloadables()
         if (layout_.allowOverflow.y && !vScrollBar_)
         {
             vScrollBar_ = std::make_shared<Slider>("VSlider");
-            vScrollBar_->enableViewValue(false);
+            // vScrollBar_->enableViewValue(false);
             vScrollBar_->getLayout()
                 .setType(utils::Layout::Type::VERTICAL)
                 .setScale({common::SCROLL_BAR_SIZE, common::ONE});
