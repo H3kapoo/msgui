@@ -32,6 +32,9 @@ void TextRenderer::render(const glm::mat4& projMat, const int32_t frameHeight)
     auto& storeBuffer = TextBufferStore::get().buffer();
     for (auto& element : storeBuffer)
     {
+        /* No point in rendering anything if the parent ain't event visible. */
+        if (element.transformPtr->vScale.x <= 0 || element.transformPtr->vScale.y <= 0) { continue; }
+
         doScissorMask(element.transformPtr, frameHeight);
         
         /* Use a fallback font in case the main one is not provided for some reason. */

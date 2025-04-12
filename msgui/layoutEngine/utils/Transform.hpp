@@ -31,7 +31,7 @@ public:
     glm::vec3 pos{0, 0, 1};
     glm::vec3 scale{1};
     glm::ivec2 vPos{0};
-    glm::ivec2 vScale{1};
+    glm::ivec2 vScale{0};
     glm::mat4 modelMatrix;
 };
 using TransformPtr = Transform*;

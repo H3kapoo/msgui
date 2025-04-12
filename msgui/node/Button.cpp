@@ -5,6 +5,7 @@
 #include "msgui/events/FocusLost.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/events/MouseEnter.hpp"
 #include "msgui/events/NodeEventManager.hpp"
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
@@ -18,13 +19,13 @@ namespace msgui
 {
 Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
-    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
-    setMesh(loaders::MeshLoader::loadQuad());
+    /* Setup defaults */
     log_ = ("Button(" + name + ")");
 
-    setupLayoutReloadables();
+    setType(AbstractNode::NodeType::COMMON);
+    setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
+    setMesh(loaders::MeshLoader::loadQuad());
 
-    /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7FF");
     pressedColor_ = Utils::hexToVec4("#dadadaff");
     borderColor_ = Utils::hexToVec4("#D2CCC8");
@@ -33,13 +34,19 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 
     layout_.setScale({70, 34});
 
+    setupLayoutReloadables();
+
     /* Register only the events you need. */
     getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&Button::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&Button::onMouseRelease, this, std::placeholders::_1));
-        getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
-            std::bind(&Button::onMouseReleaseNotHovered, this, std::placeholders::_1));
+    getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
+        std::bind(&Button::onMouseReleaseNotHovered, this, std::placeholders::_1));
+    getEvents().listen<events::MouseEnter, events::InputChannel>(
+        std::bind(&Button::onMouseEnter, this, std::placeholders::_1));
+    getEvents().listen<events::MouseExit, events::InputChannel>(
+        std::bind(&Button::onMouseExit, this, std::placeholders::_1));
 }
 
 void Button::setShaderAttributes()
@@ -93,6 +100,16 @@ void Button::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
     /* In the particular case of receiving the event from Input, LMBReleaseNotHovered acts just like LMBRelease. */
     const events::LMBRelease evt{{0,0}};
     onMouseRelease(evt);
+}
+
+void Button::onMouseEnter(const events::MouseEnter&)
+{
+    currentColor_ = Utils::darken(color_, 0.2f);
+}
+
+void Button::onMouseExit(const events::MouseExit&)
+{
+    currentColor_ = Utils::lighten(color_, 0.2f);
 }
 
 Button& Button::setColor(const glm::vec4& color)
@@ -199,5 +216,4 @@ std::string Button::getImagePath() const { return image_->getImagePath(); }
 TextLabelWPtr Button::getTextLabel() { return textLabel_; }
 
 ImageWPtr Button::getImage() {return image_; }
-
 } // msgui

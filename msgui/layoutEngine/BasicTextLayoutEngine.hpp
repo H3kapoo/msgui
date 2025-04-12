@@ -12,7 +12,6 @@ public:
     virtual void process(renderer::TextData& data, const bool forceAllDirty) override;
 
 private:
-    bool shouldSkipData(const renderer::TextData& data) const;
     glm::ivec2 computeTextLengthAndHeight(const renderer::TextData& data) const;
 
 private:

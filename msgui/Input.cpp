@@ -1,4 +1,5 @@
 #include "Input.hpp"
+#include <GLFW/glfw3.h>
 
 namespace msgui
 {
@@ -16,6 +17,8 @@ void Input::onMouseMove(const MouseMoveCallback& callback) { mouseMoveCb_ = call
 void Input::onMouseButton(const MouseClickCallback& callback) { mouseClickCb_ = callback; }
 
 void Input::onMouseWheel(const MouseWheelCallback& callback) { mouseWheelCb_ = callback; }
+
+void Input::onMouseEnterExitWindow(const MouseEnterExitWindowCallback& callback) { mouseEnterExitWindowCb_ = callback; }
 
 void Input::onWindowResize(const WindowResizeCallback& callback) { winResizeCb_ = callback; }
 
@@ -107,6 +110,17 @@ void Input::setupEventCallbacks()
             if (input->mouseWheelCb_)
             {
                 input->mouseWheelCb_(offsetX, offsetY);
+            }
+        });
+
+    glfwSetCursorEnterCallback(windowHandle,
+        [](GLFWwindow* win, int32_t entered)
+        {
+            Input* input = static_cast<Input*>(glfwGetWindowUserPointer(win));
+            if (input->mouseEnterExitWindowCb_)
+            {
+                /* Entered can be 0 or 1 so exactly like a bool. Implicit conversion is justified. */
+                input->mouseEnterExitWindowCb_(entered);
             }
         });
 }

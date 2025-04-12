@@ -1,4 +1,7 @@
 #include "WindowFrame.hpp"
+#include "msgui/events/MouseEnter.hpp"
+#include "msgui/events/MouseExit.hpp"
+#include "msgui/events/WindowResize.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -76,6 +79,11 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
         std::bind(
             &WindowFrame::resolveOnMouseWheelFromInput,
             this, std::placeholders::_1, std::placeholders::_2));
+
+    input_.onMouseEnterExitWindow(
+        std::bind(
+            &WindowFrame::resolveOnMouseEnterExitFromInput,
+            this, std::placeholders::_1));
 
     /* Setup internal objects */
     frameState_->requestNewFrameFunc = Window::requestEmptyEvent;
@@ -417,37 +425,51 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
     frameState_->mouseX = x;
     frameState_->mouseY = y;
 
-    frameState_->hoveredNodePtr = NO_PTR;
     frameState_->nearScrollNodePtr = NO_PTR;
     for (const auto& node : allFrameChildNodes_)
     {
+        /* Skip nodes marked as transparent. Events will be bubbled down to the next valid node. */
+        if (node->isEventTransparent()) { continue; }
+
         glm::ivec2& nodePos = node->transform_.vPos;
         glm::ivec2& nodeScale = node->transform_.vScale;
         if ((x >= nodePos.x && x <= nodePos.x + nodeScale.x) &&
             (y >= nodePos.y && y <= nodePos.y + nodeScale.y))
         {
-            frameState_->hoveredNodePtr = node;
+            if (node != frameState_->hoveredNodePtr.lock())
+            {
+                events::MouseEnter evtEnter;
+                node->getEvents().notifyAllChannels(evtEnter);
+                if (auto prevHoveredNode = frameState_->hoveredNodePtr.lock())
+                {
+                    events::MouseExit evtExit;
+                    prevHoveredNode->getEvents().notifyAllChannels(evtExit);
+                }
+
+                frameState_->hoveredNodePtr = node;
+            }
 
             if (node->parent_.lock() && node->parent_.lock()->getType() == AbstractNode::NodeType::SLIDER)
             {
                 frameState_->nearScrollNodePtr = node->parent_;
-                break; // event was consumed
             }
             else if (node->getType() == AbstractNode::NodeType::SLIDER)
             {
                 frameState_->nearScrollNodePtr = node;
-                break; // event was consumed
             }
-            else if (node->getType() == AbstractNode::NodeType::BOX)
+            else if (node->getType() == AbstractNode::NodeType::BOX) // TODO: || NodeType is TreeView/RecycleList
             {
-                if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::HORIZONTAL))
+                if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::VERTICAL))
+                {
+                    frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getVBar();
+                }
+                // TODO: When CTRL is held pick the horizontal direction instead of the verical one
+                else if (Utils::as<Box>(node)->isScrollBarActive(utils::Layout::Type::HORIZONTAL))
                 {
                     frameState_->nearScrollNodePtr = Utils::as<Box>(node)->getHBar();
-                    // log_.debugLn("got it");
-                    break; // event was consumed
                 }
             }
-            // break; // event was consumed
+            break; // event was consumed
         }
     }
 
@@ -472,13 +494,25 @@ void WindowFrame::resolveOnMouseWheelFromInput(const int32_t x, const int32_t y)
     }
 }
 
+void WindowFrame::resolveOnMouseEnterExitFromInput(const bool entered)
+{
+    if (auto hoveredNode = frameState_->hoveredNodePtr.lock(); hoveredNode && !entered)
+    {
+        events::MouseExit evtExit;
+        hoveredNode->getEvents().notifyAllChannels(evtExit);
+        frameState_->hoveredNodePtr = NO_PTR;
+    }
+}
+
 void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
 {
     frameState_->layoutPassActions = ELayoutPass::EVERYTHING_NODE;
     frameState_->frameSize = {newWidth, newHeight};
+
+    events::WindowResize evt;
     for (const auto& node : allFrameChildNodes_)
     {
-        node->onWindowResizeNotify();
+        node->getEvents().notifyAllChannels(evt);
     }
 }
 } // namespace msgui

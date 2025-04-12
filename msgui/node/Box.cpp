@@ -184,7 +184,6 @@ void Box::setupReloadables()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)
         {
-            log_.debugLn("baa");
             hScrollBar_ = std::make_shared<Slider>("HSlider");
             hScrollBar_->enableViewValue(false);
             hScrollBar_->setType(AbstractNode::NodeType::SCROLL);

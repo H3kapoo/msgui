@@ -5,6 +5,8 @@
 #include "msgui/Utils.hpp"
 #include "msgui/events/LMBClick.hpp"
 #include "msgui/events/LMBRelease.hpp"
+#include "msgui/events/MouseEnter.hpp"
+#include "msgui/events/MouseExit.hpp"
 #include "msgui/events/Scroll.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Button.hpp"
@@ -33,40 +35,30 @@ int main()
         .setAllowOverflow({true, true})
         .setAlignChild(Layout::Align::CENTER);
 
-    BoxPtr b = Utils::make<Box>("mbox");
-    b->getLayout().setScale({200, 300});
-
-{    SliderPtr sl = rootBox->getHBar().lock();
-    sl->getLayout().setBorderRadius({5});
-    if (auto knob = sl->getKnob().lock())
+    for (int32_t i = 0; i < 10; i++)
     {
-        knob->setBorderColor(Utils::randomRGB());
-        knob->getLayout()
-            .setBorderRadius({5})
-            .setBorder({5})
-            ;
-    }}
-
-    {    SliderPtr sl = rootBox->getVBar().lock();
-    sl->getLayout().setBorderRadius({5});
-
-        if (auto knob = sl->getKnob().lock())
+        ButtonPtr b = Utils::make<Button>("mbutton");
+        b->setColor(Utils::hexToVec4("#cf1616ff"))
+            .setText("My text is very huge and it will not fit in but im trying it anyway")
+        ;
+        b->getLayout().setScale({800, 40});
+    
+        rootBox->appendMany({b});
+    }
+    rootBox->getEvents().listen<events::MouseExit>(
+        [&mainLogger](const auto&)
         {
-            knob->setBorderColor(Utils::randomRGB());
-            knob->getLayout()
-                .setBorderRadius({5})
-                .setBorder({5})
-                ;
-        }}
-
-    BoxPtr c = Utils::make<Box>("mbox");
-    c->getLayout().setScale({1500, 400});
-    c->setColor(Utils::randomRGB());
-
-    rootBox->appendMany({b, c});
+            mainLogger.debugLn("Something exit");
+        });
+    rootBox->getEvents().listen<events::MouseEnter>(
+        [&mainLogger](const auto&)
+        {
+            mainLogger.debugLn("Something entered");
+        });
     // rootBox->append(lbl);
 
     /* Blocks from here on */
+    Application::get().setPollMode(Application::PollMode::CONTINUOUS);
     app.run();
     return 0;
 }

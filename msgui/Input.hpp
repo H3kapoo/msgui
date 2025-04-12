@@ -19,6 +19,7 @@ class Input
 using MouseMoveCallback = std::function<void(const double x, const double y)>;
 using MouseClickCallback = std::function<void(const int32_t btn, const int32_t action)>;
 using MouseWheelCallback = std::function<void(const double offsetX, const double offsetY)>;
+using MouseEnterExitWindowCallback = std::function<void(const bool entered)>;
 using WindowResizeCallback = std::function<void(const uint32_t width, const uint32_t height)>;
 using KeyCallback = std::function<void(const int32_t key, const int32_t scanCode, const int32_t mods)>;
 using RefreshCallback = std::function<void()>;
@@ -46,6 +47,13 @@ public:
         @param callback Function to be ran
     */
     void onMouseWheel(const MouseWheelCallback& callback);
+
+    /**
+        Set handler for when the mouse enters/exits the content area of the window.
+
+        @param callback Function to be ran
+    */
+    void onMouseEnterExitWindow(const MouseEnterExitWindowCallback& callback);
 
     /**
         Set handler for when the window is resized.
@@ -101,6 +109,7 @@ private:
     MouseMoveCallback mouseMoveCb_{nullptr};
     MouseClickCallback mouseClickCb_{nullptr};
     MouseWheelCallback mouseWheelCb_{nullptr};
+    MouseEnterExitWindowCallback mouseEnterExitWindowCb_{nullptr};
     WindowResizeCallback winResizeCb_{nullptr};
     KeyCallback keyPressCb_{nullptr};
     KeyCallback keyReleaseCb_{nullptr};

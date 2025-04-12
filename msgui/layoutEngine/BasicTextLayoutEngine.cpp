@@ -7,8 +7,11 @@ namespace msgui::layoutengine
 {
 void BasicTextLayoutEngine::process(renderer::TextData& data, const bool forceAllDirty)
 {
-    /* If the calculation is forced we must recalculate all text data. */
-    if (shouldSkipData(data) && !forceAllDirty) { return; }
+    /* No point in computing anything if the parent ain't event visible. */
+    if (data.transformPtr->vScale.x <= 0 || data.transformPtr->vScale.y <= 0) { return; }
+    
+    /* If the calculation is forced we must recalculate text data even if it's not dirty (from user pov). */
+    if (!data.isDirty && !forceAllDirty) { return; }
 
     data.isDirty = false;
     data.pcd.transform.clear();
@@ -44,17 +47,6 @@ void BasicTextLayoutEngine::process(renderer::TextData& data, const bool forceAl
         data.pcd.transform.emplace_back(std::move(modelMatrix));
         data.pcd.unicodeIndex.push_back(ch);
     }
-}
-
-bool BasicTextLayoutEngine::shouldSkipData(const renderer::TextData& data) const
-{
-    /* If the current text data isn't dirty (i.e no change in text data or positioning) no need to recalculate. */
-    if (!data.isDirty || !data.transformPtr->vScale.x || !data.transformPtr->vScale.y)
-    {
-        return true;
-    }
-
-    return false;
 }
 
 glm::ivec2 BasicTextLayoutEngine::computeTextLengthAndHeight(const renderer::TextData& data) const

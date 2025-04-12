@@ -4,6 +4,8 @@
 #include "msgui/events/LMBClick.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/events/MouseEnter.hpp"
+#include "msgui/events/MouseExit.hpp"
 #include "msgui/node/Image.hpp"
 #include "msgui/node/TextLabel.hpp"
 
@@ -42,6 +44,8 @@ private:
     void onMouseClick(const events::LMBClick& evt);
     void onMouseRelease(const events::LMBRelease& evt);
     void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered& evt);
+    void onMouseEnter(const events::MouseEnter& evt);
+    void onMouseExit(const events::MouseExit& evt);
 
 private:
     glm::vec4 color_{1.0f};

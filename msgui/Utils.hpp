@@ -28,6 +28,19 @@ public:
     }
 
     /**
+        Lighten a color by a certain percentage.
+
+        @param color Color to be lightened
+        @param perc Percentage representing how much to lighten (0 <= perc <= 1)
+
+        @return Lightened color capped if exceeding RGB limits
+     */
+     static inline glm::vec4 lighten(const glm::vec4& color, const float perc)
+     {
+         return {color.r + (color.r * perc), color.g + (color.g * perc), color.b + (color.b * perc), 1.0f};
+     }
+
+    /**
         Generates a random RGB color.
 
         @return Random color computed

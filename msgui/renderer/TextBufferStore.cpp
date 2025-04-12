@@ -11,7 +11,7 @@ TextBufferStore& TextBufferStore::get()
 
 TextDataListIt TextBufferStore::newLocation()
 {
-    log_.debugLn("Requested new location");
+    // log_.debugLn("Requested new location");
     buffer_.emplace_back();
     return std::prev(buffer_.end());
 }
@@ -25,7 +25,7 @@ bool TextBufferStore::remove(MaybeTextDataIt& maybeDataIt)
     {
         buffer_.erase(maybeDataIt.value());
         maybeDataIt = std::nullopt;
-        log_.debugLn("Removed. New buffer size: %lu", buffer_.size());
+        // log_.debugLn("Removed. New buffer size: %lu", buffer_.size());
         return true;
     }
 
