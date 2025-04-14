@@ -5,10 +5,11 @@
 #include "msgui/node/Button.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/WindowFrame.hpp"
-#include "msgui/node/utils/LayoutData.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/layoutEngine/utils/LayoutData.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 using namespace msgui;
+using namespace msgui::layoutengine::utils;
 
 int main()
 {
@@ -67,7 +68,7 @@ int main()
 
             /* On mouse release, change submenu items to have a new size and also remove the first item
                from the dropdown. */
-            lockedBtn->getEvents().listen<LMBRelease>([subMenu](const auto&)
+            lockedBtn->getEvents().listen<events::LMBRelease>([subMenu](const auto&)
             {
                 if (auto locked = subMenu.lock())
                 {
@@ -93,7 +94,7 @@ int main()
         {
             lockedBtn->setColor(Utils::randomRGB());
             lockedBtn->setPressedColor(Utils::darken(lockedBtn->getColor(), 0.2));
-            lockedBtn->getEvents().listen<LMBRelease>(
+            lockedBtn->getEvents().listen<events::LMBRelease>(
                 [ref = Utils::ref<Button>(lockedBtn)](const auto&)
                 {
                     ref.lock()->setEnabled(false);

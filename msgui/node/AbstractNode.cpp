@@ -321,7 +321,7 @@ uint32_t AbstractNode::genetateNextId() const
     return ++id;
 }
 
-void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
+void AbstractNode::resetNodeToDefaults(AbstractNodePtr& node)
 {
     // TODO: Very important => reset the state_ of the childen nodes recursively
     // as they are no longer part of the frame. Not resetting the state will mean
@@ -335,10 +335,24 @@ void AbstractNode::resetNodeToDefaults(std::shared_ptr<AbstractNode>& node)
     }
 
     /* Reset to defaults */
-    node->state_ = nullptr;
     node->isParented_ = false;
     node->parent_.reset();
     node->parentRaw_ = nullptr;
+
+    resetStatesRecursively(node);
+}
+
+void AbstractNode::resetStatesRecursively(AbstractNodePtr& node)
+{
+    /* Some parameters like state and vScale need to be reset all the way down since:
+        1. There's no more state to rely on, you're detached from the main UI tree
+        2. You can no longer be visible so your vScale needs to be reset
+    */
+    node->state_ = nullptr;
     node->transform_.vScale = {0, 0};
+    for (auto& ch : node->getChildren())
+    {
+        resetStatesRecursively(ch);
+    }
 }
 } // namespace msgui

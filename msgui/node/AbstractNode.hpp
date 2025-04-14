@@ -53,7 +53,8 @@ public:
         DROPDOWN,
         SLIDER_KNOB,
         SCROLL,
-        SCROLL_KNOB
+        SCROLL_KNOB,
+        DROPDOWN_CONTAINTER
     };
 
 public:
@@ -237,6 +238,7 @@ private: // friend
 private:
     uint32_t genetateNextId() const;
     void resetNodeToDefaults(AbstractNodePtr& node);
+    void resetStatesRecursively(AbstractNodePtr& node);
 
 private:
     /* Nullable section and we shall be careful with them */

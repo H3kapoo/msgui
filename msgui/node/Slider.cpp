@@ -78,6 +78,8 @@ void Slider::updateSliderValue()
         knobOffsetPerc_ = Utils::remap(getState()->mouseY - mouseDistFromKnobCenter_.y,
             transform_.pos.y + knobHalf.y, transform_.pos.y + transform_.scale.y - knobHalf.y, common::ZERO, common::ONE);
 
+        /* In scrollBar mode, the knob offset is not inverted since the values start
+           increasing from top to bottom as opposed to values in Slider mode. */
         knobOffsetPerc_ = getType() == AbstractNode::NodeType::SLIDER
             ? common::ONE - knobOffsetPerc_
             : knobOffsetPerc_;

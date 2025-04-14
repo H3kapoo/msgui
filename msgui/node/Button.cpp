@@ -198,6 +198,7 @@ Button& Button::setImagePath(const std::string& path)
         image_ = Utils::make<Image>(getName() + "_Image");
         image_->setImage(path);
         image_->setEventTransparent(true);
+        image_->getLayout().setScale({getLayout().scale.y, getLayout().scale.y});
 
         append(image_);
     }

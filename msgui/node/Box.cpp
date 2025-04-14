@@ -89,7 +89,11 @@ void Box::onFocusLost(const events::FocusLost&)
     /* Nothing to be done if no context menu is assigned or if focus is lost
        BUT the newly clicked node is a drop item (the menu's one most likely). */
     if (!ctxMenuFloatingBox_) { return; }
-    if (getState()->clickedNodePtr.lock()->getName() == "DropdownItem") { return; }
+    if (getState()->clickedNodePtr.lock()->getName() == "DropdownItem"
+        || getState()->clickedNodePtr.lock()->getName() == "SubDropdown")
+    {
+        return;
+    }
 
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
     auto& ddd = fb->getContainer().lock()->getChildren()[0];

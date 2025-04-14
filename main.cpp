@@ -13,6 +13,7 @@
 #include "msgui/node/Image.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/TextLabel.hpp"
+#include "msgui/node/Dropdown.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
 
@@ -29,62 +30,44 @@ int main()
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
 
     BoxPtr rootBox = window->getRoot();
-    rootBox->setColor(Utils::hexToVec4("#252525ff"));
+    rootBox->setColor(Utils::hexToVec4("#161616ff"));
     rootBox->getLayout()
         // .setType(Layout::Type::VERTICAL)
-        .setAllowOverflow({true, true})
+        // .setAllowOverflow({true, true})
         .setAlignChild(Layout::Align::CENTER);
 
-    rootBox->getVBar().lock()->setSensitivity(5);
+    // rootBox->getVBar().lock()->setSensitivity(5);
 
-    BoxPtr a, b;
-    a = Utils::make<Box>("leftbox");
-    a->setColor(Utils::randomRGB());
-    a->getLayout()
-        .setType(Layout::Type::VERTICAL)
-        .setAllowOverflow({true, true})
-        .setScale({400, 200})
-        .setMargin({0, 0, 0, 5});
-
-    b = Utils::make<Box>("rightbox");
-    b->setColor(Utils::randomRGB());
-    b->getLayout()
-        .setAllowOverflow({true, true})
-        .setScale({300, 200});
-
-    for (int32_t i = 0; i < 20; i++)
-    {
-        ButtonPtr btn = Utils::make<Button>("mbutton");
-        btn->setColor(Utils::hexToVec4("#cf1616ff"))
-            .setText("My text is very huge and it will not fit in but im trying it anyway")
+    DropdownPtr dd = Utils::make<Dropdown>("down");
+    dd->setImagePath("/home/hekapoo/Documents/probe/newgui/assets/textures/awesomeface.png");
+    dd->setText("my text");
+    dd->getLayout()
+        .setScale({200, 60})
         ;
-        btn->getLayout().setScale({300, 40});
-        
-        if (i < 10)
-        {
-            a->append(btn);
-        }
-        else
-        {
-            b->append(btn);
-        }
-        // rootBox->appendMany({b});
+
+    dd->getImage().lock()->getLayout().setAlignSelf(Layout::Align::CENTER);
+    rootBox->appendMany({dd});
+
+    dd->getContainer().lock()->setColor(Utils::lighten(Utils::COLOR_RED, 0.2f));
+
+    for (int32_t i = 0; i < 2; i++)
+    {
+        ButtonWPtr bb = dd->createMenuItem<Button>();
+        // bb.lock()->getLayout().setMargin({2});
+        // bb.lock()->getLayout().setScale({150, 60});
+        bb.lock()->setColor(Utils::randomRGB()).setText("Ceva text");
     }
 
-    rootBox->appendMany({a, b});
-
-
-    // rootBox->getEvents().listen<events::MouseExit>(
-    //     [&mainLogger](const auto&)
-    //     {
-    //         mainLogger.debugLn("Something exit");
-    //     });
-    // rootBox->getEvents().listen<events::MouseEnter>(
-    //     [&mainLogger](const auto&)
-    //     {
-    //         mainLogger.debugLn("Something entered");
-    //     });
-    // rootBox->append(lbl);
+    // DropdownWPtr sub = dd->createSubMenuItem();
+    // sub.lock()->setColor(Utils::randomRGB());
+    // sub.lock()->getLayout().setMargin({2});
+    
+    // for (int32_t i = 0; i < 3; i++)
+    // {
+    //     ButtonWPtr bb = sub.lock()->createMenuItem<Button>();
+    //     bb.lock()->getLayout().setMargin({2});
+    //     bb.lock()->setColor(Utils::randomRGB());
+    // }
 
     /* Blocks from here on */
     // Application::get().setPollMode(Application::PollMode::CONTINUOUS);

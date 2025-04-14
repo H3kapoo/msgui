@@ -32,7 +32,7 @@ public:
     TextLabelWPtr getTextLabel();
     ImageWPtr getImage();
 
-private:
+protected:
     /* Can't be copied or moved. */
     Button(const Button&) = delete;
     Button(Button&&) = delete;
@@ -47,7 +47,7 @@ private:
     void onMouseEnter(const events::MouseEnter& evt);
     void onMouseExit(const events::MouseExit& evt);
 
-private:
+protected:
     glm::vec4 color_{1.0f};
     glm::vec4 currentColor_{1.0f};
     glm::vec4 pressedColor_{1.0f};

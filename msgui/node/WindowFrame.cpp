@@ -30,7 +30,7 @@
 
 namespace msgui
 {
-std::array<GLFWcursor*, common::MAX_DEFAULT_CURSORS> WindowFrame::standardCursors_ = {0};
+std::array<GLFWcursor*, WindowFrame::MAX_DEFAULT_CURSORS> WindowFrame::standardCursors_ = {0};
 bool WindowFrame::initCursors = true;
 
 WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, const uint32_t height, const bool isPrimary)
@@ -313,12 +313,19 @@ void WindowFrame::resolveNodeRelations()
                 ch->parent_ = node;
                 ch->parentRaw_ = node.get();
                 ch->transform_.pos.z = node->transform_.pos.z + 1;
-                ch->transform_.pos.z += isDropdownNodeBox ? common::DROPDOWN_LAYER_START : 0;
-                ch->transform_.pos.z = isFloatingBoxNode ? common::FLOATING_LAYER_START : ch->transform_.pos.z;
                 
                 if (isScrollNode)
                 {
-                    ch->transform_.pos.z = common::SCROLL_LAYER_START - node->transform_.pos.z;
+                    // needs to start from the down and go down progressively
+                    ch->transform_.pos.z = SCROLL_LAYER_START - node->transform_.pos.z;
+                }
+                else if (isDropdownNodeBox)
+                {
+                    ch->transform_.pos.z += DROPDOWN_LAYER_START;
+                }
+                else if (isFloatingBoxNode)
+                {
+                    ch->transform_.pos.z += FLOATING_LAYER_START;
                 }
                 ch->state_ = frameState_;
             }

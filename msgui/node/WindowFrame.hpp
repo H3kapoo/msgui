@@ -11,7 +11,6 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/renderer/TextRenderer.hpp"
-#include "msgui/common/Constants.hpp"
 
 namespace msgui
 {
@@ -22,6 +21,15 @@ class Application;
 /* UI Window content manager */
 class WindowFrame
 {
+/*  Since scrollbars and dropdowns need to be displayed on top of the container they attach to and kinda on top of
+    everything else, a custom Z start is needed. Same for floating windows or dropdowns.
+*/
+static constexpr uint32_t SCROLL_LAYER_START = 150;
+static constexpr uint32_t DROPDOWN_LAYER_START = 200;
+static constexpr uint32_t FLOATING_LAYER_START = 300;
+
+static constexpr uint32_t MAX_DEFAULT_CURSORS = 6;
+
 public:
     /**
         Creates a new window frame.
@@ -92,7 +100,7 @@ private:
     bool isPrimary_{false};
 
 
-    static std::array<GLFWcursor*, common::MAX_DEFAULT_CURSORS> standardCursors_;
+    static std::array<GLFWcursor*, MAX_DEFAULT_CURSORS> standardCursors_;
     static bool initCursors;
 };
 using WindowFramePtr = std::shared_ptr<WindowFrame>;

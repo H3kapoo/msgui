@@ -1,11 +1,14 @@
 #pragma once
 
 #include "AbstractNode.hpp"
+#include "msgui/events/MouseEnter.hpp"
+#include "msgui/events/MouseExit.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/events/FocusLost.hpp"
 #include "msgui/events/LMBClick.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/node/Button.hpp"
 
 namespace msgui
 {
@@ -14,7 +17,8 @@ using DropdownPtr = std::shared_ptr<Dropdown>;
 using DropdownWPtr = std::weak_ptr<Dropdown>;
 
 /* Node used to display and handle dropdown menu and submenu items. */
-class Dropdown : public AbstractNode
+// class Dropdown : public AbstractNode
+class Dropdown : public Button
 {
 public:
     enum class Expand : uint8_t { LEFT, RIGHT, TOP, BOTTOM };
@@ -99,8 +103,13 @@ public:
     Expand getExpandDirection() const;
 
 private:
-    void setShaderAttributes() override;
+    /* Can't be copied or moved. */
+    Dropdown(const Dropdown&) = delete;
+    Dropdown(Dropdown&&) = delete;
+    Dropdown& operator=(const Dropdown&) = delete;
+    Dropdown& operator=(Dropdown&&) = delete;
 
+    void setShaderAttributes() override;
     void onMouseRelease(const events::LMBRelease&);
     void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&);
     void onMouseClick(const events::LMBClick&);
@@ -111,11 +120,6 @@ private:
     void setupLayoutReloadables();
 
 private:
-    glm::vec4 color_{1.0f};
-    glm::vec4 currentColor_{1.0f};
-    glm::vec4 pressedColor_{1.0f};
-    glm::vec4 borderColor_{1.0f};
-    glm::vec4 disabledColor_{1.0f};
     glm::ivec2 itemSize_{0};
     Expand expandDir_{Expand::BOTTOM};
     uint32_t dropdownId_{0};

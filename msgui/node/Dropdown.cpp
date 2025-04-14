@@ -18,23 +18,25 @@
 
 namespace msgui
 {
-Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPDOWN)
+// Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPDOWN)
+Dropdown::Dropdown(const std::string& name) : Button(name)
 {
+    log_ = ("Dropdown(" + name + ")");
+    setType(AbstractNode::NodeType::DROPDOWN);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    log_ = ("Dropdown(" + name + ")");
-
-    setupLayoutReloadables();
-
+    
     /* Defaults */
-    color_ = Utils::hexToVec4("#F9F8F7");
-    pressedColor_ = Utils::hexToVec4("#dadada");
-    borderColor_ = Utils::hexToVec4("#D2CCC8");
+    color_ = Utils::hexToVec4("#7e4e1eff");
+    pressedColor_ = Utils::hexToVec4("#dadadaff");
+    borderColor_ = Utils::hexToVec4("#D2CCC8ff");
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
     itemSize_ = {70, 34};
 
     layout_.setScale({70, 34});
+
+    setupLayoutReloadables();
 
     /* Register only the events you need. */
     getEvents().listen<events::LMBRelease, events::InputChannel>(
@@ -47,7 +49,8 @@ Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPD
         std::bind(&Dropdown::onFocusLost, this, std::placeholders::_1));
 
     container_ = Utils::make<Box>("ItemsContainer");
-    container_->setColor(Utils::hexToVec4("#4aabeb00"));
+    container_->setType(AbstractNode::NodeType::DROPDOWN_CONTAINTER);
+    container_->setColor(Utils::hexToVec4("#4aeba0ff"));
     container_->getLayout().setType(utils::Layout::Type::VERTICAL);
 
     dropdownId_ = getId();
@@ -78,6 +81,7 @@ void Dropdown::onMouseRelease(const events::LMBRelease&)
 {
     closeDropdownsOnTheSameLevelAsMe();
     toggleDropdown();
+
     currentColor_ = color_;
     
     layout_.shrink = {0, 0};
@@ -212,7 +216,8 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
     dropdownOpen_ = value;
 
     /* Dropdown shall close. Reset scrollbar knob pos and if any submenus are open, close them. */
-    if (!dropdownOpen_ && getChildren().size())
+    // if (!dropdownOpen_ && getChildren().size())
+    if (!dropdownOpen_)
     {
         /* If other dropdowns are open underneath me, try to close them also. */
         for (const auto& ch : container_->getChildren())
@@ -226,9 +231,11 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
         remove(container_->getId());
     }
     /* Dropdown shall open. */
-    else if (dropdownOpen_ && !getChildren().size())
+    // else if (dropdownOpen_ && !getChildren().size())
+    else
     {
-        append(container_);
+        // append(container_);
+        appendAt(container_, 0);
     }
 
     return *this;

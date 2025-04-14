@@ -5,8 +5,8 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/BoxDivider.hpp"
 #include "msgui/node/WindowFrame.hpp"
-#include "msgui/nodeEvent/LMBDrag.hpp"
-#include "msgui/nodeEvent/LMBRelease.hpp"
+#include "msgui/events/LMBDrag.hpp"
+#include "msgui/events/LMBRelease.hpp"
 
 using namespace msgui;
 
@@ -27,7 +27,7 @@ int main()
 
     BoxDividerPtr boxDivider = Utils::make<BoxDivider>("MyBoxDivider");
     boxDivider->getLayout()
-        .setScaleType(Layout::ScaleType::REL)
+        .setScaleType(utils::Layout::ScaleType::REL)
         .setScale({1.0f, 1.0f});
 
     rootBox->append(boxDivider);
@@ -51,7 +51,7 @@ int main()
     boxDivider->getSlot(2).lock()->getLayout().setMinScale({100, 0});
 
     /* Some dragging action on the first slot maybe? */
-    boxDivider->getSlot(0).lock()->getEvents().listen<nodeevent::LMBDrag>(
+    boxDivider->getSlot(0).lock()->getEvents().listen<events::LMBDrag>(
         [mainLog](const auto& evt)
         {
             mainLog.debugLn("Hello. Mouse is at: %d %d", evt.x, evt.y);
@@ -59,7 +59,7 @@ int main()
 
     /* Some random color generated on the separator after release? */
     BoxDividerSepWPtr boxSep = boxDivider->getSepatator(0);
-    boxSep.lock()->getEvents().listen<nodeevent::LMBRelease>(
+    boxSep.lock()->getEvents().listen<events::LMBRelease>(
         [ref = Utils::ref<BoxDividerSep>(boxSep)](const auto&)
         {
             if (auto lockedRef = ref.lock())

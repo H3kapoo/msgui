@@ -46,6 +46,7 @@ namespace msgui
 
 #define IGNORE_FLOATING_BOX\
     if (ch->getType() == AbstractNode::NodeType::FLOATING_BOX) { continue; }\
+    if (ch->getType() == AbstractNode::NodeType::DROPDOWN_CONTAINTER) { continue; }\
 
 
 glm::vec2 BasicLayoutEngine::process(const AbstractNodePtr& node)
@@ -58,11 +59,11 @@ glm::vec2 BasicLayoutEngine::process(const AbstractNodePtr& node)
     /* Useless to compute further if node is a scroll node type. We compute these separately */
     if (node->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
 
-    if (node->getType() == AbstractNode::NodeType::DROPDOWN)
-    {
-        processDropdown(node);
-        return {0, 0}; /* Dropdown will not generate overflow by itself */
-    }
+    // if (node->getType() == AbstractNode::NodeType::DROPDOWN)
+    // {
+    //     processDropdown(node);
+    //     return {0, 0}; /* Dropdown will not generate overflow by itself */
+    // }
 
     const utils::Layout& layout = node->getLayout();
     const glm::vec2 pbScale = getPaddedAndBorderedNodeScale(node);
@@ -114,6 +115,12 @@ glm::vec2 BasicLayoutEngine::process(const AbstractNodePtr& node)
     if (node->getType() == AbstractNode::NodeType::TREEVIEW)
     {
         processTreeView(node);
+    }
+
+    if (node->getType() == AbstractNode::NodeType::DROPDOWN)
+    {
+        processDropdown(node);
+        return {0, 0}; /* Dropdown will not generate overflow by itself */
     }
 
     return computedOverflow;
@@ -760,111 +767,112 @@ void BasicLayoutEngine::processBoxDivider(const glm::vec2& pScale, const Abstrac
 
 void BasicLayoutEngine::processDropdown(const AbstractNodePtr& node)
 {
-       /* Don't compute anything if the dropdown isn't even visible. */
-        DropdownPtr dd = Utils::as<Dropdown>(node);
-        if (!dd->isDropdownOpen()) { return; }
+    /* Don't compute anything if the dropdown isn't even visible. */
+    DropdownPtr dd = Utils::as<Dropdown>(node);
+    if (!dd->isDropdownOpen()) { return; }
+    
+    auto& children = node->getChildren();
+    if (!children.size()) { return; }
 
-        auto& children = node->getChildren();
-        if (!children.size()) { return; }
+    /* Figure out how big the elements are on the vertical axis in order to set a size for the dropdown. */
+    float boxContElementsRollingY{0};
+    float maxX{0};
+    auto& container = children[0];
+    for (const auto& ch : container->getChildren())
+    {
+        const auto& chLayout = ch->getLayout();
+        boxContElementsRollingY += chLayout.scale.y + chLayout.margin.top + chLayout.margin.bot;
+        maxX = std::max(maxX, chLayout.scale.x + chLayout.margin.left + chLayout.margin.right);
+    }
 
-        /* Figure out how big the elements are on the vertical axis in order to set a size for the dropdown. */
-        float boxContElementsRollingY{0};
-        float maxX{0};
-        for (const auto& ch : children[0]->getChildren())
-        {
-            const auto& chLayout = ch->getLayout();
-            boxContElementsRollingY += chLayout.scale.y + chLayout.margin.top + chLayout.margin.bot;
-            maxX = std::max(maxX, chLayout.scale.x + chLayout.margin.left + chLayout.margin.right);
-        }
+    /* Compute and sets it's scale (for the dropdown items container). */
+    auto& chZeroLayout = container->getLayout();
+    chZeroLayout.scale = {
+        maxX + chZeroLayout.padding.left + chZeroLayout.padding.right +
+            chZeroLayout.border.left + chZeroLayout.border.right +
+            chZeroLayout.margin.left + chZeroLayout.margin.right,
+        boxContElementsRollingY + chZeroLayout.padding.top + chZeroLayout.padding.bot +
+            chZeroLayout.border.top + chZeroLayout.border.bot
+    };
+    auto& contBoxScale = container->getTransform().scale;
+    contBoxScale.x = chZeroLayout.scale.x;
+    contBoxScale.y = chZeroLayout.scale.y;
 
-        /* Compute and sets it's scale (for the dropdown items container). */
-        auto& chZeroLayout = children[0]->getLayout();
-        chZeroLayout.scale = {
-            maxX + chZeroLayout.padding.left + chZeroLayout.padding.right +
-                chZeroLayout.border.left + chZeroLayout.border.right +
-                chZeroLayout.margin.left + chZeroLayout.margin.right,
-            boxContElementsRollingY + chZeroLayout.padding.top + chZeroLayout.padding.bot +
-                chZeroLayout.border.top + chZeroLayout.border.bot
-        };
+    /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
+        be positioned to the bottom, right, top, left. */
+    auto& nShrink = node->getLayout().shrink;
+    auto& nPos = node->getTransform().pos;
+    auto& nScale = node->getTransform().scale;
+    auto& contBoxPos = container->getTransform().pos;
 
-        computeNodeScale({0, 0}, node);
+    /* Try to fit in the user preferred position relative to the parent as long as the dropdown would not
+        exit the screen. */
+    const auto& frameState = node->getState();
+    Dropdown::Expand dir = dd->getExpandDirection();
 
-        /* Try to find a location to fit the dropdown in relationship to the parent aka try to see if it can
-            be positioned to the bottom, right, top, left. */
-        auto& nShrink = node->getLayout().shrink;
-        auto& nPos = node->getTransform().pos;
-        auto& nScale = node->getTransform().scale;
-        auto& contBoxPos = children[0]->getTransform().pos;
-        auto& contBoxScale = children[0]->getTransform().scale;
-
-        /* Try to fit in the user preferred position relative to the parent as long as the dropdown would not
-           exit the screen. */
-        const auto& frameState = node->getState();
-        Dropdown::Expand dir = dd->getExpandDirection();
-
-        const bool topCond = nPos.y - contBoxScale.y >= 0;
-        const bool botCond = frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y;
-        const bool leftCond = nPos.x - contBoxScale.x >= 0;
-        const bool rightCond = frameState->frameSize.x > nPos.x + contBoxScale.x;
-        switch (dir)
-        {
-            case Dropdown::Expand::LEFT:
-                if (leftCond)
-                {
-                    contBoxPos.x = nPos.x - contBoxScale.x;
-                    contBoxPos.y = nPos.y;
-                }
-                else if (rightCond)
-                {
-                    contBoxPos.x = nPos.x + nScale.x;
-                    contBoxPos.y = nPos.y;
-                }
+    const bool topCond = nPos.y - contBoxScale.y >= 0;
+    const bool botCond = frameState->frameSize.y > nPos.y + nScale.y + contBoxScale.y;
+    const bool leftCond = nPos.x - contBoxScale.x >= 0;
+    const bool rightCond = frameState->frameSize.x > nPos.x + contBoxScale.x;
+    switch (dir)
+    {
+        case Dropdown::Expand::LEFT:
+            if (leftCond)
+            {
+                contBoxPos.x = nPos.x - contBoxScale.x;
+                contBoxPos.y = nPos.y;
+            }
+            else if (rightCond)
+            {
+                contBoxPos.x = nPos.x + nScale.x;
+                contBoxPos.y = nPos.y;
+            }
+            break;
+        case Dropdown::Expand::RIGHT:
+            if (rightCond)
+            {
+                contBoxPos.x = nPos.x + nScale.x;
+                contBoxPos.y = nPos.y;
                 break;
-            case Dropdown::Expand::RIGHT:
+            }
+            else if (leftCond)
+            {
+                contBoxPos.x = nPos.x - contBoxScale.x;
+                contBoxPos.y = nPos.y;
+            }
+            break;
+        case Dropdown::Expand::TOP:
+            if (topCond)
+            {
+                contBoxPos.y = nPos.y - contBoxScale.y - nShrink.y;
                 if (rightCond)
                 {
-                    contBoxPos.x = nPos.x + nScale.x;
-                    contBoxPos.y = nPos.y;
-                    break;
+                    contBoxPos.x = nPos.x - nShrink.x;
                 }
                 else if (leftCond)
                 {
-                    contBoxPos.x = nPos.x - contBoxScale.x;
-                    contBoxPos.y = nPos.y;
+                    contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
                 }
                 break;
-            case Dropdown::Expand::TOP:
-                if (topCond)
+            }
+            break;
+        case Dropdown::Expand::BOTTOM:
+            if (botCond)
+            {
+                contBoxPos.y = nPos.y + nScale.y + nShrink.y;
+                if (rightCond)
                 {
-                    contBoxPos.y = nPos.y - contBoxScale.y - nShrink.y;
-                    if (rightCond)
-                    {
-                        contBoxPos.x = nPos.x - nShrink.x;
-                    }
-                    else if (leftCond)
-                    {
-                        contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
-                    }
-                    break;
+                    contBoxPos.x = nPos.x - nShrink.x;
                 }
-                break;
-            case Dropdown::Expand::BOTTOM:
-                if (botCond)
+                else if (leftCond)
                 {
-                    contBoxPos.y = nPos.y + nScale.y + nShrink.y;
-                    if (rightCond)
-                    {
-                        contBoxPos.x = nPos.x - nShrink.x;
-                    }
-                    else if (leftCond)
-                    {
-                        contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
-                    }
+                    contBoxPos.x = nPos.x + nScale.x - contBoxScale.x;
                 }
-                break;
-            default:
-                log_.warnLn("Unknown expand direction: ENUM(%d)", static_cast<uint8_t>(dir));
-        }
+            }
+            break;
+        default:
+            log_.warnLn("Unknown expand direction: ENUM(%d)", static_cast<uint8_t>(dir));
+    }
 }
 
 void BasicLayoutEngine::processGridLayout(const glm::vec2& pScale, const AbstractNodePtr& parent)
