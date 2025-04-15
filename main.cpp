@@ -37,38 +37,24 @@ int main()
         .setAlignChild(Layout::Align::CENTER);
 
     // rootBox->getVBar().lock()->setSensitivity(5);
+    BoxPtr aa = Utils::make<Box>("aa");
+    aa->setColor(Utils::COLOR_CYAN);
+    aa->getLayout().setScale({300, 300});
 
-    DropdownPtr dd = Utils::make<Dropdown>("down");
-    dd->setImagePath("/home/hekapoo/Documents/probe/newgui/assets/textures/awesomeface.png");
-    dd->setText("my text");
-    dd->getLayout()
-        .setScale({200, 60})
-        ;
-
-    dd->getImage().lock()->getLayout().setAlignSelf(Layout::Align::CENTER);
-    rootBox->appendMany({dd});
+    DropdownPtr dd = aa->createContextMenu().lock();
+    // dd->getLayout()
+    //     .setScale({200, 50})
+    //     ;
+    rootBox->appendMany({aa});
 
     dd->getContainer().lock()->setColor(Utils::lighten(Utils::COLOR_RED, 0.2f));
-
-    for (int32_t i = 0; i < 2; i++)
+    for (int32_t i = 0; i< 3; i++)
     {
-        ButtonWPtr bb = dd->createMenuItem<Button>();
-        // bb.lock()->getLayout().setMargin({2});
-        // bb.lock()->getLayout().setScale({150, 60});
-        bb.lock()->setColor(Utils::randomRGB()).setText("Ceva text");
+        dd->createMenuItem<Button>().lock()->setText("what " + std::to_string(i))
+            .getTextLabel().lock()->setTextColor(Utils::randomRGB());
     }
 
-    // DropdownWPtr sub = dd->createSubMenuItem();
-    // sub.lock()->setColor(Utils::randomRGB());
-    // sub.lock()->getLayout().setMargin({2});
-    
-    // for (int32_t i = 0; i < 3; i++)
-    // {
-    //     ButtonWPtr bb = sub.lock()->createMenuItem<Button>();
-    //     bb.lock()->getLayout().setMargin({2});
-    //     bb.lock()->setColor(Utils::randomRGB());
-    // }
-
+    rootBox->printTree();
     /* Blocks from here on */
     // Application::get().setPollMode(Application::PollMode::CONTINUOUS);
     app.run();

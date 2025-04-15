@@ -43,13 +43,11 @@ DropdownWPtr Box::createContextMenu()
 
         auto fb = Utils::make<FloatingBox>("ContextMenuFloatingBox");
         fb->getLayout().setScale({0, 0});
-        fb->getContainer().lock()->append(ctxDd);
+        fb->append(ctxDd);
         ctxMenuFloatingBox_ = fb;
         append(ctxMenuFloatingBox_);
     }
-
-    return Utils::as<Dropdown>(Utils::as<FloatingBox>(ctxMenuFloatingBox_)
-        ->getContainer().lock()->getChildren()[0]);
+    return Utils::as<Dropdown>(ctxMenuFloatingBox_->getChildren()[0]);
 }
 
 void Box::removeContextMenu()
@@ -80,7 +78,7 @@ void Box::onLMBRelease(const events::LMBRelease&)
     if (!ctxMenuFloatingBox_) { return; }
     
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
-    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    auto& ddd = fb->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
 
@@ -96,7 +94,7 @@ void Box::onFocusLost(const events::FocusLost&)
     }
 
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
-    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    auto& ddd = fb->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }
 
@@ -106,7 +104,7 @@ void Box::onRMBRelease(const events::RMBRelease& evt)
 
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
     fb->setPreferredPosition(evt.pos);
-    auto& ddd = fb->getContainer().lock()->getChildren()[0];
+    auto& ddd = fb->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(true);
 }
 

@@ -15,9 +15,11 @@ public:
     FloatingBox& setPreferredPosition(const glm::vec2& pos);
 
     glm::vec2 getPreferredPos() const;
-    BoxWPtr getContainer();
+    // BoxWPtr getContainer();
 
-    private:
+    ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
+
+private:
     FloatingBox(const FloatingBox&) = delete;
     FloatingBox(FloatingBox&&) = delete;
     FloatingBox& operator=(const FloatingBox&) = delete;
@@ -31,7 +33,7 @@ private:
     glm::vec4 borderColor_{1.0f};
     glm::vec2 preferredPos_{0, 0};
 
-    BoxPtr box_{nullptr};
+    // BoxPtr box_{nullptr};
 };
 
 using FloatingBoxPtr = std::shared_ptr<FloatingBox>;

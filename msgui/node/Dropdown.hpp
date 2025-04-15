@@ -1,13 +1,11 @@
 #pragma once
 
-#include "AbstractNode.hpp"
-#include "msgui/events/MouseEnter.hpp"
-#include "msgui/events/MouseExit.hpp"
-#include "msgui/node/Box.hpp"
 #include "msgui/events/FocusLost.hpp"
 #include "msgui/events/LMBClick.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
+#include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Box.hpp"
 #include "msgui/node/Button.hpp"
 
 namespace msgui
@@ -17,7 +15,6 @@ using DropdownPtr = std::shared_ptr<Dropdown>;
 using DropdownWPtr = std::weak_ptr<Dropdown>;
 
 /* Node used to display and handle dropdown menu and submenu items. */
-// class Dropdown : public AbstractNode
 class Dropdown : public Button
 {
 public:
@@ -88,14 +85,11 @@ public:
     */
     void toggleDropdown();
 
-    Dropdown& setColor(const glm::vec4& color);
-    Dropdown& setBorderColor(const glm::vec4& color);
     Dropdown& setDropdownOpen(const bool value);
     Dropdown& setPressedColor(const glm::vec4& color);
     Dropdown& setItemSize(const glm::ivec2& size);
     Dropdown& setExpandDirection(const Expand expand);
 
-    glm::vec4 getColor() const;
     bool isDropdownOpen() const;
     uint32_t getDropdownId() const;
     BoxWPtr getContainer();

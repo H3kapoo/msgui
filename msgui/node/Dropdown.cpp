@@ -18,7 +18,6 @@
 
 namespace msgui
 {
-// Dropdown::Dropdown(const std::string& name) : AbstractNode(name, NodeType::DROPDOWN)
 Dropdown::Dropdown(const std::string& name) : Button(name)
 {
     log_ = ("Dropdown(" + name + ")");
@@ -27,7 +26,7 @@ Dropdown::Dropdown(const std::string& name) : Button(name)
     setMesh(loaders::MeshLoader::loadQuad());
     
     /* Defaults */
-    color_ = Utils::hexToVec4("#7e4e1eff");
+    color_ = Utils::hexToVec4("#04028aff");
     pressedColor_ = Utils::hexToVec4("#dadadaff");
     borderColor_ = Utils::hexToVec4("#D2CCC8ff");
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
@@ -196,27 +195,11 @@ void Dropdown::setupLayoutReloadables()
     layout_.onMaxScaleChange = updateCb;
 }
 
-Dropdown& Dropdown::setColor(const glm::vec4& color)
-{
-    color_ = color;
-    currentColor_ = color;
-    REQUEST_NEW_FRAME;
-    return *this;
-}
-
-Dropdown& Dropdown::setBorderColor(const glm::vec4& color)
-{
-    borderColor_ = color;
-    REQUEST_NEW_FRAME;
-    return *this;
-}
-
 Dropdown& Dropdown::setDropdownOpen(const bool value)
 {
     dropdownOpen_ = value;
 
     /* Dropdown shall close. Reset scrollbar knob pos and if any submenus are open, close them. */
-    // if (!dropdownOpen_ && getChildren().size())
     if (!dropdownOpen_)
     {
         /* If other dropdowns are open underneath me, try to close them also. */
@@ -231,11 +214,13 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
         remove(container_->getId());
     }
     /* Dropdown shall open. */
-    // else if (dropdownOpen_ && !getChildren().size())
     else
     {
+        if (!container_->isParented())
+        {
+            appendAt(container_, 0);
+        }
         // append(container_);
-        appendAt(container_, 0);
     }
 
     return *this;
@@ -269,8 +254,6 @@ Dropdown& Dropdown::setExpandDirection(const Expand expand)
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
-
-glm::vec4 Dropdown::getColor() const { return color_; }
 
 bool Dropdown::isDropdownOpen() const { return dropdownOpen_; }
 

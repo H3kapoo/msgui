@@ -59,12 +59,6 @@ glm::vec2 BasicLayoutEngine::process(const AbstractNodePtr& node)
     /* Useless to compute further if node is a scroll node type. We compute these separately */
     if (node->getType() == AbstractNode::NodeType::SCROLL) { return {0, 0}; }
 
-    // if (node->getType() == AbstractNode::NodeType::DROPDOWN)
-    // {
-    //     processDropdown(node);
-    //     return {0, 0}; /* Dropdown will not generate overflow by itself */
-    // }
-
     const utils::Layout& layout = node->getLayout();
     const glm::vec2 pbScale = getPaddedAndBorderedNodeScale(node);
     if (layout.type == utils::Layout::Type::GRID)
@@ -687,7 +681,6 @@ void BasicLayoutEngine::processSlider(const AbstractNodePtr& node)
 
 void BasicLayoutEngine::processFloatingBox(const AbstractNodePtr& node)
 {
-    /* Assuming parent node is Slider node, it will always have a SliderKnob child. */
     FloatingBoxPtr floatingBoxPtr = Utils::as<FloatingBox>(node);
     if (!floatingBoxPtr)
     {
@@ -699,6 +692,8 @@ void BasicLayoutEngine::processFloatingBox(const AbstractNodePtr& node)
     auto& pos = floatingBoxPtr->getTransform().pos;
     pos = {preferredPos.x, preferredPos.y, pos.z};
 
+    node->getTransform().pos.x = pos.x;
+    node->getTransform().pos.y = pos.y;
     node->getChildren()[0]->getTransform().pos.x = pos.x;
     node->getChildren()[0]->getTransform().pos.y = pos.y;
 }

@@ -11,18 +11,19 @@ FloatingBox::FloatingBox(const std::string& name)
     : AbstractNode(name, NodeType::FLOATING_BOX)
 {
     log_ = Logger("FloatingBox(" + name +")");
+    setType(AbstractNode::NodeType::FLOATING_BOX);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    box_ = Utils::make<Box>("InternalBox");
-    box_->getLayout().setScaleType(utils::Layout::ScaleType::REL)
-        .setScale({1.0f, 1.0f})
-        .setAlignChild(utils::Layout::Align::CENTER);
-    append(box_);
-
     /* Defaults */
-    color_ = Utils::hexToVec4("#ce7f30");
-    borderColor_ = Utils::hexToVec4("#ce7f30");
+    // box_ = Utils::make<Box>("InternalBox");
+    // box_->getLayout().setScaleType(utils::Layout::ScaleType::REL)
+    //     .setScale({1.0f, 1.0f})
+    //     .setAlignChild(utils::Layout::Align::CENTER);
+    // append(box_);
+
+    color_ = Utils::hexToVec4("#ce7f30ff");
+    borderColor_ = Utils::hexToVec4("#ce7f30ff");
 
     layout_.setScale({200, 100});
 
@@ -45,7 +46,7 @@ void FloatingBox::setShaderAttributes()
 
 void FloatingBox::onMouseRelease(const events::LMBRelease& evt)
 {
-    // setPreferredPosition({getState()->mouseX, getState()->mouseY});
+    setPreferredPosition({getState()->mouseX, getState()->mouseY});
 }
 
 FloatingBox& FloatingBox::setPreferredPosition(const glm::vec2& pos)
@@ -58,6 +59,6 @@ FloatingBox& FloatingBox::setPreferredPosition(const glm::vec2& pos)
 
 glm::vec2 FloatingBox::getPreferredPos() const { return preferredPos_; }
 
-BoxWPtr FloatingBox::getContainer() { return box_; }
+// BoxWPtr FloatingBox::getContainer() { return box_; }
 
 } // namespace msgui
