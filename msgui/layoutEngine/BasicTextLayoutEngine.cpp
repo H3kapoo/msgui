@@ -35,7 +35,7 @@ void BasicTextLayoutEngine::process(renderer::TextData& data, const bool forceAl
         //     lineNo++;
         // }
         const float x = startPos.x + cp.bearing.x;
-        const float y = startPos.y - cp.bearing.y + fontData->fontSize * lineNo;
+        const float y = startPos.y - cp.bearing.y + data.textBounds.y;// + fontData->fontSize * lineNo;
 
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3{x, y, startPos.z + incZ});
@@ -58,7 +58,7 @@ glm::ivec2 BasicTextLayoutEngine::computeTextLengthAndHeight(const renderer::Tex
     {
         const auto& cp = fontData->codePointData[uint32_t(ch)];
         result.x += cp.hAdvance >> 6;
-        result.y = std::max(result.y, cp.size.y - 1); // We only need max height for horizontal text.
+        result.y = std::max(result.y, cp.bearing.y - 0); // We only need max height for horizontal text.
     }
     return result;
 }

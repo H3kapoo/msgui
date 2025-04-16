@@ -129,4 +129,6 @@ std::string TextLabel::getText() const { return textData_ ? textData_.value()->t
 std::string TextLabel::getFont() const { return textData_ ? textData_.value()->fontData->fontPath : "?"; }
 
 int32_t TextLabel::getFontSize() const { return textData_ ? textData_.value()->fontData->fontSize : -1; }
+
+renderer::MaybeTextDataIt TextLabel::getTextData() const { return textData_; }
 } // msgui

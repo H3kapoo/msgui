@@ -220,6 +220,7 @@ void Box::setupReloadables()
     };
 }
 
+// TODO: Things like colors shall be in abstract base class.
 Box& Box::setColor(const glm::vec4& color)
 {
     color_ = color;

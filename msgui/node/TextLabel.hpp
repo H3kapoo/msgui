@@ -23,6 +23,7 @@ public:
     std::string getText() const;
     std::string getFont() const;
     int32_t getFontSize() const;
+    renderer::MaybeTextDataIt getTextData() const;
 
 private:
     void setShaderAttributes() override;

@@ -481,7 +481,8 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
         {
             frameState_->nearScrollNodePtr = p;
         }
-        else if (p->getType() == AbstractNode::NodeType::BOX) // TODO: || NodeType is TreeView/RecycleList
+        else if (p->getType() == AbstractNode::NodeType::BOX
+            || p->getType() == AbstractNode::NodeType::TREEVIEW) // TODO: || NodeType is TreeView/RecycleList
         {
             auto box = Utils::as<Box>(p);
             if (box->isScrollBarActive(utils::Layout::Type::VERTICAL))

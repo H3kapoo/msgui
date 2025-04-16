@@ -7,10 +7,12 @@
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
+#include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/TextLabel.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBTreeItemRelease.hpp"
+#include "msgui/renderer/Types.hpp"
 
 namespace msgui
 {
@@ -117,16 +119,16 @@ void TreeView::onLayoutDirtyPost()
         int32_t index = internals_.topOfListIdx + i;
         if (index < internals_.flatTreeElements)
         {
-            // auto ref = std::make_shared<Button>("TreeViewItem");
-            auto ref = std::make_shared<TextLabel>("TreeViewItem");
+            // auto ref = std::make_shared<TextLabel>("TreeViewItem");
+            auto ref = std::make_shared<Button>("TreeViewItem");
+            ref->setColor(flattenedTreeBuffer[index]->color)
+                .setText(flattenedTreeBuffer[index]->stringInfo);
+
             ref->getLayout()
                 .setMargin(itemMargin_)
                 .setBorder(itemBorder_)
-                // .setScale({250, rowSize_})
-                .setScale({flattenedTreeBuffer[index]->stringInfo.size()*5+50, rowSize_});
+                .setScale({flattenedTreeBuffer[index]->stringInfo.size()*5+60, rowSize_});
             ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
-            ref->setColor(flattenedTreeBuffer[index]->color)
-                .setText(flattenedTreeBuffer[index]->stringInfo);
 
             append(ref);
 

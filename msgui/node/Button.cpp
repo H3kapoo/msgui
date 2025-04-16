@@ -28,7 +28,7 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 
     color_ = Utils::hexToVec4("#F9F8F7FF");
     pressedColor_ = Utils::hexToVec4("#dadadaff");
-    borderColor_ = Utils::hexToVec4("#D2CCC8");
+    borderColor_ = Utils::hexToVec4("#D2CCC8ff");
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
 
