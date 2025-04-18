@@ -2,6 +2,7 @@
 #include "msgui/events/MouseEnter.hpp"
 #include "msgui/events/MouseExit.hpp"
 #include "msgui/events/WindowResize.hpp"
+#include "msgui/layoutEngine/CustomLayoutEngine.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -38,7 +39,8 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
     , window_(windowName, width, height)
     , input_(&window_)
     , frameState_(std::make_shared<FrameState>())
-    , layoutEngine_(std::make_shared<BasicLayoutEngine>())
+    // , layoutEngine_(std::make_shared<BasicLayoutEngine>())
+    , layoutEngine_(std::make_shared<CustomLayoutEngine>())
     , textLayoutEngine_(std::make_shared<BasicTextLayoutEngine>())
     , frameBox_(std::make_shared<Box>(windowName))
     , isPrimary_(isPrimary)
@@ -244,14 +246,6 @@ void WindowFrame::updateLayout()
         for (const auto& node : allFrameChildNodes_ | std::views::reverse)
         {
             glm::ivec2 overflow = layoutEngine_->process(node);
-
-            /* RecyleList and also TreeView, being the king it is, requires that we tell it that the layout pass
-                for it had finished. Note that we do this on the parent of the current BOX node because we need to
-                notify it AFTER the item containing BOX inside it finished the layout pass. */
-            // if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
-            // {
-            //     Utils::as<RecycleList>(node)->onLayoutUpdateNotify();
-            // }
     
             /* Currently only BOX type nodes support overflow handling */
             if (node->getType() == AbstractNode::NodeType::BOX)

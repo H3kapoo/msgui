@@ -1,0 +1,15 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_1" height="500" width="800" y="0" x="0" stroke="#000" fill="#12b7b7"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" stroke-width="0" id="svg_3" y="31.5" x="358.29167" stroke="#000" fill="#000000">Margin</text>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" stroke-width="0" id="svg_5" y="195.5" x="356" stroke="#000" fill="#000000">Border</text>
+  <rect id="svg_4" height="390.21986" width="709.99998" y="54.89007" x="45" stroke="#000" fill="#1162b2"/>
+  <rect id="svg_9" height="297.21985" width="606.00002" y="101.39007" x="97" stroke="#000" fill="#2eaf11"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" stroke-width="0" id="svg_11" y="136.5" x="353.13334" stroke="#000" fill="#000000">Padding</text>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" stroke-width="0" id="svg_10" y="84.5" x="360.14167" stroke="#000" fill="#000000">Border</text>
+  <rect id="svg_7" height="196.21988" width="488" y="151.89005" x="156" stroke="#000" fill="#d6d61b"/>
+  <text xml:space="preserve" text-anchor="start" font-family="Noto Sans JP" font-size="24" stroke-width="0" id="svg_8" y="191.5" x="355.35833" stroke="#000" fill="#000000">Content</text>
+ </g>
+</svg>

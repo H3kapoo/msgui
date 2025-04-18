@@ -12,14 +12,14 @@ void NodeRenderer::render(AbstractNodePtr node, const glm::mat4& projMat, int32_
     auto& t = node->getTransform();
 
     /* Skip rendering objects that have no viewable area. */
-    if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
+    // if (t.vScale.x <= 0 || t.vScale.y <= 0) { return; }
     node->getMesh()->bind();
     node->setShaderAttributes();
     node->getShader()->setMat4f("uProjMat", projMat);
 
     // printf("%d\n", frameSizeY);
     // printf("vPos %d %d vScale %d %d\n", t.vPos.x, t.vPos.y, t.vScale.x, t.vScale.y);
-    // Window::setScissorTest(false);
+    Window::setScissorTest(false);
     glScissor(
         t.vPos.x,
         // Height can be computed based on the projMat alone

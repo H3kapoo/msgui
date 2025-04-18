@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>MSGUI Layout Engine &lpar;MLE&rpar;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="msgui-layout-engine-mle">MSGUI Layout Engine (MLE)</h1>
+<h3 id="layout-box-policy">Layout Box Policy</h3>
+<p>Box policy is (from outter to inner):</p>
+<ol>
+<li>MARGIN 2. BORDER 3. PADDING 4. CONTENT</li>
+</ol>
+<img src="file:////home/hekapoo/Documents/probe/newgui/box_policy.svg" alt="My SVG Image" width="400" />
+<h3 id="layout-scale-types">Layout Scale Types</h3>
+<p>Supported scale types:</p>
+<ul>
+<li><strong>PX</strong> Absolute value in pixels, doesn't change dynamically.</li>
+<li><strong>REL(ATIVE)</strong> Scale value from zero to one relative to the parent's scale and it does change dynamically</li>
+<li><strong>FIT</strong> Scale will be computed as the minimum required scale in order to fit all children snugly inside. Doesn't change dynamically.</li>
+<li><strong>FILL</strong> =&gt; Fully fill the parent's scale. <strong>FIT/REL/PX</strong> nodes on same level have priority and <strong>FILL</strong> gets the use the remaining space.</li>
+</ul>
+<h3 id="scale-algorithm">Scale Algorithm</h3>
+<p>Algorithm will run in order to calculate the scale of the direct sub-nodes of the node.
+In case a sub-node is of scale type <strong>FIT</strong> the calculation may go deeper.
+This pass has to return the generated overflow as a result of nodes not fully fitting inside. Positive for overflow, negative for underflow.</p>
+<p><em><strong>Preconditions</strong></em>: Node is not one that calculates scale in a special way (See Note 1)<br>
+<em><strong>Input</strong></em>: Calculated node with uncalculated sub-nodes<br>
+<em><strong>Output</strong></em>: Scale calculated for the node's subnodes</p>
+<ul>
+<li>*<strong>.trScale</strong> is the actual scale that will be used to compute the transform matrix. Doesn't include margins/padding.</li>
+<li>*<strong>.scale</strong> is the user-set value that aids the algorithm decide the final transform. Includes margins.</li>
+</ul>
+<pre><code class="language-py"><span class="hljs-keyword">def</span> <span class="hljs-title function_">computeScale</span>(<span class="hljs-params">node</span>):
+    nodeFreeSpace = subNode.trScale
+    fitNodesCnt = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        <span class="hljs-keyword">if</span> subNode.scaleType <span class="hljs-keyword">is</span> PX:
+            subNode.trScale = subNode.scale
+        <span class="hljs-keyword">elif</span> subNode.scaleType <span class="hljs-keyword">is</span> REL:
+            subNode.trScale = subNode.scale * node.trScale
+        <span class="hljs-keyword">elif</span> subNode.scaleType <span class="hljs-keyword">is</span> FIT:
+            subNode.trScale = computeFitScale(subNode)
+        <span class="hljs-keyword">else</span>
+            fitNodesCnt++
+        nodeFreeSpace -= subNode.trScale
+
+    <span class="hljs-keyword">if</span> fitNodesCnt <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">return</span>
+
+    equalFreeSpace = node.subNodeCnt / fitNodesCnt
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        <span class="hljs-keyword">if</span> subNode.scaleType <span class="hljs-keyword">is</span> FILL:
+            subNode.trScale = equalFreeSpace
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">computeFitScale</span>(<span class="hljs-params">node</span>) -&gt; scaleValue:
+    totalScale = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        <span class="hljs-keyword">if</span> subNode.scaleType <span class="hljs-keyword">is</span> PX:
+            totalScale += subNode.scale
+        <span class="hljs-keyword">elif</span> subNode.scaleType <span class="hljs-keyword">is</span> FIT:
+            totalScale += computeFitScale(subNode)
+        <span class="hljs-keyword">elif</span> subNode.scaleType <span class="hljs-keyword">is</span> (REL <span class="hljs-keyword">or</span> FILL): <span class="hljs-comment"># These require size to be known already</span>
+            throw <span class="hljs-keyword">not</span> supported
+    
+    <span class="hljs-keyword">return</span> totalScale
+</code></pre>
+<blockquote>
+<p><strong>Note 1:</strong> List of special nodes that compute scale in non-standard way:</p>
+<ul>
+<li>Example one</li>
+<li>Example two</li>
+</ul>
+</blockquote>
+<h3 id="layout-positioning">Layout Positioning</h3>
+<p>Positioning has to be done after the scale pass for each node.</p>
+<p>Positioning has to take into account:</p>
+<ul>
+<li><strong>overflow</strong> Allow overflow flag</li>
+<li><strong>wrap</strong> Allow wrap flag</li>
+<li><strong>type</strong> Type of the layout (<strong>HORIZONTAL/VERTICAL/GRID</strong>)</li>
+<li><strong>margin</strong></li>
+<li><strong>border</strong></li>
+<li><strong>padding</strong></li>
+<li><strong>selfAlign</strong> Per sub node self alignment aka where to align each sub node in relation to the other subnodes (<strong>TOP/BOTTOM/LEFT/RIGHT/CENTER</strong> + the 8 combinations in case of a <strong>GRID</strong> layout)</li>
+<li><strong>alignSubnodes</strong> Sub nodes alignment aka where to align sub nodes in relationship to node's empty space (<strong>TOP/BOTTOM/LEFT/RIGHT/CENTER</strong> + the 8 combinations in case of a <strong>GRID</strong> layout)</li>
+<li><strong>spacing</strong> Sub node spacing (<strong>TIGHT/EVEN_WITH_NO_START_GAP/EVEN_WITH_START_GAP</strong>) TODO: Needed anymore?</li>
+<li><strong>TBA</strong> Grid stuff TBA</li>
+</ul>
+<h3 id="positioning-algorithm">Positioning Algorithm</h3>
+<p>Algorithm will run in order to calculate the position of the direct sub-nodes of the node.<br>
+Bellow algorithm is for <strong>HORIZONTAL</strong> and <strong>VERTICAL</strong> type layouts. As they are analogous and only differ by what axis is being used, code shown is for the horizontal axis.<br>
+The main idea is to calculate the sub nodes positioning having a (0, 0) reference frame and then pushing everything to be in reference to the node instead.</p>
+<p><em><strong>Preconditions</strong></em>: Node is not one that positions elements in a special way<br>
+<em><strong>Input</strong></em>: Calculated node with uncalculated sub-nodes<br>
+<em><strong>Output</strong></em>: Scale &amp; Position calculated for the node's children</p>
+<ul>
+<li>*<strong>.trPos</strong> is the actual position that will be used to compute the transform matrix. Includes everything but margins</li>
+<li><strong>overflow</strong> is the computed overflow value for each axis at <s>the <a href="#scale-algorithm">Scale Algorithm</a> section</s></li>
+<li><strong>subNodesScale</strong> is the computed scale, per axis, of all the nodes. It includes margins</li>
+</ul>
+<pre><code class="language-py"><span class="hljs-keyword">def</span> <span class="hljs-title function_">computePosition</span>(<span class="hljs-params">node</span>):
+    startPos = node.padding <span class="hljs-comment"># Padding is our (0, 0) reference frame</span>
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        startPos += subNode.margin.left
+        subNode.trPos.x = startPos
+        startPos.x += subNode.trPos.x + subNode.margin.right
+
+    <span class="hljs-comment"># Align subnodes relative to node&#x27;s left space</span>
+    xyToAlign = computeSubNodesAlignOffsetXY(node.alignSubnodes, overflow)
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        subNode.trPos += xyToAlign
+
+    <span class="hljs-comment"># Change to node&#x27;s reference frame</span>
+    <span class="hljs-keyword">for</span> subNode <span class="hljs-keyword">in</span> node:
+        subNode.trPos.x += node.trPos.x 
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">computeSubNodesAlignOffsetXY</span>(<span class="hljs-params">alignSubnodes, overflow</span>) -&gt; offset:
+    offsetValue = {<span class="hljs-number">0</span>, <span class="hljs-number">0</span>}
+
+    <span class="hljs-keyword">if</span> alignSubnodes.x <span class="hljs-keyword">is</span> CENTER:
+        offsetValue.x = -overflow.x * <span class="hljs-number">0.5</span>
+    <span class="hljs-keyword">elif</span> alignSubnodes.x <span class="hljs-keyword">is</span> BOTTOM:
+        offsetValue.x = -overflow.x
+
+    <span class="hljs-keyword">if</span> alignSubnodes.y <span class="hljs-keyword">is</span> CENTER:
+        offsetValue.y = -overflow.y * <span class="hljs-number">0.5</span>
+    <span class="hljs-keyword">elif</span> alignSubnodes.y <span class="hljs-keyword">is</span> RIGHT:
+        offsetValue.y= -overflow.y
+    
+    <span class="hljs-keyword">return</span> offsetValue
+</code></pre>
+
+            
+            
+        </body>
+        </html>

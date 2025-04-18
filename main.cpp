@@ -24,92 +24,67 @@ int main()
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
 
     BoxPtr rootBox = window->getRoot();
-    rootBox->setColor(Utils::hexToVec4("#252525ff"));
+    rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
         .setAlignChild(Layout::Align::CENTER);
 
-    // TextLabelPtr lbl = Utils::make<TextLabel>("Text");
-    // lbl->getLayout().setScale({256, 256});
-    // lbl->setText("Learn OpenGL.com")
-    //     .setFont("/home/hekapoo/Documents/probe/newgui/assets/fonts/LiberationSerif-Regular.ttf")
-    //     .setFontSize(30);
-
-    // lbl->getEvents().listen<events::LMBRelease>(
-    //     [ref = Utils::ref<TextLabel>(lbl), mainLogger](const auto&)
-    //     {
-    //         // mainLogger.debugLn("pe aici");
-    //         ref.lock()->setText("Lorem ipsum dolor sit amet, consectetur afeefefef");
-    //         ref.lock()->setFontSize(16);
-    //     });
-    // rootBox->append(lbl);
-
-    TreeViewPtr tv = Utils::make<TreeView>("myTreeView");
-    tv->getLayout().setScale({300, 300});
-    tv->getLayout()
+    BoxPtr bigbox = Utils::make<Box>("mybox");
+    bigbox->getLayout()
+        .setType(Layout::Type::VERTICAL)
+        // .setScale({400, 300})
+        // .setScale({0.55f, 0.3f})
+        .setScale({0.35f, 0.55f})
         .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-        .setScale({0.3f, 0.5f});
-    tv->setItemBorder({0});
+        // .setScaleType({Layout::ScaleType::FIT, Layout::ScaleType::FIT})
+        ;
 
-    rootBox->append(tv);
-
-    TreeItemPtr root = Utils::make<TreeItem>();
-    root->color = Utils::COLOR_BLUE;
-    root->stringInfo = "Root";
-    
-    TreeItemPtr rootCH1 = Utils::make<TreeItem>();
-    rootCH1->color = {1, 0, 0, 1};
-    rootCH1->stringInfo = "Root_CH_1";
-    root->addItem(rootCH1);
-    
-    for (int i = 0; i < 30; i++)
     {
-        TreeItemPtr rootCH2 = Utils::make<TreeItem>();
-        rootCH2->color = {1, 0, 1, 1};
-        rootCH2->stringInfo = "Root_CH_2_id-bla" + std::to_string(i);
-        // rootCH2->isOpen = true;
-        root->addItem(rootCH2);
-
-        if (i % 3)
-        {
-            TreeItemPtr blaItem = Utils::make<TreeItem>();
-            blaItem->color = Utils::randomRGB();
-            blaItem->stringInfo = "Ceva-" + std::to_string(i);
-            rootCH2->addItem(blaItem);
-            
-            // if (i % 4 == 1)
-            // {
-            //     TreeItemPtr uhItem = Utils::make<TreeItem>();
-            //     uhItem->color = Utils::randomRGB();
-            //     uhItem->stringInfo = "wow-" + std::to_string(i);
-            //     blaItem->addItem(uhItem);
-            // }
-        }
+        BoxPtr b = Utils::make<Box>("mybox 2");
+        b->setColor(Utils::randomRGB());
+        b->getLayout()
+            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+            .setScale({250, 250})
+            // .setScaleType(Layout::ScaleType::PX);
+            .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
+            bigbox->append(b);
     }
 
-    // // TreeItemPtr CH1_CH1 = Utils::make<TreeItem>();
-    // // CH1_CH1->color = {1, 0.5f, 0.5f, 1};
-    // // CH1_CH1->stringInfo = "wow";
-    // // rootCH1->addItem(CH1_CH1);
-    
-    // TreeItemPtr root2 = Utils::make<TreeItem>();
-    // root2->color = {0, 0, 1, 1};
-    // root2->stringInfo = "Root2";
-    
-    // TreeItemPtr root2CH1 = Utils::make<TreeItem>();
-    // root2CH1->color = {1, 0, 1, 1};
-    // root2CH1->stringInfo = "Ceva";
-    // root2->addItem(root2CH1);
+    {
+        BoxPtr b = Utils::make<Box>("mybox 3");
+        b->setColor(Utils::randomRGB());
+        b->getLayout()
+            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+            .setScale({250, 250})
+            .setScaleType(Layout::ScaleType::PX);
+            // .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
+            bigbox->append(b);
+    }
 
-    tv->addRootItem(root);
-    // tv->addRootItem(root2);
+    {
+        BoxPtr b = Utils::make<Box>("mybox 4");
+        b->setColor(Utils::randomRGB());
+        b->getLayout()
+            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+            // .setScale({0.1f, 1.0f})
+            .setScale({1.0f, 0.1f})
+            .setScaleType(Layout::ScaleType::REL);
+            // .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
+            bigbox->append(b);
+    }
 
-    tv->getEvents().listen<events::LMBTreeItemRelease>(
-        [ref = Utils::ref<TreeView>(tv), mainLogger](const auto& evt)
-        {
-            mainLogger.debugLn("clicked on %s", evt.item.lock()->stringInfo.c_str());
-            // TreeItemPtr it = evt.item.lock();
-            // it->stringInfo = "altcv";
-        });
+    // {
+    //     BoxPtr b = Utils::make<Box>("mybox");
+    //     b->setColor(Utils::randomRGB());
+    //     b->getLayout()
+    //         // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+    //         .setScale({250, 250})
+    //         // .setScaleType(Layout::ScaleType::PX);
+    //         .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
+    //         bigbox->append(b);
+    // }
+
+    rootBox->append(bigbox);
+    rootBox->printTree();
 
     /* Blocks from here on */
     app.run();

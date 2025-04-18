@@ -34,6 +34,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         Application.cpp
         Debug.cpp
         Input.cpp
+        layoutEngine/CustomLayoutEngine.cpp
         layoutEngine/BasicLayoutEngine.cpp
         layoutEngine/BasicTextLayoutEngine.cpp
         layoutEngine/utils/LayoutData.cpp

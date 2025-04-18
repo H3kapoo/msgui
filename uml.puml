@@ -1,0 +1,10 @@
+@startuml Layout Calculation General
+
+title Node Layout State
+
+[*] --> UncalculatedNode
+UncalculatedNode --> ScaleCalculated : Scale calculation
+ScaleCalculated --> PositionCalculated : Position calculation
+PositionCalculated --> [*] : Succeeded
+
+@enduml
