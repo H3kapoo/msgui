@@ -2,93 +2,36 @@
 
 namespace msgui::layoutengine::utils
 {
-Layout& Layout::setType(const Type typeIn)
+
+#define DEFINE_FUNC(funcName, valueName, valueType, functionToCall)\
+Layout& Layout:: funcName (const valueType value)\
+{\
+    valueName = value;\
+    functionToCall();\
+    return *this;\
+}\
+
+DEFINE_FUNC(setType, type, Type, onTypeChange);
+DEFINE_FUNC(setNewScale, newScale, ScaleXY, onTypeChange);
+DEFINE_FUNC(setAllowWrap, allowWrap, bool, onAllowWrapChange);
+DEFINE_FUNC(setAllowOverflow, allowOverflow, AllowXY, onAllowOverflowChange);
+DEFINE_FUNC(setMargin, margin, TBLR, onMarginChange);
+DEFINE_FUNC(setPadding, padding, TBLR, onPaddingChange);
+DEFINE_FUNC(setBorder, border, TBLR, onBorderChange);
+DEFINE_FUNC(setBorderRadius, borderRadius, TBLR, onBorderRadiusChange);
+DEFINE_FUNC(setAlignSelf, alignSelf, Align, onAlignSelfChange);
+DEFINE_FUNC(setAlignChild, alignChild, AlignXY, onAlignChildChange);
+DEFINE_FUNC(setSpacing, spacing, Spacing, onSpacingChange);
+DEFINE_FUNC(setScaleType, scaleType, ScaleTypeXY, onScaleTypeChange);
+DEFINE_FUNC(setMinScale, minScale, glm::vec2, onMinScaleChange);
+DEFINE_FUNC(setMaxScale, maxScale, glm::vec2, onMaxScaleChange);
+
+Layout& Layout::setNewScale(const Scale valueIn)
 {
-    type = typeIn;
-    onTypeChange();
-    return *this;
+    return setNewScale({valueIn, valueIn});
 }
 
-Layout& Layout::setAllowWrap(const bool allowIn)
-{
-    allowWrap = allowIn;
-    onAllowWrapChange();
-    return *this;
-}
-
-Layout& Layout::setAllowOverflow(const AllowXY allowIn)
-{
-    allowOverflow = allowIn;
-    onAllowOverflowChange();
-    return *this;
-}
-
-Layout& Layout::setMargin(const TBLR valueIn)
-{
-    margin = valueIn;
-    onMarginChange();
-    return *this;
-}
-
-Layout& Layout::setPadding(const TBLR valueIn)
-{
-    padding = valueIn;
-    onPaddingChange();
-    return *this;
-}
-
-Layout& Layout::setBorder(const TBLR valueIn)
-{
-    border = valueIn;
-    onBorderChange();
-    return *this;
-}
-
-Layout& Layout::setBorderRadius(const TBLR valueIn)
-{
-    borderRadius = valueIn;
-    onBorderRadiusChange();
-    return *this;
-}
-
-Layout& Layout::setAlignSelf(const Align valueIn)
-{
-    alignSelf = valueIn;
-    onAlignSelfChange();
-    return *this;
-}
-
-Layout& Layout::setAlignChild(const AlignXY valueIn)
-{
-    alignChild = valueIn;
-    onAlignChildChange();
-    return *this;
-}
-
-Layout& Layout::setAlignChild(const Align valueIn)
-{
-    return setAlignChild({valueIn, valueIn});
-}
-
-Layout& Layout::setSpacing(const Spacing valueIn)
-{
-    spacing = valueIn;
-    onSpacingChange();
-    return *this;
-}
-
-Layout& Layout::setScaleType(const ScaleTypeXY valueIn)
-{
-    scaleType = valueIn;
-    onScaleTypeChange();
-    return *this;
-}
-
-Layout& Layout::setScaleType(const ScaleType valueIn)
-{
-    return setScaleType({valueIn, valueIn});
-}
-
+//TO BE INVESTIGATED IF NEEDED STILL
 Layout& Layout::setGridDistrib(const GridDistribRC valueIn)
 {
     gridDistrib = valueIn;
@@ -96,6 +39,7 @@ Layout& Layout::setGridDistrib(const GridDistribRC valueIn)
     return *this;
 }
 
+//TO BE INVESTIGATED IF NEEDED STILL
 Layout& Layout::setGridStartRC(const GridRC valueIn)
 {
     gridStartRC = valueIn;
@@ -103,6 +47,7 @@ Layout& Layout::setGridStartRC(const GridRC valueIn)
     return *this;
 }
 
+//TO BE INVESTIGATED IF NEEDED STILL
 Layout& Layout::setGridSpanRC(const GridRC valueIn)
 {
     gridSpanRC = valueIn;
@@ -110,6 +55,7 @@ Layout& Layout::setGridSpanRC(const GridRC valueIn)
     return *this;
 }
 
+//DEPRECATED
 Layout& Layout::setScale(const glm::vec2 valueIn)
 {
     scale = valueIn;
@@ -117,22 +63,40 @@ Layout& Layout::setScale(const glm::vec2 valueIn)
     return *this;
 }
 
+//DEPRECATED
 Layout& Layout::setScale(const float valueIn)
 {
     return setScale({valueIn, valueIn});
 }
 
-Layout& Layout::setMinScale(const glm::vec2 valueIn)
+Layout& Layout::setAlignChild(const Align valueIn)
 {
-    minScale = valueIn;
-    onMinScaleChange();
-    return *this;
+    return setAlignChild({valueIn, valueIn});
 }
 
-Layout& Layout::setMaxScale(const glm::vec2 valueIn)
+Layout& Layout::setScaleType(const ScaleType valueIn)
 {
-    maxScale = valueIn;
-    onMaxScaleChange();
-    return *this;
+    return setScaleType({valueIn, valueIn});
+}
+
+Layout::Scale operator"" _fill(unsigned long long val)
+{
+    return {.type = Layout::ScaleType::FILL, .value = 1};
+}
+
+Layout::Scale operator"" _fit(unsigned long long)
+{
+    return {.type = Layout::ScaleType::FIT, .value = 1};
+}
+
+Layout::Scale operator"" _rel(long double value)
+{
+    /* Loss of precision justified. */
+    return {.type = Layout::ScaleType::REL, .value = (float)value};
+}
+
+Layout::Scale operator"" _px(unsigned long long value)
+{
+    return {.type = Layout::ScaleType::PX, .value = (float)value};
 }
 } // namespace msgui::layoutengine::utils

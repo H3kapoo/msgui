@@ -29,48 +29,41 @@ int main()
         .setAlignChild(Layout::Align::CENTER);
 
     BoxPtr bigbox = Utils::make<Box>("mybox");
+    // bigbox->setColor(Utils::COLOR_RED);
     bigbox->getLayout()
         .setType(Layout::Type::VERTICAL)
-        // .setScale({400, 300})
-        // .setScale({0.55f, 0.3f})
-        .setScale({0.35f, 0.55f})
-        .setScaleType({Layout::ScaleType::REL, Layout::ScaleType::REL})
-        // .setScaleType({Layout::ScaleType::FIT, Layout::ScaleType::FIT})
+        // .setNewScale({1_fill, 1_fill})
+        .setNewScale({400_px, 0.45_rel})
         ;
 
-    {
-        BoxPtr b = Utils::make<Box>("mybox 2");
-        b->setColor(Utils::randomRGB());
-        b->getLayout()
-            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
-            .setScale({250, 250})
-            // .setScaleType(Layout::ScaleType::PX);
-            .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
-            bigbox->append(b);
-    }
+    // {
+    //     BoxPtr b = Utils::make<Box>("mybox 2");
+    //     b->setColor(Utils::randomRGB());
+    //     b->getLayout()
+    //         // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+    //         .setNewScale({1_fill, 200_px});
+    //     bigbox->append(b);
+    // }
 
-    {
-        BoxPtr b = Utils::make<Box>("mybox 3");
-        b->setColor(Utils::randomRGB());
-        b->getLayout()
-            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
-            .setScale({250, 250})
-            .setScaleType(Layout::ScaleType::PX);
-            // .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
-            bigbox->append(b);
-    }
+    // {
+    //     BoxPtr b = Utils::make<Box>("mybox 3");
+    //     b->setColor(Utils::randomRGB());
+    //     b->getLayout()
+    //         .setNewScale({0.5_rel});
+    //     bigbox->append(b);
+    // }
 
-    {
-        BoxPtr b = Utils::make<Box>("mybox 4");
-        b->setColor(Utils::randomRGB());
-        b->getLayout()
-            // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
-            // .setScale({0.1f, 1.0f})
-            .setScale({1.0f, 0.1f})
-            .setScaleType(Layout::ScaleType::REL);
-            // .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
-            bigbox->append(b);
-    }
+    // {
+    //     BoxPtr b = Utils::make<Box>("mybox 4");
+    //     b->setColor(Utils::randomRGB());
+    //     b->getLayout()
+    //         // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
+    //         // .setScale({0.1f, 1.0f})
+    //         .setScale({1.0f, 0.3f})
+    //         .setScaleType(Layout::ScaleType::REL);
+    //         // .setScaleType({Layout::ScaleType::FILL, Layout::ScaleType::FILL});
+    //         bigbox->append(b);
+    // }
 
     // {
     //     BoxPtr b = Utils::make<Box>("mybox");

@@ -9,7 +9,17 @@ namespace msgui
 class ILayoutEngine
 {
 public:
-    virtual glm::vec2 process(const AbstractNodePtr& node) = 0;
+    template<typename ResultType>
+    struct Result
+    {
+        std::string error{};
+        ResultType value{}; // do we still need it?
+    };
+
+    struct Void{};
+
+public:
+    virtual Result<glm::vec2> process(const AbstractNodePtr& node) = 0;
 };
 
 using ILayoutEnginePtr = std::shared_ptr<ILayoutEngine>;

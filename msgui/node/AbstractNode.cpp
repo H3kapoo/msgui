@@ -197,6 +197,12 @@ AbstractNodePtr AbstractNode::findOneBy(const std::function<bool(AbstractNodePtr
 
 void AbstractNode::printTree(uint32_t currentDepth)
 {
+    /*
+        CD - Calculated Depth according to the Z transform component (used in rendering)
+        RD - Relative Depth is the depth of the node relative to the printed tree node
+
+        Note: CD will be valid only after layout calculations ran at least once after each tree structure change.
+    */
     currentDepth ? log_.raw("") : log_.infoLn("");
     for (uint32_t i = 0; i < currentDepth - 1; i++)
     {
@@ -204,7 +210,7 @@ void AbstractNode::printTree(uint32_t currentDepth)
     }
 
     log_.raw("\\---");
-    log_.raw("%s (l:%d) (r:%d)\n", name_.c_str(), (int32_t)transform_.pos.z, currentDepth);
+    log_.raw("'%s' (ID: %d) (CD: %d) (RD: %d)\n", name_.c_str(), getId(), (int32_t)transform_.pos.z, currentDepth);
 
     for (const auto& node : children_)
     {

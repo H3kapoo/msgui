@@ -35,7 +35,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         Debug.cpp
         Input.cpp
         layoutEngine/CustomLayoutEngine.cpp
-        layoutEngine/BasicLayoutEngine.cpp
+        # layoutEngine/BasicLayoutEngine.cpp
         layoutEngine/BasicTextLayoutEngine.cpp
         layoutEngine/utils/LayoutData.cpp
         loaders/BELoadingQueue.cpp

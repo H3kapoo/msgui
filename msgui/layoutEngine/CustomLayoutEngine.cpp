@@ -1,13 +1,15 @@
 #include "msgui/layoutEngine/CustomLayoutEngine.hpp"
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
-#include <cmath>
-#include <glm/ext/vector_int2.hpp>
+#include <format>
 
 namespace msgui
 {
 using namespace layoutengine::utils;
+template<typename T>
+using Result = CustomLayoutEngine::Result<T>;
+using Void = CustomLayoutEngine::Void;
 
-glm::vec2 CustomLayoutEngine::process(const AbstractNodePtr& node)
+Result<glm::vec2> CustomLayoutEngine::process(const AbstractNodePtr& node)
 {
     const auto& layout = node->getLayout();
     const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
@@ -15,18 +17,25 @@ glm::vec2 CustomLayoutEngine::process(const AbstractNodePtr& node)
 
     if (isLayoutHorizontal || isLayoutVertical)
     {
-        computeSubNodesScale(node);
-        computeSubNodesPosition(node);
+        if (const auto& result = computeSubNodesScale(node); !result.error.empty())
+        {
+            return Result<glm::vec2>{.error = result.error};
+        };
+
+        if (const auto& result = computeSubNodesPosition(node); !result.error.empty())
+        {
+            return Result<glm::vec2>{.error = result.error};
+        };
     }
     else
-    {
-        log_.debugLn("Unhandled layout type for now");
+    {   // Shall return result
+        return Result<glm::vec2>{.error = "Unsupported layout type"};
     }
 
-    return {0, 0};
+    return Result<glm::vec2>{};
 }
 
-void CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& node)
+Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& node)
 {
     const auto& layout = node->getLayout();
     const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
@@ -37,30 +46,32 @@ void CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& node)
     for (const auto& subNode : subNodes)
     {
         auto& trScale = subNode->getTransform().scale;
-        const auto& subNodeLayout = subNode->getLayout();
-        const bool isXFit = subNodeLayout.scaleType.x == Layout::ScaleType::FIT;
-        const bool isYFit = subNodeLayout.scaleType.y == Layout::ScaleType::FIT;
-        const bool isXPx = subNodeLayout.scaleType.x == Layout::ScaleType::PX;
-        const bool isYPx = subNodeLayout.scaleType.y == Layout::ScaleType::PX;
-        const bool isXRel = subNodeLayout.scaleType.x == Layout::ScaleType::REL;
-        const bool isYRel = subNodeLayout.scaleType.y == Layout::ScaleType::REL;
-        const bool isXFill = subNodeLayout.scaleType.x == Layout::ScaleType::FILL;
-        const bool isYFill = subNodeLayout.scaleType.y == Layout::ScaleType::FILL;
+        const auto& subNodeScale = subNode->getLayout().newScale;
+        const bool isXFit = subNodeScale.x.type == Layout::ScaleType::FIT;
+        const bool isYFit = subNodeScale.y.type == Layout::ScaleType::FIT;
+        const bool isXPx = subNodeScale.x.type == Layout::ScaleType::PX;
+        const bool isYPx = subNodeScale.y.type == Layout::ScaleType::PX;
+        const bool isXRel = subNodeScale.x.type == Layout::ScaleType::REL;
+        const bool isYRel = subNodeScale.y.type == Layout::ScaleType::REL;
+        const bool isXFill = subNodeScale.x.type == Layout::ScaleType::FILL;
+        const bool isYFill = subNodeScale.y.type == Layout::ScaleType::FILL;
 
         if (isXFill && isLayoutHorizontal) { fillSubNodesCnt.x++; }
         if (isYFill && !isLayoutHorizontal) { fillSubNodesCnt.y++; }
 
-        if (isXPx) { trScale.x = subNodeLayout.scale.x; }
-        if (isYPx) { trScale.y = subNodeLayout.scale.y; }
+        if (isXPx) { trScale.x = subNodeScale.x.value; }
+        if (isYPx) { trScale.y = subNodeScale.y.value; }
 
-        if (isXRel) { trScale.x = subNodeLayout.scale.x * nodeScale.x; }
-        if (isYRel) { trScale.y = subNodeLayout.scale.y * nodeScale.y; }
+        if (isXRel) { trScale.x = subNodeScale.x.value * nodeScale.x; }
+        if (isYRel) { trScale.y = subNodeScale.y.value * nodeScale.y; }
 
         if (isXFit || isYFit)
         {
-            const glm::ivec2 fitScale = computeFitScale(subNode);
-            trScale.x = isXFit ? fitScale.x : trScale.x;
-            trScale.y = isYFit ? fitScale.y : trScale.y;
+            const CustomLayoutEngine::Result<glm::vec2> fitScale = computeFitScale(subNode);
+            if (!fitScale.error.empty()) { return Result<Void>{.error = fitScale.error}; }
+
+            trScale.x = isXFit ? fitScale.value.x : trScale.x;
+            trScale.y = isYFit ? fitScale.value.y : trScale.y;
         }
 
         if (!isXFill && isLayoutHorizontal) { nodeAvailableScale.x -= trScale.x; }
@@ -70,14 +81,14 @@ void CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& node)
         trScale.y = std::max(0.0f, trScale.y);
     }
 
-    if (fillSubNodesCnt.x <= 0 && fillSubNodesCnt.y <= 0) { return; }
+    if (fillSubNodesCnt.x <= 0 && fillSubNodesCnt.y <= 0) { return Result<Void>{}; }
 
     const glm::vec2 fillEqualPart{nodeAvailableScale.x / fillSubNodesCnt.x, nodeAvailableScale.y / fillSubNodesCnt.y};
     for (const auto& subNode : subNodes)
     {
-        const auto& subNodeLayout = subNode->getLayout();
-        const bool isXFill = subNodeLayout.scaleType.x == Layout::ScaleType::FILL;
-        const bool isYFill = subNodeLayout.scaleType.y == Layout::ScaleType::FILL;
+        const auto& subNodeScale = subNode->getLayout().newScale;
+        const bool isXFill = subNodeScale.x.type == Layout::ScaleType::FILL;
+        const bool isYFill = subNodeScale.y.type == Layout::ScaleType::FILL;
 
         if (!isXFill && !isYFill) { continue; }
 
@@ -88,61 +99,86 @@ void CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& node)
         trScale.x = std::max(0.0f, trScale.x);
         trScale.y = std::max(0.0f, trScale.y);
     }
+
+    return Result<Void>{};
 }
 
-glm::vec2 CustomLayoutEngine::computeFitScale(const AbstractNodePtr& node)
+Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& node)
 {
     /* We ended up here because the node is FIT, so we need to compute what the children's scale would be. */
     glm::vec2 totalScale{0, 0};
     const auto& layout = node->getLayout();
     const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
     auto& subNodes = node->getChildren();
+
+    if (subNodes.empty())
+    {
+        return Result<glm::vec2>{
+            .error = std::format("Node '{}' is ScaleType::FIT on one of the axis but it has no "
+                 "subNodes to FIT around!", node->getName())};
+    }
+
+    const auto nodeScale = node->getLayout().newScale;
     for (const auto& subNode : subNodes)
     {
-        const auto& subNodeLayout = subNode->getLayout();
-        const bool isXFit = subNodeLayout.scaleType.x == Layout::ScaleType::FIT;
-        const bool isYFit = subNodeLayout.scaleType.y == Layout::ScaleType::FIT;
+        const auto& subNodeScale = subNode->getLayout().newScale;
+        const bool isXFit = subNodeScale.x.type == Layout::ScaleType::FIT;
+        const bool isYFit = subNodeScale.y.type == Layout::ScaleType::FIT;
         glm::vec2 fitScale{0, 0};
-        if (isXFit || isYFit) { fitScale = computeFitScale(subNode); }
-
-        if (subNodeLayout.scaleType.x == Layout::ScaleType::PX)
+        if (isXFit || isYFit)
         {
-            totalScale.x = !isLayoutHorizontal
-                ? std::max(totalScale.x, subNodeLayout.scale.x)
-                : totalScale.x + subNodeLayout.scale.x;
-        }
-        else if (subNodeLayout.scaleType.x == Layout::ScaleType::FIT)
-        {
-            totalScale.x = !isLayoutHorizontal
-                ? std::max(totalScale.x, fitScale.x)
-                : totalScale.x + fitScale.x;
-        }
-        else
-        {
-            log_.debugLn("Invalid scale type");
+            Result<glm::vec2> result = computeFitScale(subNode);
+            if (!result.error.empty()) { return Result<glm::vec2>{.error = result.error}; }
         }
 
-        if (subNodeLayout.scaleType.y == Layout::ScaleType::PX)
+        if (nodeScale.x.type == Layout::ScaleType::FIT)
         {
-            totalScale.y = isLayoutHorizontal
-                ? std::max(totalScale.y, subNodeLayout.scale.y)
-                : totalScale.y + subNodeLayout.scale.y;
+            if (subNodeScale.x.type == Layout::ScaleType::PX)
+            {
+                totalScale.x = !isLayoutHorizontal
+                ? std::max(totalScale.x, subNodeScale.x.value)
+                : totalScale.x + subNodeScale.x.value;
+            }
+            else if (subNodeScale.x.type == Layout::ScaleType::FIT)
+            {
+                totalScale.x = !isLayoutHorizontal
+                    ? std::max(totalScale.x, fitScale.x)
+                    : totalScale.x + fitScale.x;
+            }
+            else
+            {
+                return Result<glm::vec2>{
+                    .error = std::format("Node '{}' is ScaleType::FIT on X axis but subNode '{}' is "
+                        "NOT ScaleType::FIT or ScaleType::PX on that axis", node->getName(), subNode->getName())};
+            }
         }
-        else if (subNodeLayout.scaleType.y == Layout::ScaleType::FIT)
+
+        if (nodeScale.y.type == Layout::ScaleType::FIT)
         {
-            totalScale.y = isLayoutHorizontal
-                ? std::max(totalScale.y, fitScale.y)
-                : totalScale.y + fitScale.y;
-        }
-        else
-        {
-            log_.debugLn("Invalid scale type");
+            if (subNodeScale.y.type == Layout::ScaleType::PX)
+            {
+                totalScale.y = isLayoutHorizontal
+                    ? std::max(totalScale.y, subNodeScale.x.value)
+                    : totalScale.y + subNodeScale.x.value;
+            }
+            else if (subNodeScale.y.type == Layout::ScaleType::FIT)
+            {
+                totalScale.y = isLayoutHorizontal
+                    ? std::max(totalScale.y, fitScale.y)
+                    : totalScale.y + fitScale.y;
+            }
+            else
+            {
+                return Result<glm::vec2>{
+                    .error = std::format("Node '{}' is ScaleType::FIT on Y axis but subNode '{}' is "
+                        "NOT ScaleType::FIT or ScaleType::PX on that axis", node->getName(), subNode->getName())};
+            }
         }
     }
-    return totalScale;
+    return Result<glm::vec2>{.value = totalScale};
 }
 
-void CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& node)
+CustomLayoutEngine::Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& node)
 {
     glm::vec2 startPos{0, 0};
     const auto& layout = node->getLayout();
@@ -160,8 +196,10 @@ void CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& node)
         if (!isLayoutHorizontal) { startPos.y += trScale.y; }
 
         /* Change reference frame for each subnode to the node's frame. */
-        // trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
+        trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
     }
+
+    return Result<Void>{};
 }
 
 } // namespace msgui

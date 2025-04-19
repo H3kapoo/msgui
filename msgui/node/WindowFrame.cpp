@@ -12,7 +12,7 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "msgui/layoutEngine/BasicLayoutEngine.hpp"
+// #include "msgui/layoutEngine/BasicLayoutEngine.hpp"
 #include "msgui/layoutEngine/BasicTextLayoutEngine.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/FrameState.hpp"
@@ -245,12 +245,17 @@ void WindowFrame::updateLayout()
 
         for (const auto& node : allFrameChildNodes_ | std::views::reverse)
         {
-            glm::ivec2 overflow = layoutEngine_->process(node);
-    
+            CustomLayoutEngine::Result<glm::vec2> result = layoutEngine_->process(node);
+            if (!result.error.empty())
+            {
+                log_.errorLn("Error in layout calc while processing '%s': %s", node->getCName(), result.error.c_str());
+                return;
+            }
+
             /* Currently only BOX type nodes support overflow handling */
             if (node->getType() == AbstractNode::NodeType::BOX)
             {
-                Utils::as<Box>(node)->updateOverflow(overflow);
+                Utils::as<Box>(node)->updateOverflow(result.value);
             }
     
             /* TODO: This shall be moved into layout process(). */

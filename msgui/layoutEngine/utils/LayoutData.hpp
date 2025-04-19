@@ -7,6 +7,7 @@
 
 namespace msgui::layoutengine::utils
 {
+
 /* Defines all the layout properties of a UI node. */
 struct Layout
 {
@@ -101,6 +102,20 @@ struct Layout
     Layout& setMinScale(const glm::vec2 valueIn);
     Layout& setMaxScale(const glm::vec2 valueIn);
 
+    struct Scale
+    {
+        ScaleType type{ScaleType::PX};
+        float value{1};
+    };
+
+    struct ScaleXY
+    {
+        Scale x{};
+        Scale y{};
+    };
+    Layout& setNewScale(const ScaleXY valueIn);
+    Layout& setNewScale(const Scale valueIn);
+
     AllowXY allowOverflow     {false};
     bool allowWrap            {false};
     Type type                 {Type::HORIZONTAL};
@@ -120,6 +135,8 @@ struct Layout
     glm::vec2 minScale        {0, 0};
     glm::vec2 maxScale        {10'000, 10'000};
     glm::vec2 shrink          {0, 0};
+
+    ScaleXY newScale{};
 
     /* Functions that will be ran upon setting new values. Usually the nodes execute custom logic using
        these but the user can also set them to do custom logic at their discretion. */
@@ -145,4 +162,15 @@ struct Layout
        This is a design artifact and shall be addressed later. */
     glm::vec2 tempScale {0, 0};
 };
+
+Layout::Scale operator"" _fill(unsigned long long val);
+Layout::Scale operator"" _fit(unsigned long long);
+Layout::Scale operator"" _rel(long double value);
+Layout::Scale operator"" _px(unsigned long long value);
+
+inline Layout::Scale operator*(Layout::Scale lhs, float rhs)
+{
+    lhs.value *= rhs;
+    return lhs;
+}
 } // namespace msgui::layoutengine::utils
