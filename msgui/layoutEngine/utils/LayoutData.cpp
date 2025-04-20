@@ -1,4 +1,5 @@
 #include "LayoutData.hpp"
+#include "msgui/Logger.hpp"
 
 namespace msgui::layoutengine::utils
 {
@@ -71,6 +72,32 @@ Layout& Layout::setScale(const float valueIn)
 
 Layout& Layout::setAlignChild(const Align valueIn)
 {
+    switch (valueIn)
+    {
+        case Align::TOP:
+        case Align::LEFT:
+        case Align::BOTTOM:
+        case Align::RIGHT:
+        case Align::CENTER:
+            return setAlignChild({valueIn, valueIn});
+        case Align::TOP_LEFT:
+            return setAlignChild({Align::LEFT, Align::TOP});
+        case Align::TOP_RIGHT:
+            return setAlignChild({Align::RIGHT, Align::TOP});
+        case Align::CENTER_LEFT:
+            return setAlignChild({Align::LEFT, Align::CENTER});
+        case Align::CENTER_RIGHT:
+            return setAlignChild({Align::RIGHT, Align::CENTER});
+        case Align::CENTER_TOP:
+            return setAlignChild({Align::CENTER, Align::TOP});
+        case Align::CENTER_BOTTOM:
+            return setAlignChild({Align::CENTER, Align::BOTTOM});
+        case Align::BOTTOM_LEFT:
+            return setAlignChild({Align::LEFT, Align::BOTTOM});
+        case Align::BOTTOM_RIGHT:
+            return setAlignChild({Align::RIGHT, Align::BOTTOM});
+        break;
+    }
     return setAlignChild({valueIn, valueIn});
 }
 

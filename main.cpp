@@ -26,24 +26,47 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
-        .setAlignChild(Layout::Align::CENTER);
-
-    BoxPtr bigbox = Utils::make<Box>("mybox");
-    // bigbox->setColor(Utils::COLOR_RED);
-    bigbox->getLayout()
-        .setType(Layout::Type::VERTICAL)
-        // .setNewScale({1_fill, 1_fill})
-        .setNewScale({400_px, 0.45_rel})
+        .setAllowWrap(true)
+        .setAlignChild(Layout::Align::TOP_LEFT)
+        // .setType(Layout::Type::VERTICAL)
+        // .setAlignChild(Layout::Align::CENTER)
         ;
 
-    // {
-    //     BoxPtr b = Utils::make<Box>("mybox 2");
-    //     b->setColor(Utils::randomRGB());
-    //     b->getLayout()
-    //         // .setScale({Utils::random01()*200.0f + 50, Utils::random01()*200.0f + 50})
-    //         .setNewScale({1_fill, 200_px});
-    //     bigbox->append(b);
-    // }
+    for (int32_t i = 0; i < 5; ++i)
+    {
+        BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
+        bigbox->setColor(Utils::randomRGB());
+        bigbox->getLayout()
+            .setAlignSelf(Layout::Align::CENTER)
+            // .setNewScale({1_fill, 1_fill})
+            .setNewScale({80_px * Utils::randomInt(1, 3), 70_px * Utils::randomInt(1, 3)})
+            ;
+
+            if (i == 3)
+            {
+                bigbox->getLayout()
+                    .setType(Layout::Type::VERTICAL)
+                    .setAllowWrap(true)
+                    // .setNewScale({0.3_rel, 1_fit});
+                    .setNewScale({0.3_rel, 0.5_rel});
+                    // .setNewScale({1_fit, 0.5_rel});
+                for (int32_t j = 1; j < 6; ++j)
+                {
+                    BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
+                    b->setColor(Utils::randomRGB());
+                    b->getLayout()
+                        // .setNewScale({50_px, 50_px});
+                        .setNewScale({50_px * Utils::randomInt(1, 5), 50_px * Utils::randomInt(1, 3)});
+
+                    bigbox->append(b);
+
+                    mainLogger.debugLn("size is %f %f", b->getLayout().newScale.x.value,
+                    b->getLayout().newScale.y.value);
+                }
+            }
+        rootBox->append(bigbox);
+    }
+
 
     // {
     //     BoxPtr b = Utils::make<Box>("mybox 3");
@@ -76,7 +99,7 @@ int main()
     //         bigbox->append(b);
     // }
 
-    rootBox->append(bigbox);
+    // rootBox->append(bigbox);
     rootBox->printTree();
 
     /* Blocks from here on */

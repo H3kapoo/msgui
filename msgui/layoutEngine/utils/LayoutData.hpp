@@ -1,5 +1,6 @@
 #pragma once
 
+#include "msgui/Logger.hpp"
 #include <cstdint>
 #include <functional>
 
@@ -171,6 +172,7 @@ Layout::Scale operator"" _px(unsigned long long value);
 inline Layout::Scale operator*(Layout::Scale lhs, float rhs)
 {
     lhs.value *= rhs;
+    lhs.value = lhs.type == Layout::ScaleType::PX ? (int32_t)lhs.value : lhs.value;
     return lhs;
 }
 } // namespace msgui::layoutengine::utils

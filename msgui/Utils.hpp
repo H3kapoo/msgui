@@ -72,6 +72,19 @@ public:
     }
 
     /**
+        Generates a random integer value between [min, max].
+
+        @param min Minimum value to return
+        @param max Maximum value to return
+
+        @return Random value computed
+     */
+     static inline int32_t randomInt(const int32_t min, const int32_t max)
+     {
+         return min + (random01() * (max - min));
+     }
+
+    /**
         Generates a random value between 0 and 1.
 
         @return Random value computed
