@@ -112,17 +112,17 @@ bool Box::isScrollBarActive(const utils::Layout::Type type)
 {
     if (type == utils::Layout::Type::HORIZONTAL)
     {
-        return hScrollBar_ && hScrollBar_->isParented();;
+        return hScrollBar_ && hScrollBar_->isParented();
     }
     else if (type == utils::Layout::Type::VERTICAL)
     {
-        return vScrollBar_ && vScrollBar_->isParented();;
+        return vScrollBar_ && vScrollBar_->isParented();
     }
 
     return false;
 }
 
-void Box::updateOverflow(const glm::ivec2& overflow)
+void Box::setOverflow(const glm::ivec2& overflow)
 {
     overflow_ = overflow;
 
@@ -186,10 +186,11 @@ void Box::setupReloadables()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)
         {
+
             hScrollBar_ = std::make_shared<Slider>("HSlider");
             hScrollBar_->enableViewValue(false);
             hScrollBar_->setType(AbstractNode::NodeType::SCROLL);
-            hScrollBar_->getLayout().setScale({common::ONE, common::SCROLL_BAR_SIZE});
+            hScrollBar_->getLayout().setNewScale({1.0_rel, 20_px});
             hScrollBar_->getKnob().lock()->setType(AbstractNode::NodeType::SCROLL_KNOB);
 
             if (overflow_.x > 0) { append(hScrollBar_); }
@@ -203,10 +204,9 @@ void Box::setupReloadables()
         if (layout_.allowOverflow.y && !vScrollBar_)
         {
             vScrollBar_ = std::make_shared<Slider>("VSlider");
-            // vScrollBar_->enableViewValue(false);
             vScrollBar_->getLayout()
                 .setType(utils::Layout::Type::VERTICAL)
-                .setScale({common::SCROLL_BAR_SIZE, common::ONE});
+                .setNewScale({20_px, 1.0_rel});
             vScrollBar_->setType(AbstractNode::NodeType::SCROLL);
             vScrollBar_->getKnob().lock()->setType(AbstractNode::NodeType::SCROLL_KNOB);
 

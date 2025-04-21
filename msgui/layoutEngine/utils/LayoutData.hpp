@@ -164,15 +164,21 @@ struct Layout
     glm::vec2 tempScale {0, 0};
 };
 
-Layout::Scale operator"" _fill(unsigned long long val);
-Layout::Scale operator"" _fit(unsigned long long);
-Layout::Scale operator"" _rel(long double value);
-Layout::Scale operator"" _px(unsigned long long value);
-
-inline Layout::Scale operator*(Layout::Scale lhs, float rhs)
-{
-    lhs.value *= rhs;
-    lhs.value = lhs.type == Layout::ScaleType::PX ? (int32_t)lhs.value : lhs.value;
-    return lhs;
-}
 } // namespace msgui::layoutengine::utils
+
+namespace msgui
+{
+    using  namespace msgui::layoutengine::utils;
+
+    Layout::Scale operator"" _fill(unsigned long long val);
+    Layout::Scale operator"" _fit(unsigned long long);
+    Layout::Scale operator"" _rel(long double value);
+    Layout::Scale operator"" _px(unsigned long long value);
+    
+    inline Layout::Scale operator*(Layout::Scale lhs, float rhs)
+    {
+        lhs.value *= rhs;
+        lhs.value = lhs.type == Layout::ScaleType::PX ? (int32_t)lhs.value : lhs.value;
+        return lhs;
+    }
+} // msgui

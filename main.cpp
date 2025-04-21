@@ -26,8 +26,13 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
-        .setAllowWrap(true)
-        .setAlignChild(Layout::Align::TOP_LEFT)
+        // .setAllowOverflow({true, false})
+        .setAllowOverflow({true, true})
+        .setPadding({1, 5, 5, 5})
+        // .setAllowWrap(true)
+        // .setAlignChild(Layout::Align::TOP_LEFT)
+        // .setAlignChild(Layout::Align::CENTER)
+        .setAlignChild(Layout::Align::BOTTOM_RIGHT)
         // .setType(Layout::Type::VERTICAL)
         // .setAlignChild(Layout::Align::CENTER)
         ;
@@ -37,33 +42,41 @@ int main()
         BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
         bigbox->setColor(Utils::randomRGB());
         bigbox->getLayout()
-            .setAlignSelf(Layout::Align::CENTER)
+            // .setAlignSelf(Layout::Align::CENTER)
             // .setNewScale({1_fill, 1_fill})
-            .setNewScale({80_px * Utils::randomInt(1, 3), 70_px * Utils::randomInt(1, 3)})
+            .setNewScale({80_px * Utils::randomInt(2, 5), 20_px * Utils::randomInt(2, 10)})
             ;
+        // if (i == 1)
+        // {
+        //     bigbox->getLayout().setNewScale({20_px, 1.0_rel});
+        // }
+        // else if (i == 0)
+        // {
+        //     bigbox->getLayout().setNewScale({1_fill, 500_px});
+        // }
+            // if (i == 3)
+            // {
+            //     bigbox->getLayout()
+            //         .setAllowOverflow({true, true})
+            //         // .setType(Layout::Type::VERTICAL)
+            //         // .setAllowWrap(true)
+            //         // .setNewScale({1_fit});
+            //         // .setNewScale({1_fill});
+            //         // .setNewScale({0.3_rel, 1_fit});
+            //         // .setNewScale({0.3_rel, 0.5_rel});
+            //         // .setNewScale({1_fit, 500_px});
+            //         .setNewScale({300_px, 500_px});
+            //     for (int32_t j = 1; j < 6; ++j)
+            //     {
+            //         BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
+            //         b->setColor(Utils::randomRGB());
+            //         b->getLayout()
+            //             // .setNewScale({50_px, 50_px});
+            //             .setNewScale({50_px * Utils::randomInt(1, 5), 50_px * Utils::randomInt(1, 3)});
 
-            if (i == 3)
-            {
-                bigbox->getLayout()
-                    .setType(Layout::Type::VERTICAL)
-                    .setAllowWrap(true)
-                    // .setNewScale({0.3_rel, 1_fit});
-                    .setNewScale({0.3_rel, 0.5_rel});
-                    // .setNewScale({1_fit, 0.5_rel});
-                for (int32_t j = 1; j < 6; ++j)
-                {
-                    BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
-                    b->setColor(Utils::randomRGB());
-                    b->getLayout()
-                        // .setNewScale({50_px, 50_px});
-                        .setNewScale({50_px * Utils::randomInt(1, 5), 50_px * Utils::randomInt(1, 3)});
-
-                    bigbox->append(b);
-
-                    mainLogger.debugLn("size is %f %f", b->getLayout().newScale.x.value,
-                    b->getLayout().newScale.y.value);
-                }
-            }
+            //         bigbox->append(b);
+            //     }
+            // }
         rootBox->append(bigbox);
     }
 

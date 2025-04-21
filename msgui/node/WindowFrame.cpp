@@ -253,10 +253,10 @@ void WindowFrame::updateLayout()
             }
 
             /* Currently only BOX type nodes support overflow handling */
-            if (node->getType() == AbstractNode::NodeType::BOX)
-            {
-                Utils::as<Box>(node)->updateOverflow(result.value);
-            }
+            // if (node->getType() == AbstractNode::NodeType::BOX)
+            // {
+            //     Utils::as<Box>(node)->updateOverflow(result.value);
+            // }
     
             /* TODO: This shall be moved into layout process(). */
             /* After updating the node layout, we need to update the viewable area of the node based on the parent's

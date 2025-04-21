@@ -487,19 +487,6 @@ BasicLayoutEngine::ScrollBarsData BasicLayoutEngine::processScrollbars(const Abs
             bothSlOn = true;
         }
     }
-    // else if (parent->getType() == AbstractNode::NodeType::TREEVIEW)
-    // {
-    //     TreeViewPtr castTv = Utils::as<TreeView>(parent);
-    //     if (castTv->isScrollBarActive(ScrollBar::Type::NONE))
-    //     {
-    //         return ScrollBarsData{};
-    //     }
-
-    //     if (castTv->isScrollBarActive(ScrollBar::Type::ALL))
-    //     {
-    //         bothSbOn = true;
-    //     }
-    // }
 
     auto& nPos = parent->getTransform().pos;
     auto& pScale = parent->getTransform().scale;

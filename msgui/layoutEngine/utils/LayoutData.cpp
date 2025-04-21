@@ -106,6 +106,12 @@ Layout& Layout::setScaleType(const ScaleType valueIn)
     return setScaleType({valueIn, valueIn});
 }
 
+} // namespace msgui::layoutengine::utils
+
+namespace msgui
+{
+using namespace msgui::layoutengine::utils;
+
 Layout::Scale operator"" _fill(unsigned long long val)
 {
     return {.type = Layout::ScaleType::FILL, .value = 1};
@@ -126,4 +132,4 @@ Layout::Scale operator"" _px(unsigned long long value)
 {
     return {.type = Layout::ScaleType::PX, .value = (float)value};
 }
-} // namespace msgui::layoutengine::utils
+} // msgui

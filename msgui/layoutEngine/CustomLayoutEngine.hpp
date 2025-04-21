@@ -12,20 +12,36 @@ public:
     CustomLayoutEngine() = default;
 
     /**
-    Process the layour for the current node.
+        Process the layout for the current node.
 
         @param node Node on which the layour calculations will be performed
      */
     Result<glm::vec2> process(const AbstractNodePtr& node) override;
 
 private:
-    Result<Void> computeSubNodesScale(const AbstractNodePtr& node);
-    Result<Void> computeSubNodesPosition(const AbstractNodePtr& node);
+    struct ScrollContribution
+    {
+        glm::ivec2 offset{0, 0};
+        glm::ivec2 barScale{0, 0};
+    };
+
+    /* Common */
+    Result<Void> computeSubNodesScale(const AbstractNodePtr& node, const ScrollContribution& sc);
+    Result<Void> computeSubNodesPosition(const AbstractNodePtr& node, const ScrollContribution& sc);
     Result<glm::vec2> computeFitScale(const AbstractNodePtr& node);
     Result<Void> alignSubNodes(const AbstractNodePtr& node, const glm::vec2 computedOverflow);
     Result<Void> selfAlignSubNodeSlice(const AbstractNodePtr& node, const glm::vec2 maximum,
         const uint32_t startIdx, const uint32_t endIdx);
-    glm::vec2 computeOverflow(const AbstractNodePtr& node);
+    void applyOverflowAndScrollOffsets(const AbstractNodePtr& node, const glm::vec2 overflow,
+        const ScrollContribution& sc);
+    glm::vec2 computeOverflow(const AbstractNodePtr& node, const ScrollContribution& sc);
+    glm::vec2 computeNodeFreeSpace(const AbstractNodePtr& node, const ScrollContribution& sc);
+    glm::vec2 computeNodeInnerStartPos(const AbstractNodePtr& node);
+
+    /* Scrollbars */
+    Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);
+    void handleScrollBarNode(const AbstractNodePtr& node);
+
 
 private:
     Logger log_{"CustomLayoutEngine"};

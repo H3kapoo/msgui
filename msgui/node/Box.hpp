@@ -33,9 +33,7 @@ public:
 
     ABSTRACT_NODE_ALLOW_APPEND_REMOVE;
 
-protected: // friend
-    friend WindowFrame;
-    void updateOverflow(const glm::ivec2& overflow);
+    void setOverflow(const glm::ivec2& overflow);
 
 private:
     Box(const Box&) = delete;
