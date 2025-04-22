@@ -52,9 +52,9 @@ Result<glm::vec2> CustomLayoutEngine::process(const AbstractNodePtr& node)
     const auto nodeType = node->getType();
 
     /* Handling of uncommon node types */
-    if (nodeType == AbstractNode::NodeType::SCROLL)
+    if (nodeType == AbstractNode::NodeType::SCROLL || nodeType == AbstractNode::NodeType::SLIDER)
     {
-        handleScrollBarNode(node);
+        handlerSliderNode(node);
         return Result<glm::vec2>{};
     }
 
@@ -95,10 +95,12 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
     auto& subNodes = node->getChildren();
     glm::vec2 nodeAvailableScale = freeNodeScale;
     glm::ivec2 fillSubNodesCnt{!isLayoutHorizontal, isLayoutHorizontal};
+    glm::vec2 maxMargin{0, 0};
     for (const auto& subNode : subNodes)
     {
         auto& trScale = subNode->getTransform().scale;
         const auto& subNodeScale = subNode->getLayout().newScale;
+        const auto& subNodeMargin = subNode->getLayout().margin;
         const bool isXFit = subNodeScale.x.type == Layout::ScaleType::FIT;
         const bool isYFit = subNodeScale.y.type == Layout::ScaleType::FIT;
         const bool isXPx = subNodeScale.x.type == Layout::ScaleType::PX;
@@ -111,10 +113,13 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         /* Scrollbars are special Sliders which need to have their scale calculated separately. */
         if (subNode->getType() == AbstractNode::NodeType::SCROLL)
         {
-            const auto& rawNodeTrScale = node->getTransform().scale;
+            /* Scrollbar scale will be affected only by node border, not padding. */
+            const glm::vec2 customScrollScale = {
+                node->getTransform().scale.x - layout.border.left - layout.border.right,
+                node->getTransform().scale.y - layout.border.top - layout.border.bot};
             const bool isScrollHorizontal = subNode->getLayout().type == Layout::Type::HORIZONTAL;
-            trScale.x = isScrollHorizontal ? (rawNodeTrScale.x - sc.barScale.x) : sc.barScale.x;
-            trScale.y = isScrollHorizontal ? sc.barScale.y : (rawNodeTrScale.y - sc.barScale.y);
+            trScale.x = isScrollHorizontal ? (customScrollScale.x - sc.barScale.x) : sc.barScale.x;
+            trScale.y = isScrollHorizontal ? sc.barScale.y : (customScrollScale.y - sc.barScale.y);
             continue;
         }
 
@@ -124,8 +129,9 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         if (isXPx) { trScale.x = subNodeScale.x.value; }
         if (isYPx) { trScale.y = subNodeScale.y.value; }
 
-        if (isXRel) { trScale.x = subNodeScale.x.value * freeNodeScale.x; }
-        if (isYRel) { trScale.y = subNodeScale.y.value * freeNodeScale.y; }
+        /* REL scale accomodated margins as well in its final size */
+        if (isXRel) { trScale.x = subNodeScale.x.value * freeNodeScale.x - subNodeMargin.left - subNodeMargin.right; }
+        if (isYRel) { trScale.y = subNodeScale.y.value * freeNodeScale.y - subNodeMargin.top - subNodeMargin.bot; }
 
         if (isXFit || isYFit)
         {
@@ -136,20 +142,33 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
             trScale.y = isYFit ? fitScale.value.y : trScale.y;
         }
 
-        if (!isXFill && isLayoutHorizontal) { nodeAvailableScale.x -= trScale.x; }
-        if (!isYFill && !isLayoutHorizontal) { nodeAvailableScale.y -= trScale.y; }
+        if (!isXFill && isLayoutHorizontal) { nodeAvailableScale.x -= subNodeScale.x.value; }
+        if (!isYFill && !isLayoutHorizontal) { nodeAvailableScale.y -= subNodeScale.y.value; }
 
-        if (trScale.x <= 0 || trScale.y <= 0)
-        {
-            return Result<Void>{.error = std::format("Node '{}' computes to a zero/negative scale on one of it's axis",
-                subNode->getName()) };
-        }
+        /* Margins of subnodes eat up available space for the FILL node scale type. */
+        maxMargin = {
+            std::max(maxMargin.x, subNodeMargin.left + subNodeMargin.right),
+            std::max(maxMargin.y, subNodeMargin.top + subNodeMargin.bot),
+        };
+        nodeAvailableScale.x -= isLayoutHorizontal ? subNodeMargin.left + subNodeMargin.right : 0;
+        nodeAvailableScale.y -= isLayoutHorizontal ? 0 : subNodeMargin.top + subNodeMargin.bot;
+
+        // if (trScale.x <= 0 || trScale.y <= 0)
+        // {
+            // return Result<Void>{.error = std::format("Node '{}' computes to a zero/negative scale on one of it's axis",
+            //     subNode->getName()) };
+        // }
     }
 
     if (fillSubNodesCnt.x <= 0 && fillSubNodesCnt.y <= 0) { return Result<Void>{}; }
 
+    /* For fill we need to store max margin and subtract it later depending on the layout type.
+       FILL type accomodates margins in it's final size. */
+    if (isLayoutHorizontal) { nodeAvailableScale.y -= maxMargin.y; }
+    if (!isLayoutHorizontal) { nodeAvailableScale.x -= maxMargin.x; }
+
     fillSubNodesCnt.x = std::max(1, fillSubNodesCnt.x);
-    fillSubNodesCnt.x = std::max(1, fillSubNodesCnt.y);
+    fillSubNodesCnt.y = std::max(1, fillSubNodesCnt.y);
 
     const glm::vec2 fillEqualPart{nodeAvailableScale.x / fillSubNodesCnt.x, nodeAvailableScale.y / fillSubNodesCnt.y};
     for (const auto& subNode : subNodes)
@@ -193,6 +212,7 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
     {
         SKIP_SCROLL_NODE(subNode);
         const auto& subNodeScale = subNode->getLayout().newScale;
+        const auto& subNodeMargin = subNode->getLayout().margin;
         const bool isXFit = subNodeScale.x.type == Layout::ScaleType::FIT;
         const bool isYFit = subNodeScale.y.type == Layout::ScaleType::FIT;
         glm::vec2 fitScale{0, 0};
@@ -205,7 +225,10 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
         if (nodeScale.x.type == Layout::ScaleType::FIT)
         {
             float scaleValue = 0;
-            if (subNodeScale.x.type == Layout::ScaleType::PX) { scaleValue = subNodeScale.x.value; }
+            if (subNodeScale.x.type == Layout::ScaleType::PX)
+            {
+                scaleValue = subNodeScale.x.value + subNodeMargin.left + subNodeMargin.right;
+            }
             else if (subNodeScale.x.type == Layout::ScaleType::FIT) { scaleValue = fitScale.x; }
             else
             {
@@ -220,21 +243,25 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
 
             if (layout.allowWrap && !isLayoutHorizontal && nodeScale.y.type != Layout::ScaleType::FIT)
             {
-                nonFitTotalScale.y += subNodeScale.y.value;
-                maximum.x = std::max(maximum.x, subNodeScale.x.value);
-                if (nonFitTotalScale.y > node->getTransform().scale.y) /* Node scale should be freeSpaceScale */
-                {
-                    totalScale.x += maximum.x;
-                    nonFitTotalScale.y = subNodeScale.y.value;
-                    maximum.x = 0;
-                }
+                return Result<glm::vec2>{
+                    .error = std::format("Node '{}' is ScaleType::FIT on X and NOT FIT on the other axis with allow"
+                        " wrap enabled. This is broken for now :(", node->getName(), subNode->getName())
+                };
+                // nonFitTotalScale.y += subNodeScale.y.value;
+                // maximum.x = std::max(maximum.x, subNodeScale.x.value);
+                // if (nonFitTotalScale.y > node->getTransform().scale.y) /* Node scale should be freeSpaceScale */
+                // {
+                //     totalScale.x += maximum.x;
+                //     nonFitTotalScale.y = subNodeScale.y.value;
+                //     maximum.x = 0;
+                // }
             }
         }
 
         if (nodeScale.y.type == Layout::ScaleType::FIT)
         {
             float scaleValue = 0;
-            if (subNodeScale.y.type == Layout::ScaleType::PX) { scaleValue = subNodeScale.y.value; }
+            if (subNodeScale.y.type == Layout::ScaleType::PX) { scaleValue = subNodeScale.y.value + subNodeMargin.top + subNodeMargin.bot; }
             else if (subNodeScale.y.type == Layout::ScaleType::FIT) { scaleValue = fitScale.y; }
             else
             {
@@ -252,17 +279,27 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
                to account for that Y increase. We take the maximum Y value that can best fit the elements drop. */
             if (layout.allowWrap && isLayoutHorizontal && nodeScale.x.type != Layout::ScaleType::FIT)
             {
-                nonFitTotalScale.x += subNodeScale.x.value;
-                maximum.y = std::max(maximum.y, subNodeScale.y.value);
-                if (nonFitTotalScale.x > node->getTransform().scale.x)
-                {
-                    totalScale.y += maximum.y;
-                    nonFitTotalScale.x = subNodeScale.x.value;
-                    maximum.y = 0;
-                }
+                return Result<glm::vec2>{
+                    .error = std::format("Node '{}' is ScaleType::FIT on Y and NOT FIT on the other axis with allow"
+                        " wrap enabled. This is broken for now :(", node->getName(), subNode->getName())
+                };
+                // nonFitTotalScale.x += subNodeScale.x.value;
+                // // maximum.y += subNodeScale.y.value;
+                // if (nonFitTotalScale.x > node->getTransform().scale.x)
+                // {
+                //     // totalScale.y += subNodeScale.y.value;
+                //     totalScale.y = std::max((subNodeScale.y.value + maximum.y) - 0, totalScale.y);
+                //     maximum.y = 0;
+                //     nonFitTotalScale.x = subNodeScale.x.value;
+                // }
+                // maximum.y = std::max(maximum.y, subNodeScale.y.value); // keep max of line
             }
         }
     }
+
+    /* Padding & Borders also need to be taken into consideration */
+    totalScale.x += layout.padding.left + layout.padding.right + layout.border.left + layout.border.right;
+    totalScale.y += layout.padding.top + layout.padding.bot + layout.border.top + layout.border.bot;
 
     return Result<glm::vec2>{.value = totalScale};
 }
@@ -278,43 +315,56 @@ CustomLayoutEngine::Result<Void> CustomLayoutEngine::computeSubNodesPosition(con
     uint32_t sliceEndIdx{0};
     auto& subNodes = node->getChildren();
     const auto& layout = node->getLayout();
-    const glm::vec2 nodePos = computeNodeInnerStartPos(node);
-
+    const auto& nodeTrPos = node->getTransform().pos;
+    const glm::vec2 nodePosOffsets = computeNodeInnerStartOffsets(node);
     const auto& freeNodeScale = computeNodeFreeSpace(node, sc);
     const bool isWrapEnabled = layout.allowWrap;
     const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
 
-    glm::vec2 startPos{nodePos.x, nodePos.y};
+    glm::vec2 startPos{nodePosOffsets.x, nodePosOffsets.y};
     for (const auto& subNode : subNodes)
     {
         const auto& subNodeLayout = subNode->getLayout();
+        const auto& subNodeMargin = subNodeLayout.margin;
         auto& trPos = subNode->getTransform().pos;
         auto& trScale = subNode->getTransform().scale;
+
+        /* Put elements into position relative to the (0, 0) reference frame. */
+        trPos = glm::vec3{startPos.x, startPos.y, trPos.z};
+
+        trPos.x += subNodeMargin.left;
+        trPos.y += subNodeMargin.top;
 
         /* Scrollbars are special Sliders which need to have their position calculated separately. */
         if (subNode->getType() == AbstractNode::NodeType::SCROLL)
         {
-            // Scrollbar will only be affected by border size, not by padding
-            const auto& rawNodeTrPos = node->getTransform().pos;
+            /* Scrollbar will only be affected by border size, not by padding */
             const auto& rawNodeTrScale = node->getTransform().scale;
+            const auto& rawNodeTrPos = node->getTransform().pos;
 
             const bool isScrollHorizontal = subNodeLayout.type == Layout::Type::HORIZONTAL;
-            trPos.x = isScrollHorizontal ? rawNodeTrPos.x : (rawNodeTrPos.x + rawNodeTrScale.x - sc.barScale.x);
-            trPos.y = isScrollHorizontal ? (rawNodeTrPos.y + rawNodeTrScale.y - sc.barScale.y) : rawNodeTrPos.y;
+            trPos.x = isScrollHorizontal
+                ? rawNodeTrPos.x + layout.border.left
+                : (rawNodeTrPos.x + rawNodeTrScale.x - sc.barScale.x - layout.border.right);
+            trPos.y = isScrollHorizontal
+                ? (rawNodeTrPos.y + rawNodeTrScale.y - sc.barScale.y - layout.border.bot)
+                : rawNodeTrPos.y + layout.border.top;
             continue;
         }
 
         /* Deal with wrapping if needed */
         if (isWrapEnabled)
         {
-            const bool layoutOverflowsX = startPos.x + trScale.x > freeNodeScale.x;
-            const bool layoutOverflowsY = startPos.y + trScale.y > freeNodeScale.y;
+            const bool layoutOverflowsX = startPos.x + trScale.x
+                + subNodeLayout.margin.left + subNodeLayout.margin.right > freeNodeScale.x;
+            const bool layoutOverflowsY = startPos.y + trScale.y
+                + subNodeLayout.margin.top + subNodeLayout.margin.bot > freeNodeScale.y;
             if (isLayoutHorizontal && layoutOverflowsX)
             {
                 selfAlignSubNodeSlice(node, maximum, sliceStartIdx, sliceEndIdx);
                 sliceStartIdx += sliceEndIdx;
 
-                startPos.x = 0; // should be padding + borders
+                startPos.x = nodePosOffsets.x;
                 startPos.y += maximum.y;
                 maximum.y = 0;
             }
@@ -323,29 +373,25 @@ CustomLayoutEngine::Result<Void> CustomLayoutEngine::computeSubNodesPosition(con
                 selfAlignSubNodeSlice(node, maximum, sliceStartIdx, sliceEndIdx);
                 sliceStartIdx += sliceEndIdx;
 
-                startPos.y = 0;
+                startPos.y = nodePosOffsets.y;
                 startPos.x += maximum.x;
                 maximum.x = 0;
             }
         }
 
-        /* Put elements into position relative to the (0, 0) reference frame. */
-        trPos = {startPos.x, startPos.y, trPos.z};
-
         if (isLayoutHorizontal)
         {
-            startPos.x += trScale.x;
-            maximum.y = std::max(maximum.y, trScale.y);
+            startPos.x += trScale.x + subNodeLayout.margin.left + subNodeLayout.margin.right;
+            maximum.y = std::max(maximum.y, trScale.y + (subNodeLayout.margin.top + subNodeLayout.margin.bot));
         }
         else if (!isLayoutHorizontal)
         {
-            startPos.y += trScale.y;
-            maximum.x = std::max(maximum.x, trScale.x);
+            startPos.y += trScale.y + subNodeLayout.margin.top + subNodeLayout.margin.bot;
+            maximum.x = std::max(maximum.x, trScale.x + (subNodeLayout.margin.left + subNodeLayout.margin.right));
         }
 
         /* Change reference frame for each subnode to the node's frame. */
-        // trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
-        // trPos += glm::vec3{nodePos.x, nodePos.y, 0};
+        trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
 
         sliceEndIdx++;
     }
@@ -490,16 +536,18 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
 
 glm::vec2 CustomLayoutEngine::computeOverflow(const AbstractNodePtr& node, const ScrollContribution& sc)
 {
-    /* Subnodes need to in the node's reference frame */
     const auto& subNodes = node->getChildren();
     const auto nodeScale = computeNodeFreeSpace(node, sc);
-    const glm::vec2 nodePos = computeNodeInnerStartPos(node);
+    const glm::vec2 nodePos = glm::vec2{
+        node->getTransform().pos.x, node->getTransform().pos.y } + computeNodeInnerStartOffsets(node);
     glm::vec2 maximumPoints{0, 0};
     for (const auto& subNode : subNodes)
     {
         SKIP_SCROLL_NODE(subNode);
-        const auto& subNodeScale = subNode->getTransform().scale; // shall contain margins
-        const auto& subNodePos = subNode->getTransform().pos; // same
+        const glm::vec2 subNodeScale = computeNoteOccupiedSpace(subNode);
+        glm::vec2 subNodePos = subNode->getTransform().pos;
+        subNodePos.x -= subNode->getLayout().margin.left;
+        subNodePos.y -= subNode->getLayout().margin.top;
         maximumPoints.x = std::max(maximumPoints.x, subNodePos.x + subNodeScale.x);
         maximumPoints.y = std::max(maximumPoints.y, subNodePos.y + subNodeScale.y);
     }
@@ -513,25 +561,38 @@ glm::vec2 CustomLayoutEngine::computeNodeFreeSpace(const AbstractNodePtr& node, 
     /* Contains padding and borders are those are INSIDE the node, but it doesn't contain margins. */ 
     const auto& nodeTrScale = node->getTransform().scale;
     const auto& nodeLayout = node->getLayout();
-    const auto& nodePadding = nodeLayout.padding;
     glm::vec2 nodeScale = glm::vec2{nodeTrScale.x, nodeTrScale.y};
 
     return {
-        nodeTrScale.x - sc.barScale.x - nodeLayout.padding.left - nodeLayout.padding.right,
-        nodeTrScale.y - sc.barScale.y - nodeLayout.padding.top - nodeLayout.padding.bot
+        nodeTrScale.x - sc.barScale.x
+            - nodeLayout.padding.left - nodeLayout.padding.right
+            - nodeLayout.border.left - nodeLayout.border.right,
+        nodeTrScale.y - sc.barScale.y 
+            - nodeLayout.padding.top - nodeLayout.padding.bot
+            - nodeLayout.border.top - nodeLayout.border.bot
     };
 }
 
-glm::vec2 CustomLayoutEngine::computeNodeInnerStartPos(const AbstractNodePtr& node)
+glm::vec2 CustomLayoutEngine::computeNodeInnerStartOffsets(const AbstractNodePtr& node)
 {
     /* Compute from where we shall actually start to place subNodes taking into consideration the node's
        padding and borders. */
-    const auto& nodeTrPos = node->getTransform().pos;
     const auto& nodeLayout = node->getLayout();
 
     return {
-        nodeTrPos.x + nodeLayout.padding.left,
-        nodeTrPos.y + nodeLayout.padding.top
+        nodeLayout.padding.left + nodeLayout.border.left,
+        nodeLayout.padding.top + nodeLayout.border.top
+    };
+}
+
+glm::vec2 CustomLayoutEngine::computeNoteOccupiedSpace(const AbstractNodePtr& node)
+{
+    /* This adds the margins to the computed scale */
+    const auto& nodeLayout = node->getLayout();
+    const auto& nodeTrScale = node->getTransform().scale;
+    return {
+        nodeTrScale.x + nodeLayout.margin.left + nodeLayout.margin.right,
+        nodeTrScale.y + nodeLayout.margin.top + nodeLayout.margin.bot
     };
 }
 
@@ -600,7 +661,7 @@ Result<CustomLayoutEngine::ScrollContribution> CustomLayoutEngine::computeScroll
     return Result<ScrollContribution>{.value = sc};
 }
 
-void CustomLayoutEngine::handleScrollBarNode(const AbstractNodePtr& node)
+void CustomLayoutEngine::handlerSliderNode(const AbstractNodePtr& node)
 {
     /* Scrollbars are just specialized Sliders and sliders will always be guaranteed to have
        a slider knob subNode.
@@ -609,7 +670,8 @@ void CustomLayoutEngine::handleScrollBarNode(const AbstractNodePtr& node)
     const auto& nodePos = node->getTransform().pos;
     const auto& nodeScale = node->getTransform().scale; /* Here's ok to compute it manually. Account for node border/padding*/
     const bool isLayoutHorizontal = node->getLayout().type == Layout::Type::HORIZONTAL;
-    auto castSlider = Utils::as<Slider>(node);
+    const auto castSlider = Utils::as<Slider>(node);
+    const bool dynamicKnob = castSlider->isDyanmicKnobEnabled();
 
     auto knob = castSlider->getKnob().lock();
     auto& knobPos = knob->getTransform().pos;
@@ -622,7 +684,7 @@ void CustomLayoutEngine::handleScrollBarNode(const AbstractNodePtr& node)
     /* Setting knob scale and positioning */
     if (isLayoutHorizontal)
     {
-        knobScale.x = nodeScale.x - sliderMaxValue; // this is the only diff between a slider and a scrollbar really..
+        knobScale.x = dynamicKnob ? (nodeScale.x - sliderMaxValue) : nodeScale.y;
         knobScale.x = std::max(nodeScale.y, knobScale.x);
         knobScale.y = nodeScale.y;
 
@@ -633,11 +695,15 @@ void CustomLayoutEngine::handleScrollBarNode(const AbstractNodePtr& node)
     }
     else
     {
-        knobScale.y = nodeScale.y - sliderMaxValue; // this is the only diff between a slider and a scrollbar really..
+        knobScale.y = dynamicKnob ? (nodeScale.y - sliderMaxValue) : nodeScale.x;
         knobScale.y = std::max(nodeScale.x, knobScale.y);
         knobScale.x = nodeScale.x;
 
-        const float newY = Utils::remap(sliderPercOffset,
+        /* In scrollbar mode values need to go from top to bottom, but in slider mode they need to
+           go from bottom to top, so we need to invert the percentage. */
+        const float remapVal = castSlider->getType() == AbstractNode::NodeType::SLIDER ? 
+            1.0 - sliderPercOffset : sliderPercOffset;
+        const float newY = Utils::remap(remapVal,
             0.0f, 1.0f, nodePos.y + knobScale.y / 2, nodePos.y + nodeScale.y - knobScale.y / 2);
         knobPos.x = nodePos.x;
         knobPos.y = newY - knobScale.y / 2;

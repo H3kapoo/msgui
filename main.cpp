@@ -3,6 +3,7 @@
 #include "msgui/Application.hpp"
 #include "msgui/Logger.hpp"
 #include "msgui/Utils.hpp"
+#include "msgui/events/LMBRelease.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/WindowFrame.hpp"
@@ -27,12 +28,13 @@ int main()
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
         // .setAllowOverflow({true, false})
-        .setAllowOverflow({true, true})
-        .setPadding({1, 5, 5, 5})
+        // .setAllowOverflow({true, true})
+        // .setPadding({5, 5, 5, 5})
+        // .setBorder({5, 10, 5, 10})
         // .setAllowWrap(true)
         // .setAlignChild(Layout::Align::TOP_LEFT)
         // .setAlignChild(Layout::Align::CENTER)
-        .setAlignChild(Layout::Align::BOTTOM_RIGHT)
+        // .setAlignChild(Layout::Align::BOTTOM_RIGHT)
         // .setType(Layout::Type::VERTICAL)
         // .setAlignChild(Layout::Align::CENTER)
         ;
@@ -42,41 +44,39 @@ int main()
         BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
         bigbox->setColor(Utils::randomRGB());
         bigbox->getLayout()
+            // .setMargin({5})
             // .setAlignSelf(Layout::Align::CENTER)
-            // .setNewScale({1_fill, 1_fill})
-            .setNewScale({80_px * Utils::randomInt(2, 5), 20_px * Utils::randomInt(2, 10)})
+            // .setNewScale({1_fill, 0.3_rel})
+            // .setNewScale({0.5_rel, 1_fill})
+            .setNewScale({60_px * Utils::randomInt(2, 5), 20_px * Utils::randomInt(2, 10)})
             ;
-        // if (i == 1)
-        // {
-        //     bigbox->getLayout().setNewScale({20_px, 1.0_rel});
-        // }
-        // else if (i == 0)
-        // {
-        //     bigbox->getLayout().setNewScale({1_fill, 500_px});
-        // }
-            // if (i == 3)
-            // {
-            //     bigbox->getLayout()
-            //         .setAllowOverflow({true, true})
-            //         // .setType(Layout::Type::VERTICAL)
-            //         // .setAllowWrap(true)
-            //         // .setNewScale({1_fit});
-            //         // .setNewScale({1_fill});
-            //         // .setNewScale({0.3_rel, 1_fit});
-            //         // .setNewScale({0.3_rel, 0.5_rel});
-            //         // .setNewScale({1_fit, 500_px});
-            //         .setNewScale({300_px, 500_px});
-            //     for (int32_t j = 1; j < 6; ++j)
-            //     {
-            //         BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
-            //         b->setColor(Utils::randomRGB());
-            //         b->getLayout()
-            //             // .setNewScale({50_px, 50_px});
-            //             .setNewScale({50_px * Utils::randomInt(1, 5), 50_px * Utils::randomInt(1, 3)});
 
-            //         bigbox->append(b);
-            //     }
-            // }
+            if (i == 3)
+            {
+                bigbox->getLayout()
+                    // .setPadding({5})
+                    // .setBorder({5})
+                    // .setAllowOverflow({true, true})
+                    .setType(Layout::Type::HORIZONTAL)
+                    // .setAllowWrap(true)
+                    // .setNewScale({1_fit});
+                    .setNewScale({1_fill, 100_px});
+                    // .setNewScale({0.3_rel, 1_fit});
+                    // .setNewScale({0.3_rel, 0.5_rel});
+                    // .setNewScale({1_fit, 500_px});
+                    // .setNewScale({300_px, 500_px});
+                for (int32_t j = 1; j < 1; ++j)
+                {
+                    BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
+                    b->setColor(Utils::randomRGB());
+                    b->getLayout()
+                        .setMargin({5})
+                        // .setNewScale({50_px, 50_px});
+                        .setNewScale({1_px * Utils::randomInt(40, 200), 1_px * Utils::randomInt(40, 100)});
+
+                    bigbox->append(b);
+                }
+            }
         rootBox->append(bigbox);
     }
 

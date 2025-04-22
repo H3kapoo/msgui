@@ -188,7 +188,7 @@ void Box::setupReloadables()
         {
 
             hScrollBar_ = std::make_shared<Slider>("HSlider");
-            hScrollBar_->enableViewValue(false);
+            hScrollBar_->enableViewValue(false).enableDynamicKnob(true);
             hScrollBar_->setType(AbstractNode::NodeType::SCROLL);
             hScrollBar_->getLayout().setNewScale({1.0_rel, 20_px});
             hScrollBar_->getKnob().lock()->setType(AbstractNode::NodeType::SCROLL_KNOB);
@@ -204,6 +204,7 @@ void Box::setupReloadables()
         if (layout_.allowOverflow.y && !vScrollBar_)
         {
             vScrollBar_ = std::make_shared<Slider>("VSlider");
+            vScrollBar_->enableDynamicKnob(true);
             vScrollBar_->getLayout()
                 .setType(utils::Layout::Type::VERTICAL)
                 .setNewScale({20_px, 1.0_rel});

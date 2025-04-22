@@ -27,6 +27,7 @@ public:
     Slider& setSensitivity(const float value);
     Slider& setViewValueFormatPredicate(const std::function<std::string(float)>& pred);
     Slider& enableViewValue(const bool value);
+    Slider& enableDynamicKnob(const bool value);
 
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
@@ -35,6 +36,7 @@ public:
     float getSlideCurrentValue() const;
     int32_t getGirth() const;
     float getOffsetPerc() const;
+    bool isDyanmicKnobEnabled() const;
     SliderKnobWPtr getKnob();
     TextLabelWPtr getTextLabel();
 
@@ -66,6 +68,7 @@ private:
     float slideValue_{0};
     float sensitivity_{4};
     bool isViewValueEnabled_{true};
+    bool dynamicKnobEnabled_{false};
     float knobOffsetPerc_{0};
     glm::ivec2 mouseDistFromKnobCenter_{0};
     std::function<std::string(float)> textViewPred_{nullptr};

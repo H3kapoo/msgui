@@ -13,7 +13,7 @@ Layout& Layout:: funcName (const valueType value)\
 }\
 
 DEFINE_FUNC(setType, type, Type, onTypeChange);
-DEFINE_FUNC(setNewScale, newScale, ScaleXY, onTypeChange);
+DEFINE_FUNC(setNewScale, newScale, ScaleXY, onNewScaleChange);
 DEFINE_FUNC(setAllowWrap, allowWrap, bool, onAllowWrapChange);
 DEFINE_FUNC(setAllowOverflow, allowOverflow, AllowXY, onAllowOverflowChange);
 DEFINE_FUNC(setMargin, margin, TBLR, onMarginChange);

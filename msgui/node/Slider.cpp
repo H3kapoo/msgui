@@ -26,7 +26,7 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
     setMesh(loaders::MeshLoader::loadQuad());
 
     color_ = Utils::hexToVec4("#f9f8f7a2");
-    layout_.setScale({200, 34});
+    layout_.setNewScale({200_px, 20_px});
 
     textViewPred_ = [](float val) -> std::string
     {
@@ -36,8 +36,7 @@ Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
     knobNode_ = std::make_shared<SliderKnob>("Knob");
     knobNode_->setColor(Utils::hexToVec4("#ee0000ff"));
     knobNode_->getLayout()
-        .setScale({34, common::ONE})
-        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL});
+        .setNewScale({20_px, 1.0_rel});
     append(knobNode_);
 
     enableViewValue(true);
@@ -81,7 +80,7 @@ void Slider::updateSliderValue()
         /* In scrollBar mode, the knob offset is not inverted since the values start
            increasing from top to bottom as opposed to values in Slider mode. */
         knobOffsetPerc_ = getType() == AbstractNode::NodeType::SLIDER
-            ? common::ONE - knobOffsetPerc_
+            ? 1.0f - knobOffsetPerc_
             : knobOffsetPerc_;
     }
     else if (layout_.type == utils::Layout::Type::HORIZONTAL)
@@ -90,7 +89,7 @@ void Slider::updateSliderValue()
             transform_.pos.x + knobHalf.x, transform_.pos.x + transform_.scale.x - knobHalf.x, common::ZERO, common::ONE);
     }
 
-    slideValue_ = Utils::remap(knobOffsetPerc_, common::ZERO, common::ONE, slideFrom_, slideTo_);
+    slideValue_ = Utils::remap(knobOffsetPerc_, 0.0f, 1.0f, slideFrom_, slideTo_);
     updateTextValue();
 
     events::Scroll evt{slideValue_};
@@ -157,35 +156,34 @@ void Slider::setupLayoutReloadables()
     layout_.onGridSpanRCChange = updateCb;
     layout_.onMinScaleChange = updateCb;
     layout_.onMaxScaleChange = updateCb;
-    layout_.onScaleChange = [this]
+    layout_.onNewScaleChange = [this]
     {
         auto& knobLayout = knobNode_->getLayout();
         if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            knobLayout.setScale({layout_.scale.y, common::ONE});
+            knobLayout.setNewScale({layout_.newScale.y, 1.0_rel});
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            knobLayout.setScale({common::ONE, layout_.scale.x});
+            knobLayout.setNewScale({1.0_rel, layout_.newScale.x});
         }
+        MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     };
 
     layout_.onTypeChange = [this]()
     {
         auto& knobLayout = knobNode_->getLayout();
-        if (layout_.type == utils::Layout::Type::HORIZONTAL &&
-            knobNode_->getLayout().scaleType.x == utils::Layout::ScaleType::REL)
+        if (layout_.type == utils::Layout::Type::VERTICAL &&
+            knobNode_->getLayout().newScale.x.type == utils::Layout::ScaleType::REL)
         {
-            std::swap(layout_.scale.x, layout_.scale.y);
-            std::swap(knobLayout.scale.x, knobLayout.scale.y);
-            std::swap(knobLayout.scaleType.x, knobLayout.scaleType.y);
+            std::swap(layout_.newScale.x, layout_.newScale.y);
+            std::swap(knobLayout.newScale.x, knobLayout.newScale.y);
         }
-        else if (layout_.type == utils::Layout::Type::VERTICAL &&
-            knobNode_->getLayout().scaleType.y == utils::Layout::ScaleType::REL)
+        else if (layout_.type == utils::Layout::Type::HORIZONTAL &&
+            knobNode_->getLayout().newScale.y.type == utils::Layout::ScaleType::REL)
         {
-            std::swap(layout_.scale.x, layout_.scale.y);
-            std::swap(knobLayout.scale.x, knobLayout.scale.y);
-            std::swap(knobLayout.scaleType.x, knobLayout.scaleType.y);
+            std::swap(layout_.newScale.x, layout_.newScale.y);
+            std::swap(knobLayout.newScale.x, knobLayout.newScale.y);
         }
 
         setSlideCurrentValue(slideValue_);
@@ -262,8 +260,7 @@ Slider& Slider::enableViewValue(const bool value)
         textLabel_->setFontSize(12);
         textLabel_->setEventTransparent(true);
         textLabel_->getLayout()
-            .setScaleType(utils::Layout::ScaleType::REL)
-            .setScale({common::ONE, common::ONE});
+            .setNewScale({1.0_rel, 1.0_rel});
 
         updateTextValue();
 
@@ -278,6 +275,13 @@ Slider& Slider::enableViewValue(const bool value)
     return *this;
 }
 
+Slider& Slider::enableDynamicKnob(const bool value)
+{
+    dynamicKnobEnabled_ = value;
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+    return *this;
+}
+
 glm::vec4 Slider::getColor() const { return color_; }
 
 glm::vec4 Slider::getBorderColor() const { return borderColor_; }
@@ -289,6 +293,8 @@ float Slider::getSlideTo() const { return slideTo_; }
 float Slider::getSlideCurrentValue() const { return slideValue_; }
 
 float Slider::getOffsetPerc() const { return knobOffsetPerc_; }
+
+bool Slider::isDyanmicKnobEnabled() const { return dynamicKnobEnabled_; }
 
 SliderKnobWPtr Slider::getKnob() { return knobNode_; }
 

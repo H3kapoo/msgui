@@ -156,6 +156,7 @@ struct Layout
     std::function<void()> onGridStartRCChange {[](){}};
     std::function<void()> onGridSpanRCChange {[](){}};
     std::function<void()> onScaleChange {[](){}};
+    std::function<void()> onNewScaleChange {[](){}};
     std::function<void()> onMinScaleChange {[](){}};
     std::function<void()> onMaxScaleChange {[](){}};
 

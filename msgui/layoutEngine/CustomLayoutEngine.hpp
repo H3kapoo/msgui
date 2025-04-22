@@ -36,11 +36,12 @@ private:
         const ScrollContribution& sc);
     glm::vec2 computeOverflow(const AbstractNodePtr& node, const ScrollContribution& sc);
     glm::vec2 computeNodeFreeSpace(const AbstractNodePtr& node, const ScrollContribution& sc);
-    glm::vec2 computeNodeInnerStartPos(const AbstractNodePtr& node);
+    glm::vec2 computeNodeInnerStartOffsets(const AbstractNodePtr& node);
+    glm::vec2 computeNoteOccupiedSpace(const AbstractNodePtr& node);
 
     /* Scrollbars */
     Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);
-    void handleScrollBarNode(const AbstractNodePtr& node);
+    void handlerSliderNode(const AbstractNodePtr& node);
 
 
 private:
