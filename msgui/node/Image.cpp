@@ -21,7 +21,7 @@ Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     /* Defaults */
     color_ = Utils::hexToVec4("#f9f8f7ff");
 
-    layout_.setScale({100, 100});
+    layout_.setNewScale({100_px, 100_px});
 }
 
 void Image::setShaderAttributes()

@@ -32,7 +32,7 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     disabledColor_ = Utils::hexToVec4("#bbbbbbff");
     currentColor_ = color_;
 
-    layout_.setScale({70, 34});
+    layout_.setNewScale({70_px, 34_px});
 
     setupLayoutReloadables();
 
@@ -171,7 +171,7 @@ Button& Button::setText(const std::string& text)
     {
         textLabel_ = Utils::make<TextLabel>(getName() + "_Label");
         textLabel_->setEventTransparent(true);
-        textLabel_->getLayout().setScaleType(utils::Layout::ScaleType::REL).setScale({1.0f, 1.0f});
+        textLabel_->getLayout().setNewScale({1_fill});
         append(textLabel_);
     }
 
@@ -198,7 +198,12 @@ Button& Button::setImagePath(const std::string& path)
         image_ = Utils::make<Image>(getName() + "_Image");
         image_->setImage(path);
         image_->setEventTransparent(true);
-        image_->getLayout().setScale({getLayout().scale.y, getLayout().scale.y});
+        image_->getLayout().setNewScale(
+            {
+                1_fill
+                // Layout::Scale{.value = layout_.newScale.y.value},
+                // Layout::Scale{.value = layout_.newScale.y.value}
+            });
 
         append(image_);
     }

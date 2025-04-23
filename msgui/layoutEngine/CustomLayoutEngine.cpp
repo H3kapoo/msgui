@@ -144,6 +144,10 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
            A FILL subNode scale is affected (shrunk) by it's parent padding and border scale and also by it's
            own margins.
 
+    Capping of subNode scale is done via setting a min/max value for each axis. This value DOES NOT take into account
+    the subNode's margins. Scroll nodes are unnaffected by those values as well as FIT/FILL scale types.
+
+
     Scroll subNode will also be calculated here as it is a subNode of a Box (in general) and calculating it here
     means one less loop to find them later on.
 */
@@ -170,6 +174,8 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
+        const glm::vec2& subNodeMin = subNodeLayout.minScale;
+        const glm::vec2& subNodeMax = subNodeLayout.maxScale;
         const bool isXPx = subNodeScale.x.type == Layout::ScaleType::PX;
         const bool isYPx = subNodeScale.y.type == Layout::ScaleType::PX;
         const bool isXRel = subNodeScale.x.type == Layout::ScaleType::REL;
@@ -206,19 +212,21 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         if (isYFill && !isLayoutHorizontal) { fillSubNodesCnt.y++; }
 
         /* PX nodes get scaled "as is". */
-        if (isXPx) { subNodeTrScale.x = subNodeScale.x.value; }
-        if (isYPx) { subNodeTrScale.y = subNodeScale.y.value; }
+        if (isXPx) { subNodeTrScale.x = std::clamp(subNodeScale.x.value, subNodeMin.x, subNodeMax.x); }
+        if (isYPx) { subNodeTrScale.y = std::clamp(subNodeScale.y.value, subNodeMin.y, subNodeMax.y); }
 
         /* REL subNode scale needs to account for subNode's magins (subtract that). */
         if (isXRel)
         {
             subNodeTrScale.x = (subNodeScale.x.value * usableNodeSpace.x)
                 - (subNodeMargin.left + subNodeMargin.right);
+            subNodeTrScale.x = std::clamp(subNodeTrScale.x, subNodeMin.x, subNodeMax.x);
         }
         if (isYRel)
         {
             subNodeTrScale.y = (subNodeScale.y.value * usableNodeSpace.y)
                 - (subNodeMargin.top + subNodeMargin.bot);
+            subNodeTrScale.y = std::clamp(subNodeTrScale.y, subNodeMin.y, subNodeMax.y);
         }
 
         /*
@@ -324,8 +332,11 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
     for (const AbstractNodePtr& subNode : subNodes)
     {
         SKIP_SCROLL_NODE(subNode);
-        const Layout::ScaleXY& subNodeScale = subNode->getLayout().newScale;
-        const Layout::TBLR& subNodeMargin = subNode->getLayout().margin;
+        const Layout& subNodeLayout = subNode->getLayout();
+        const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
+        const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
+        const glm::vec2& subNodeMinScale = subNodeLayout.minScale;
+        const glm::vec2& subNodeMaxScale = subNodeLayout.maxScale;
         const bool isXFit = subNodeScale.x.type == Layout::ScaleType::FIT;
         const bool isYFit = subNodeScale.y.type == Layout::ScaleType::FIT;
 
@@ -345,7 +356,8 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
             float scaleValue = 0;
             if (subNodeScale.x.type == Layout::ScaleType::PX)
             {
-                scaleValue = subNodeScale.x.value + subNodeMargin.left + subNodeMargin.right;
+                scaleValue = std::clamp(subNodeScale.x.value, subNodeMinScale.x, subNodeMaxScale.x)
+                    + subNodeMargin.left + subNodeMargin.right;
             }
             else if (subNodeScale.x.type == Layout::ScaleType::FIT)
             {
@@ -386,7 +398,8 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
             float scaleValue = 0;
             if (subNodeScale.y.type == Layout::ScaleType::PX)
             {
-                scaleValue = subNodeScale.y.value + subNodeMargin.top + subNodeMargin.bot;
+                scaleValue = std::clamp(subNodeScale.y.value, subNodeMinScale.y, subNodeMaxScale.y)
+                 + subNodeMargin.top + subNodeMargin.bot;
             }
             else if (subNodeScale.y.type == Layout::ScaleType::FIT)
             {
@@ -557,6 +570,12 @@ Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& 
             to the parent's position.
         */
         trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
+
+        /* Apply the shrink effect. This behaves like a "post processing" effect to emphasise clicking. */
+        trPos.x += subNodeLayout.shrink.x;
+        trPos.y += subNodeLayout.shrink.y;
+        trScale.x -= subNodeLayout.shrink.x * 2;
+        trScale.y -= subNodeLayout.shrink.y * 2;
 
         sliceEndIdx++;
     }
