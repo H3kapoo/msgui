@@ -28,12 +28,12 @@ int main()
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
         // .setAllowOverflow({true, false})
-        // .setAllowOverflow({true, true})
+        .setAllowOverflow({true, true})
         // .setPadding({5, 5, 5, 5})
-        // .setBorder({5, 10, 5, 10})
+        .setBorder({5, 10, 5, 10})
         // .setAllowWrap(true)
         // .setAlignChild(Layout::Align::TOP_LEFT)
-        // .setAlignChild(Layout::Align::CENTER)
+        .setAlignChild(Layout::Align::CENTER)
         // .setAlignChild(Layout::Align::BOTTOM_RIGHT)
         // .setType(Layout::Type::VERTICAL)
         // .setAlignChild(Layout::Align::CENTER)
@@ -44,28 +44,31 @@ int main()
         BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
         bigbox->setColor(Utils::randomRGB());
         bigbox->getLayout()
-            // .setMargin({5})
+            .setMargin({5})
             // .setAlignSelf(Layout::Align::CENTER)
             // .setNewScale({1_fill, 0.3_rel})
             // .setNewScale({0.5_rel, 1_fill})
             .setNewScale({60_px * Utils::randomInt(2, 5), 20_px * Utils::randomInt(2, 10)})
+            // .setNewScale({1_fill})
             ;
 
-            if (i == 3)
+            if (i == 10)
             {
                 bigbox->getLayout()
+                    // .setMargin({5})
                     // .setPadding({5})
-                    // .setBorder({5})
-                    // .setAllowOverflow({true, true})
+                    .setBorder({5})
+                    .setAllowOverflow({true, true})
                     .setType(Layout::Type::HORIZONTAL)
                     // .setAllowWrap(true)
-                    // .setNewScale({1_fit});
-                    .setNewScale({1_fill, 100_px});
+                    // .setNewScale({0.3_rel, 0.3_rel});
+                    // .setNewScale({0.3_rel, 200_px});
+                    // .setNewScale({1_fill, 100_px});
                     // .setNewScale({0.3_rel, 1_fit});
                     // .setNewScale({0.3_rel, 0.5_rel});
-                    // .setNewScale({1_fit, 500_px});
+                    .setNewScale({1_fit});
                     // .setNewScale({300_px, 500_px});
-                for (int32_t j = 1; j < 1; ++j)
+                for (int32_t j = 1; j < 5; ++j)
                 {
                     BoxPtr b = Utils::make<Box>("mybox 2" + std::to_string(j));
                     b->setColor(Utils::randomRGB());

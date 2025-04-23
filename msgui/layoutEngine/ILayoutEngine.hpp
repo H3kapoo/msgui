@@ -19,7 +19,7 @@ public:
     struct Void{};
 
 public:
-    virtual Result<glm::vec2> process(const AbstractNodePtr& node) = 0;
+    virtual Result<Void> process(const AbstractNodePtr& node) = 0;
 };
 
 using ILayoutEnginePtr = std::shared_ptr<ILayoutEngine>;

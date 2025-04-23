@@ -245,7 +245,7 @@ void WindowFrame::updateLayout()
 
         for (const auto& node : allFrameChildNodes_ | std::views::reverse)
         {
-            CustomLayoutEngine::Result<glm::vec2> result = layoutEngine_->process(node);
+            CustomLayoutEngine::Result<CustomLayoutEngine::Void> result= layoutEngine_->process(node);
             if (!result.error.empty())
             {
                 log_.errorLn("Error in layout calc while processing '%s': %s", node->getCName(), result.error.c_str());

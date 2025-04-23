@@ -16,7 +16,7 @@ public:
 
         @param node Node on which the layour calculations will be performed
      */
-    Result<glm::vec2> process(const AbstractNodePtr& node) override;
+    Result<Void> process(const AbstractNodePtr& node) override;
 
 private:
     struct ScrollContribution
@@ -36,8 +36,6 @@ private:
         const ScrollContribution& sc);
     glm::vec2 computeOverflow(const AbstractNodePtr& node, const ScrollContribution& sc);
     glm::vec2 computeNodeFreeSpace(const AbstractNodePtr& node, const ScrollContribution& sc);
-    glm::vec2 computeNodeInnerStartOffsets(const AbstractNodePtr& node);
-    glm::vec2 computeNoteOccupiedSpace(const AbstractNodePtr& node);
 
     /* Scrollbars */
     Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);
