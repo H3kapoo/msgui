@@ -72,7 +72,7 @@ void Button::setupLayoutReloadables()
     layout_.onBorderRadiusChange = updateCb;
     layout_.onAlignSelfChange = updateCb;
     layout_.onScaleTypeChange = updateCb;
-    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridPosRCChange = updateCb;
     layout_.onGridSpanRCChange = updateCb;
     layout_.onScaleChange = updateCb;
     layout_.onMinScaleChange = updateCb;
@@ -198,12 +198,7 @@ Button& Button::setImagePath(const std::string& path)
         image_ = Utils::make<Image>(getName() + "_Image");
         image_->setImage(path);
         image_->setEventTransparent(true);
-        image_->getLayout().setNewScale(
-            {
-                1_fill
-                // Layout::Scale{.value = layout_.newScale.y.value},
-                // Layout::Scale{.value = layout_.newScale.y.value}
-            });
+        image_->getLayout().setNewScale({1_fill});
 
         append(image_);
     }

@@ -177,7 +177,7 @@ void Box::setupReloadables()
     layout_.onBorderRadiusChange = updateCb;
     layout_.onAlignSelfChange = updateCb;
     layout_.onScaleTypeChange = updateCb;
-    layout_.onGridStartRCChange = updateCb;
+    layout_.onGridPosRCChange = updateCb;
     layout_.onGridSpanRCChange = updateCb;
     layout_.onScaleChange = updateCb;
     layout_.onMinScaleChange = updateCb;

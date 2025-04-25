@@ -32,7 +32,7 @@ struct Layout
     /* Defines how nodes will be scaled. Pixel values (PX) are exactly what you think they are while
        relative values (REL 0 <= val <= 1) defines the node scale to be a fractional part of the parent's
        total scale (minus padding + borders of parent). */
-    enum ScaleType : uint8_t { PX, REL, FIT, FILL};
+    enum ScaleType : uint8_t { PX, REL, FIT, FILL, /* Only for Grid*/ FRAC};
 
     /* Scale type structure holding each axis. */
     struct ScaleTypeXY { ScaleType x; ScaleType y; };
@@ -49,9 +49,8 @@ struct Layout
         /* Note: ABS is the same as before but FRAC (1 <= FRAC <= max_int) here refers to a fractional
            part just like in the CSS web grid mechanism. Parent padding and border sizes are taken into
            account when calculating fract parts. */
-        enum Type { ABS, FRAC };
 
-        Type type{Type::ABS};
+        ScaleType type{ScaleType::PX};
         int32_t value{0};
         int32_t computedStart{0};
     };
@@ -96,7 +95,7 @@ struct Layout
     Layout& setScaleType(const ScaleTypeXY valueIn);
     Layout& setScaleType(const ScaleType valueIn);
     Layout& setGridDistrib(const GridDistribRC valueIn);
-    Layout& setGridStartRC(const GridRC valueIn);
+    Layout& setGridPosRC(const GridRC valueIn);
     Layout& setGridSpanRC(const GridRC valueIn);
     Layout& setScale(const glm::vec2 valueIn);
     Layout& setScale(const float valueIn);
@@ -117,25 +116,25 @@ struct Layout
     Layout& setNewScale(const ScaleXY valueIn);
     Layout& setNewScale(const Scale valueIn);
 
-    AllowXY allowOverflow     {false};
-    bool allowWrap            {false};
-    Type type                 {Type::HORIZONTAL};
-    TBLR margin               {TBLR{0}};
-    TBLR padding              {TBLR{0}};
-    TBLR border               {TBLR{0}};
-    TBLR borderRadius         {TBLR{0}};
-    Align alignSelf           {Align::TOP};
-    AlignXY alignChild        {Align::LEFT, Align::TOP};
-    Spacing spacing           {Spacing::TIGHT};
-    ScaleTypeXY scaleType     {ScaleType::PX, ScaleType::PX};
-    GridDistribRC gridDistrib {DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}},
-                               DistribVec{GridDistrib{GridDistrib::Type::FRAC, 1}}};
-    GridRC gridStartRC        {0, 0};
-    GridRC gridSpanRC         {1, 1};
-    glm::vec2 scale           {0, 0};
-    glm::vec2 minScale        {0, 0};
-    glm::vec2 maxScale        {10'000, 10'000};
-    glm::vec2 shrink          {0, 0};
+    AllowXY allowOverflow       {false};
+    bool allowWrap              {false};
+    Type type                   {Type::HORIZONTAL};
+    TBLR margin                 {TBLR{0}};
+    TBLR padding                {TBLR{0}};
+    TBLR border                 {TBLR{0}};
+    TBLR borderRadius           {TBLR{0}};
+    Align alignSelf             {Align::TOP};
+    AlignXY alignChild          {Align::LEFT, Align::TOP};
+    Spacing spacing             {Spacing::TIGHT};
+    ScaleTypeXY scaleType       {ScaleType::PX, ScaleType::PX};
+    GridDistribRC gridDistribRC {DistribVec{GridDistrib{ScaleType::FRAC, 1}},
+                                 DistribVec{GridDistrib{ScaleType::FRAC, 1}}};
+    GridRC gridPosRC            {0, 0};
+    GridRC gridSpanRC           {1, 1};
+    glm::vec2 scale             {0, 0};
+    glm::vec2 minScale          {0, 0};
+    glm::vec2 maxScale          {10'000, 10'000};
+    glm::vec2 shrink            {0, 0};
 
     ScaleXY newScale{};
 
@@ -153,7 +152,7 @@ struct Layout
     std::function<void()> onSpacingChange {[](){}};
     std::function<void()> onScaleTypeChange {[](){}};
     std::function<void()> onGridDistribChange {[](){}};
-    std::function<void()> onGridStartRCChange {[](){}};
+    std::function<void()> onGridPosRCChange {[](){}};
     std::function<void()> onGridSpanRCChange {[](){}};
     std::function<void()> onScaleChange {[](){}};
     std::function<void()> onNewScaleChange {[](){}};
@@ -175,6 +174,8 @@ namespace msgui
     Layout::Scale operator"" _fit(unsigned long long);
     Layout::Scale operator"" _rel(long double value);
     Layout::Scale operator"" _px(unsigned long long value);
+    Layout::GridDistrib operator"" _gpx(unsigned long long value);
+    Layout::GridDistrib operator"" _fr(unsigned long long value);
     
     inline Layout::Scale operator*(Layout::Scale lhs, float rhs)
     {

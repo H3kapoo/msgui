@@ -35,16 +35,16 @@ Layout& Layout::setNewScale(const Scale valueIn)
 //TO BE INVESTIGATED IF NEEDED STILL
 Layout& Layout::setGridDistrib(const GridDistribRC valueIn)
 {
-    gridDistrib = valueIn;
+    gridDistribRC = valueIn;
     onGridDistribChange();
     return *this;
 }
 
 //TO BE INVESTIGATED IF NEEDED STILL
-Layout& Layout::setGridStartRC(const GridRC valueIn)
+Layout& Layout::setGridPosRC(const GridRC valueIn)
 {
-    gridStartRC = valueIn;
-    onGridStartRCChange();
+    gridPosRC = valueIn;
+    onGridPosRCChange();
     return *this;
 }
 
@@ -130,6 +130,19 @@ Layout::Scale operator"" _rel(long double value)
 
 Layout::Scale operator"" _px(unsigned long long value)
 {
+    /* Loss of precision justified. */
     return {.type = Layout::ScaleType::PX, .value = (float)value};
+}
+
+Layout::GridDistrib operator"" _gpx(unsigned long long value)
+{
+    /* Loss of precision justified. */
+    return {.type = Layout::ScaleType::PX, .value = (int32_t)value};
+}
+
+Layout::GridDistrib operator"" _fr(unsigned long long value)
+{
+    /* Loss of precision justified. */
+    return {.type = Layout::ScaleType::FRAC, .value = (int32_t)value};
 }
 } // msgui

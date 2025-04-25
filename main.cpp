@@ -1,5 +1,3 @@
-#include <string>
-
 #include "msgui/Application.hpp"
 #include "msgui/Logger.hpp"
 #include "msgui/Utils.hpp"
@@ -28,37 +26,28 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
-        .setType(Layout::Type::VERTICAL)
-        .setAllowOverflow({true, true})
+        .setType(Layout::Type::GRID)
+        // .setAllowOverflow({true, true})
+        .setGridDistrib({{1_fr, 1_fr, 2_fr}, {1_fr, 1_fr}})
         ;
 
-    for (int32_t i = 0; i < 10; ++i)
+    for (int32_t i = 0; i < 3; ++i)
     {
-        ButtonPtr bigbox = Utils::make<Button>("mybox" + std::to_string(i));
-        bigbox->getLayout()
-            .setMargin({5})
-            .setPadding({4})
-            .setBorder({1})
-            // .setNewScale({1_fit})
-            .setNewScale({230_px , 60_px})
+        for (int32_t j = 0; j < 2; ++j)
+        {
+            BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
+            bigbox->getLayout()
+                .setGridPosRC({i, j})
+                // .setAlignSelf(Layout::CENTER_BOTTOM)
+                // .setNewScale({60_px})
+                .setNewScale({1_fill})
             ;
-
-        bigbox->setColor(Utils::randomRGB())
-            .setBorderColor(Utils::COLOR_BLACK)
-            .setImagePath("assets/textures/awesomeface.png")
-            .setText(bigbox->getName())
-        ;
-
-        bigbox->getEvents().listen<events::LMBRelease>(
-            [mainLogger, &rootBox, ref = Utils::ref<Button>(bigbox)](const auto&)
-            {
-                rootBox->remove(ref.lock()->getId());
-            });
-
-        rootBox->append(bigbox);
+    
+            bigbox->setColor(Utils::randomRGB());
+    
+            rootBox->append(bigbox);
+        }
     }
-
-
 
     // rootBox->append(bigbox);
     // rootBox->printTree();
