@@ -107,7 +107,7 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     /* Handling of grid layouts */
     else if (isLayoutGrid)
     {
-        const Result<Void> gridResult = computeGridLayout(node, sc.value);
+        const Result<Void> gridResult = computeGridLayout(node);
         RETURN_ON_ERROR(gridResult, Void);
     }
     else
@@ -815,80 +815,41 @@ glm::vec2 CustomLayoutEngine::computeOverflow(const AbstractNodePtr& node, const
     Grid cells CANNOT produce overflow and if one subNode is bigger than the scale of it's cell, that element
     will leak into neighbouring cells. It is recommended to use REL or FILL scale types insidead of PX.
 */
-Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node, const ScrollContribution& sc)
+Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node)
 {
     /* !!!!!!!!!This part shall be done only if the grid data is dirty, not each time */
     /* Compute how much a FRAC part equates to. */
+    RETURN_ON_ERROR(updateGridFracPart(node), Void);
+
+    /* Position and scale the subNodes. */
     const Layout& nodeLayout = node->getLayout();
     const Layout::TBLR& nodeBorder = nodeLayout.border;
     const Layout::TBLR& nodePadding = nodeLayout.padding;
+    const glm::vec3& nodeTrScale = node->getTransform().scale;
     const glm::vec2 nodeScale = {
-        node->getTransform().scale.x
-            + nodeBorder.left + nodeBorder.right
-            + nodePadding.left + nodePadding.right,
-        node->getTransform().scale.y
-            + nodeBorder.top + nodeBorder.bot
-            + nodePadding.top + nodePadding.bot,
+        nodeTrScale.x
+            - nodeBorder.right
+            - nodePadding.right,
+        nodeTrScale.y
+            - nodeBorder.bot
+            - nodePadding.bot,
     };
 
-    Layout::GridDistribRC gridDistribRC = node->getLayout().gridDistribRC;
-    if (gridDistribRC.rows.size() <= 0 || gridDistribRC.cols.size() <= 0)
-    {
-        return Result<Void>{.error = "Invalid grid distribution. One of the axis has no distribution defined!"};
-    }
-
-    glm::ivec2 totalPx{0, 0};
-    glm::ivec2 totalFrac{0, 0};
-    for (const Layout::GridDistrib& gd : gridDistribRC.cols)
-    {
-        if (gd.type == Layout::ScaleType::FRAC) { totalFrac.x += gd.value; }
-        if (gd.type == Layout::ScaleType::PX) { totalPx.x += gd.value; }
-    }
-
-    for (const Layout::GridDistrib& gd : gridDistribRC.rows)
-    {
-        if (gd.type == Layout::ScaleType::FRAC) { totalFrac.y += gd.value; }
-        if (gd.type == Layout::ScaleType::PX) { totalPx.y += gd.value; }
-    }
-
-    /*
-        A fractionary part is calculated by the available node scale minus the px subNodes
-        scale then divided by the frac sum.
-    */
-    totalFrac.x = std::max(1, totalFrac.x); /* Cap just in case of divide by zero. */
-    totalFrac.y = std::max(1, totalFrac.y);
-    const float fracWidth = (nodeScale.x - totalPx.x) / totalFrac.x;
-    const float fracHeight = (nodeScale.y - totalPx.y) / totalFrac.y;
-
-    /* !!!!!!!!!This part shall be done only if the grid data is dirty, not each time */
-    /* Compute and cache the locations where the grid boundaries will start and end. */
-    glm::vec2 currentPos{
-        nodeBorder.left + nodePadding.left,
-        nodeBorder.top + nodePadding.top
-    };
-    for (Layout::GridDistrib& gd : gridDistribRC.cols)
-    {
-        gd.computedStart = currentPos.x;
-        if (gd.type == Layout::ScaleType::FRAC) { currentPos.x += gd.value * fracWidth; }
-        if (gd.type == Layout::ScaleType::PX) { currentPos.x += gd.value; }
-    }
-
-    for (Layout::GridDistrib& gd : gridDistribRC.rows)
-    {
-        gd.computedStart = currentPos.y;
-        if (gd.type == Layout::ScaleType::FRAC) { currentPos.y += gd.value * fracHeight; }
-        if (gd.type == Layout::ScaleType::PX) { currentPos.y += gd.value; }
-    }
-
-    /* Position and scale the subNodes. */
+    const Layout::GridDistribRC& gridDistribRC = node->getLayout().gridDistribRC;
     const int32_t rowCnt = gridDistribRC.rows.size();
     const int32_t colCnt = gridDistribRC.cols.size();
+    if (rowCnt <= 0 || colCnt <= 0)
+    {
+        return Result<Void>{.error = "Grid layout need to have at least one row and column defined!"};
+    }
+
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
         SKIP_SCROLL_NODE(subNode);
 
         const Layout& subNodeLayout = subNode->getLayout();
+        const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
         const Layout::GridRC& subNodeGridPos = subNodeLayout.gridPosRC;
         const Layout::GridRC& subNodeGridSpan = subNodeLayout.gridSpanRC;
         glm::vec3& subNodeTrPos = subNode->getTransform().pos;
@@ -909,21 +870,25 @@ Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node, 
                 " Min 0 Max {} Actual {}", subNode->getName(), rowCnt - 1, subNodeGridPos.row) };
         }
 
-        //todo: add node pos, padding, borders, margins adjustment
-        subNodeTrPos.x = gridDistribRC.cols[subNodeGridPos.col].computedStart;
-        subNodeTrPos.y = gridDistribRC.rows[subNodeGridPos.row].computedStart;
-
-        /* Scale the subNodes according to their scaleType. */
         const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
-        const glm::vec2 gridPosStart{
-            gridDistribRC.cols[subNodeGridPos.col].computedStart, // add margins?
+        glm::vec2 gridPosStart{
+            gridDistribRC.cols[subNodeGridPos.col].computedStart,
             gridDistribRC.rows[subNodeGridPos.row].computedStart
         };
-        const glm::vec2 gridPosEnd{
+        glm::vec2 gridPosEnd{
             subNodeGridPos.col + 1 < colCnt ? gridDistribRC.cols[subNodeGridPos.col + 1].computedStart : nodeScale.x,
             subNodeGridPos.row + 1 < rowCnt ? gridDistribRC.rows[subNodeGridPos.row + 1].computedStart : nodeScale.y,
         };
+
+        /* Adjust for subNode margins. */
+        gridPosStart.x += subNodeMargin.left;
+        gridPosStart.y += subNodeMargin.top;
+        gridPosEnd.x -= subNodeMargin.right;
+        gridPosEnd.y -= subNodeMargin.bot;
+
         const glm::vec2 cellSize{gridPosEnd - gridPosStart};
+
+        /* Scale the subNodes according to their scaleType. */
         if (subNodeScale.x.type == Layout::ScaleType::PX)
         {
             subNodeTrScale.x = subNodeScale.x.value;
@@ -960,50 +925,167 @@ Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node, 
                 " subNode '{}' y axis is not one of those!", subNode->getName())};
         }
 
+        /* Position subNodes. */
+        subNodeTrPos.x = gridPosStart.x;
+        subNodeTrPos.y = gridPosStart.y;
+
         /* Do self alignment. */
-        const Layout::Align& subNodeAlign = subNodeLayout.alignSelf;
-        switch (subNodeAlign)
-        {
-            case Layout::TOP:
-            case Layout::LEFT:
-            case Layout::BOTTOM:
-            case Layout::RIGHT:
-            case Layout::TOP_LEFT:
-                /* Default it to top-left aka do nothing. */
-                break;
-            case Layout::CENTER:
-                subNodeTrPos.x += cellSize.x * 0.5f - subNodeTrScale.x * 0.5f;
-                subNodeTrPos.y += cellSize.y * 0.5f - subNodeTrScale.y * 0.5f;
-                break;
-            case Layout::TOP_RIGHT:
-                subNodeTrPos.x += cellSize.x * 0.5f;
-                break;
-            case Layout::CENTER_LEFT:
-                subNodeTrPos.y += cellSize.y * 0.5f - subNodeTrScale.y * 0.5f;
-                break;
-            case Layout::CENTER_RIGHT:
-                subNodeTrPos.x += cellSize.x * 0.5f;
-                subNodeTrPos.y += cellSize.y * 0.5f - subNodeTrScale.y * 0.5f;
-                break;
-            case Layout::CENTER_TOP:
-                subNodeTrPos.x += cellSize.x * 0.5f - subNodeTrScale.x * 0.5f;
-                break;
-            case Layout::CENTER_BOTTOM:
-                subNodeTrPos.x += cellSize.x * 0.5f - subNodeTrScale.x * 0.5f;
-                subNodeTrPos.y += cellSize.y * 0.5f;
-                break;
-            case Layout::BOTTOM_LEFT:
-                subNodeTrPos.y += cellSize.y * 0.5f;
-                break;
-            case Layout::BOTTOM_RIGHT:
-                subNodeTrPos.x += cellSize.x * 0.5f;
-                subNodeTrPos.y += cellSize.y * 0.5f;
-                break;
-            }
+        RETURN_ON_ERROR(selfAlignGridSubNode(subNode, cellSize), Void);
     }
 
     return Result<Void>{};
 }
+
+/*
+    Function calculates and updates the "computedPos" filed of the grid layout distribution in order
+    for the position&scale algorithm to know where to start placing the subNodes and with what scale.
+    Grid distribution scale type values can only be PX or FR (fractional).
+    Node's padding and borders influence (aka shrinks) the usable space for distributing the grid cells.
+*/
+Result<Void> CustomLayoutEngine::updateGridFracPart(const AbstractNodePtr& node)
+{
+    const Layout& nodeLayout = node->getLayout();
+    const Layout::TBLR& nodeBorder = nodeLayout.border;
+    const Layout::TBLR& nodePadding = nodeLayout.padding;
+    const glm::vec2 nodeScale = {
+        node->getTransform().scale.x
+            - nodeBorder.left - nodeBorder.right
+            - nodePadding.left - nodePadding.right,
+        node->getTransform().scale.y
+            - nodeBorder.top - nodeBorder.bot
+            - nodePadding.top - nodePadding.bot,
+    };
+
+    Layout::GridDistribRC& gridDistribRC = node->getLayout().gridDistribRC;
+    if (gridDistribRC.rows.size() <= 0 || gridDistribRC.cols.size() <= 0)
+    {
+        return Result<Void>{
+            .error = "Invalid grid distribution. One of the axis has no distribution defined!"
+        };
+    }
+
+    glm::ivec2 totalPx{0, 0};
+    glm::ivec2 totalFrac{0, 0};
+    for (const Layout::GridDistrib& gd : gridDistribRC.cols)
+    {
+        if (gd.type == Layout::ScaleType::FRAC) { totalFrac.x += gd.value; }
+        if (gd.type == Layout::ScaleType::PX) { totalPx.x += gd.value; }
+    }
+
+    for (const Layout::GridDistrib& gd : gridDistribRC.rows)
+    {
+        if (gd.type == Layout::ScaleType::FRAC) { totalFrac.y += gd.value; }
+        if (gd.type == Layout::ScaleType::PX) { totalPx.y += gd.value; }
+    }
+
+    /*
+        A fractionary part is calculated by the available node scale minus the px subNodes
+        scale then divided by the frac sum.
+    */
+    totalFrac.x = std::max(1, totalFrac.x); /* Cap just in case of divide by zero. */
+    totalFrac.y = std::max(1, totalFrac.y);
+    const float fracWidth = (nodeScale.x - totalPx.x) / totalFrac.x;
+    const float fracHeight = (nodeScale.y - totalPx.y) / totalFrac.y;
+
+    /* Compute and cache the locations where the grid boundaries will start and end. */
+    glm::vec2 currentPos{
+        nodeBorder.left + nodePadding.left,
+        nodeBorder.top + nodePadding.top
+    };
+    for (Layout::GridDistrib& gd : gridDistribRC.cols)
+    {
+        gd.computedStart = currentPos.x;
+        if (gd.type == Layout::ScaleType::FRAC) { currentPos.x += gd.value * fracWidth; }
+        else if (gd.type == Layout::ScaleType::PX) { currentPos.x += gd.value; }
+        else
+        {
+            return Result<Void>{
+                .error = std::format("Grid distribution scale type for node '{}' cannot be other"
+                    " than PX/FR on X axis", node->getName())
+            };
+        }
+    }
+
+    for (Layout::GridDistrib& gd : gridDistribRC.rows)
+    {
+        gd.computedStart = currentPos.y;
+        if (gd.type == Layout::ScaleType::FRAC) { currentPos.y += gd.value * fracHeight; }
+        else if (gd.type == Layout::ScaleType::PX) { currentPos.y += gd.value; }
+        else
+        {
+            return Result<Void>{
+                .error = std::format("Grid distribution scale type for node '{}' cannot be other"
+                    " than PX/FR on X axis", node->getName())
+            };
+        }
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function works in the exact same way as alignSubnodes just that in this case it aligns the nodes
+    relative to the grid cells they are in.
+    Possible positions to align to are:
+        TOP_LEFT, TOP_RIGHT, CENTER_LEFT, CENTER_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT.
+    Alignment should take place only if the subNode has enough space in it's grid cell(s). If the
+    subNode exceeds the bounds of it's cell(s) then the self align will not take place.
+*/
+Result<Void> CustomLayoutEngine::selfAlignGridSubNode(const AbstractNodePtr& node, const glm::vec2& cellSize)
+{
+    const Layout& layout = node->getLayout();
+    const Layout::Align& align = layout.alignSelf;
+    glm::vec3& nodeTrPos = node->getTransform().pos;
+    const glm::vec3& nodeTrScale = node->getTransform().scale;
+
+    /* Not an error, but we shouldn't do anything. */
+    if (nodeTrScale.x >= cellSize.x || nodeTrScale.y >= cellSize.y)
+    {
+        return Result<Void>{};
+    }
+
+    switch (align)
+    {
+        case Layout::TOP:
+        case Layout::LEFT:
+        case Layout::BOTTOM:
+        case Layout::RIGHT:
+        case Layout::TOP_LEFT:
+            /* Default it to top-left aka do nothing. */
+            break;
+        case Layout::CENTER:
+            nodeTrPos.x += cellSize.x * 0.5f - nodeTrScale.x * 0.5f;
+            nodeTrPos.y += cellSize.y * 0.5f - nodeTrScale.y * 0.5f;
+            break;
+        case Layout::TOP_RIGHT:
+            nodeTrPos.x += cellSize.x * 0.5f;
+            break;
+        case Layout::CENTER_LEFT:
+            nodeTrPos.y += cellSize.y * 0.5f - nodeTrScale.y * 0.5f;
+            break;
+        case Layout::CENTER_RIGHT:
+            nodeTrPos.x += cellSize.x * 0.5f;
+            nodeTrPos.y += cellSize.y * 0.5f - nodeTrScale.y * 0.5f;
+            break;
+        case Layout::CENTER_TOP:
+            nodeTrPos.x += cellSize.x * 0.5f - nodeTrScale.x * 0.5f;
+            break;
+        case Layout::CENTER_BOTTOM:
+            nodeTrPos.x += cellSize.x * 0.5f - nodeTrScale.x * 0.5f;
+            nodeTrPos.y += cellSize.y * 0.5f;
+            break;
+        case Layout::BOTTOM_LEFT:
+            nodeTrPos.y += cellSize.y * 0.5f;
+            break;
+        case Layout::BOTTOM_RIGHT:
+            nodeTrPos.x += cellSize.x * 0.5f;
+            nodeTrPos.y += cellSize.y * 0.5f;
+            break;
+        }
+
+    return Result<Void>{};
+}
+
 
 /*
     Function calculates two things:

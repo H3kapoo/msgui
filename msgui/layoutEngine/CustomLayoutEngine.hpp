@@ -35,7 +35,9 @@ private:
     void applyOverflowAndScrollOffsets(const AbstractNodePtr& node, const glm::vec2 overflow,
         const ScrollContribution& sc);
     glm::vec2 computeOverflow(const AbstractNodePtr& node, const ScrollContribution& sc);
-    Result<Void> computeGridLayout(const AbstractNodePtr& node, const ScrollContribution& sc);
+    Result<Void> computeGridLayout(const AbstractNodePtr& node);
+    Result<Void> updateGridFracPart(const AbstractNodePtr& node);
+    Result<Void> selfAlignGridSubNode(const AbstractNodePtr& node, const glm::vec2& cellSize);
 
     /* Scrollbars */
     Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);

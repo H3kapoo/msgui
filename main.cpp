@@ -26,21 +26,26 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
     rootBox->getLayout()
+        // .setPadding({5, 10, 5, 10})
+        // .setBorder({4})
         .setType(Layout::Type::GRID)
         // .setAllowOverflow({true, true})
-        .setGridDistrib({{1_fr, 1_fr, 2_fr}, {1_fr, 1_fr}})
+        .setGridDistrib({{1_fr, 1_fr}, {1_fr, 1_fr}})
         ;
 
-    for (int32_t i = 0; i < 3; ++i)
+    for (int32_t i = 0; i < 2; ++i)
     {
         for (int32_t j = 0; j < 2; ++j)
         {
             BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
             bigbox->getLayout()
                 .setGridPosRC({i, j})
+                .setMargin({5})
                 // .setAlignSelf(Layout::CENTER_BOTTOM)
-                // .setNewScale({60_px})
+                .setAlignSelf(Layout::CENTER)
                 .setNewScale({1_fill})
+                // .setNewScale({100_px})
+                // .setNewScale({1_fill})
             ;
     
             bigbox->setColor(Utils::randomRGB());
