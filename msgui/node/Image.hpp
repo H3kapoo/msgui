@@ -20,8 +20,6 @@ public:
 private:
     void setShaderAttributes() override;
 
-    void setupLayoutReloadables();
-
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};

@@ -40,7 +40,6 @@ protected:
     Button& operator=(Button&&) = delete;
 
     void setShaderAttributes() override;
-    void setupLayoutReloadables();
     void onMouseClick(const events::LMBClick& evt);
     void onMouseRelease(const events::LMBRelease& evt);
     void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered& evt);

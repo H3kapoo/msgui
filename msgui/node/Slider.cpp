@@ -143,19 +143,6 @@ void Slider::onMouseDrag(const events::LMBDrag&)
 
 void Slider::setupLayoutReloadables()
 {
-    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME; };
-
-    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
-    layout_.onMarginChange = updateCb;
-    layout_.onPaddingChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onBorderRadiusChange = updateCb;
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onGridPosRCChange = updateCb;
-    layout_.onGridSpanRCChange = updateCb;
-    layout_.onMinScaleChange = updateCb;
-    layout_.onMaxScaleChange = updateCb;
     layout_.onNewScaleChange = [this]
     {
         auto& knobLayout = knobNode_->getLayout();

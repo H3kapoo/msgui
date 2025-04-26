@@ -11,7 +11,9 @@ AbstractNode::AbstractNode(const std::string& name, const NodeType nodeType)
         : id_(genetateNextId())
         , name_(name)
         , nodeType_(nodeType)
-{}
+{
+    setupReloadables();
+}
 
 void AbstractNode::appendAt(const std::shared_ptr<AbstractNode>& node, const int32_t idx)
 {
@@ -317,10 +319,6 @@ bool AbstractNode::isParented() const { return isParented_; }
 
 bool AbstractNode::isEventTransparent() const { return isEventTransparent_; };
 
-void AbstractNode::onMouseDragNotify() {}
-
-void AbstractNode::onWindowResizeNotify() {}
-
 uint32_t AbstractNode::genetateNextId() const
 {
     static uint32_t id = 0;
@@ -360,5 +358,23 @@ void AbstractNode::resetStatesRecursively(AbstractNodePtr& node)
     {
         resetStatesRecursively(ch);
     }
+}
+
+void AbstractNode::setupReloadables()
+{
+    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
+
+    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
+    layout_.onMarginChange = updateCb;
+    layout_.onPaddingChange = updateCb;
+    layout_.onBorderChange = updateCb;
+    layout_.onBorderRadiusChange = updateCb;
+    layout_.onAlignSelfChange = updateCb;
+    layout_.onScaleTypeChange = updateCb;
+    layout_.onGridPosRCChange = updateCb;
+    layout_.onGridSpanRCChange = updateCb;
+    layout_.onScaleChange = updateCb;
+    layout_.onMinScaleChange = updateCb;
+    layout_.onMaxScaleChange = updateCb;
 }
 } // namespace msgui

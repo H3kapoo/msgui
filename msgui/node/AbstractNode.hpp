@@ -17,7 +17,9 @@ namespace msgui
 {
 using namespace layoutengine;
 
-/* Only some nodes are privilaged enough to add remove/nodes from the user's perspective. */
+/*  Only some nodes are privilaged enough to add remove/nodes from the user's perspective.
+    Add this in your own class to permit adding/removing nodes from outside.
+*/
 #define ABSTRACT_NODE_ALLOW_APPEND_REMOVE\
     using AbstractNode::appendAt;\
     using AbstractNode::append;\
@@ -61,7 +63,7 @@ public:
     explicit AbstractNode(const std::string& name, const NodeType nodeType = NodeType::COMMON);
     virtual ~AbstractNode() = default;
 
-protected: /* Only some nodes are privilaged enough to add remove/nodes from the user's perspective. */
+protected:
     /**
         Appends node at the specified zero based index.
 
@@ -191,16 +193,17 @@ protected: /* Only some nodes are privilaged enough to add remove/nodes from the
 
 public:
     /**
+        Each node can have it's own shader attributes and this function allows to set them per node.
+    */
+    virtual void setShaderAttributes() = 0;
+
+    /**
         Prints a tree view of the current's node children.
 
         @param currentDepth Specifies at what depth should the printing start from the parent
      */
     void printTree(uint32_t currentDepth = 1);
 
-    /**
-        Each node can have it's own shader attributes and this function allows to set them per node.
-    */
-    virtual void setShaderAttributes() = 0;
 
     /* Setters */
     void setType(const NodeType type);
@@ -228,17 +231,19 @@ public:
 
 private: // friend
     friend WindowFrame;
-
     AbstractNode* getParentRaw();
-
-    /* Event consumers */
-    virtual void onMouseDragNotify();
-    virtual void onWindowResizeNotify();
 
 private:
     uint32_t genetateNextId() const;
     void resetNodeToDefaults(AbstractNodePtr& node);
     void resetStatesRecursively(AbstractNodePtr& node);
+
+    /**
+        Each node can have it's own behavior when a layout value changes and this function allows to set
+        callbacks per node for each layout value. Default behavior is to make layout dirty and request
+        another render frame.
+    */
+    void setupReloadables();
 
 private:
     /* Nullable section and we shall be careful with them */

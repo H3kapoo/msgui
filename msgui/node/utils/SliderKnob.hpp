@@ -28,8 +28,6 @@ private:
     void onMouseRelease(const events::LMBRelease& evt);
     void onMouseDrag(const events::LMBDrag& evt);
 
-    void setupLayoutReloadables();
-
 private:
     glm::vec4 color_{Utils::hexToVec4("#000000ff")};
     glm::vec4 borderColor_{Utils::hexToVec4("#ff0000ff")};

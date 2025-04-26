@@ -34,8 +34,6 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 
     layout_.setNewScale({70_px, 34_px});
 
-    setupLayoutReloadables();
-
     /* Register only the events you need. */
     getEvents().listen<events::LMBClick, events::InputChannel>(
         std::bind(&Button::onMouseClick, this, std::placeholders::_1));
@@ -59,24 +57,6 @@ void Button::setShaderAttributes()
     shader->setVec4f("uBorderSize", layout_.border);
     shader->setVec4f("uBorderRadii", layout_.borderRadius);
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
-}
-
-void Button::setupLayoutReloadables()
-{
-    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
-
-    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
-    layout_.onMarginChange = updateCb;
-    layout_.onPaddingChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onBorderRadiusChange = updateCb;
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onGridPosRCChange = updateCb;
-    layout_.onGridSpanRCChange = updateCb;
-    layout_.onScaleChange = updateCb;
-    layout_.onMinScaleChange = updateCb;
-    layout_.onMaxScaleChange = updateCb;
 }
 
 void Button::onMouseClick(const events::LMBClick&)

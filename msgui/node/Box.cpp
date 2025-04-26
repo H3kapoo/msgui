@@ -167,21 +167,6 @@ void Box::setOverflow(const glm::ivec2& overflow)
 
 void Box::setupReloadables()
 {
-    auto updateCb = [this](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
-
-    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
-    layout_.onAlignChildChange = updateCb;
-    layout_.onMarginChange = updateCb;
-    layout_.onPaddingChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onBorderRadiusChange = updateCb;
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onGridPosRCChange = updateCb;
-    layout_.onGridSpanRCChange = updateCb;
-    layout_.onScaleChange = updateCb;
-    layout_.onMinScaleChange = updateCb;
-    layout_.onMaxScaleChange = updateCb;
     layout_.onAllowOverflowChange = [this]()
     {
         if (layout_.allowOverflow.x && !hScrollBar_)
