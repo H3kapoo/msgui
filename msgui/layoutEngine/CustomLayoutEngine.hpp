@@ -43,6 +43,9 @@ private:
     Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);
     void handlerSliderNode(const AbstractNodePtr& node);
 
+    /* BoxDivider */
+    Result<Void> handleBoxDividerNode(const AbstractNodePtr& node);
+
 
 private:
     Logger log_{"CustomLayoutEngine"};

@@ -3,6 +3,7 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/node/utils/BoxDividerSep.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
 #include <cmath>
 #include <format>
@@ -80,6 +81,13 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     {
         handlerSliderNode(node);
         return Result<Void>{};
+    }
+
+    if (nodeType == AbstractNode::NodeType::BOX_DIVIDER)
+    {
+        //TODO: BoxDivider shall have it's own positioning & scaling function, use the "common" one for now.
+        RETURN_ON_ERROR(handleBoxDividerNode(node), Void);
+        // return Result<Void>{};
     }
 
     /*
@@ -1205,6 +1213,89 @@ void CustomLayoutEngine::handlerSliderNode(const AbstractNodePtr& node)
         knobPos.x = nodePos.x;
         knobPos.y = newY - knobScale.y / 2;
     }
+}
+
+/*
+    Function handles scale and positioning of the subNodes of a box divider called "separators". These separators
+    are the vertical or horizontal bars the user drags on in order to minimize or maximize the space of a box
+    in a box divider layout.
+    Each box fully occupies the available space and their size shall not be changed. Layout scale types do not
+    affect it so it shouldn't be changed.
+    Depending on the boxDivider layout type, the box divider can divide space horizontally or verically.
+    Separator's scale type shall also not be tinkered with as they are set to, depending on box divider type:
+        1. Horizontal: Separator will be {x_px, 1.0_rel}
+        2. Vertical: Separator will be {1.0_rel, x_px}
+            - Where x_px means the user can customize the size on that axis
+    The difference between the current mouse position and the last mouse position will determine how much we
+    shall move the separators.
+    The user can set min and max values for each box inside the divider and the boxDivider will try to
+    obey the min/max rules as best as it can by spreading values to the other boxes as well.
+*/
+Result<Void> CustomLayoutEngine::handleBoxDividerNode(const AbstractNodePtr& node)
+{
+    /* 
+        Go through the boxDivider's subNodes and search for Separator nodes. If the separator is active aka
+        it is currently being dragged by the user, find by how much the user has dragged it and update the
+        REL scale of the two boxes the separator controls.
+    */
+    const bool isLayoutHorizontal = node->getLayout().type == Layout::Type::HORIZONTAL;
+    const glm::vec2& nodeTrScale = node->getTransform().scale;
+    AbstractNodePVec subNodes = node->getChildren();
+    int32_t subNodeCnt = subNodes.size();
+    for (int32_t i = 0; i < subNodeCnt - 1; ++i)
+    {
+        if (subNodes[i]->getType() != AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+        /* Only handle the currently under drag separator. */
+        BoxDividerSepPtr separator = Utils::as<BoxDividerSep>(subNodes[i]);
+        if (!separator->checkIfActiveThenReset()) { continue; }
+
+        BoxPtr firstBox = Utils::as<Box>(separator->getFirstBox());
+        BoxPtr secondBox = Utils::as<Box>(separator->getSecondBox());
+        Layout& fbLayout = firstBox->getLayout();
+        Layout& sbLayout = secondBox->getLayout();
+
+        /*
+            "tempScale" is the difference between current and previous mouse position. If the user drags to
+            the left then the firstBox size decreases and the secondBox size increases and vice versa. The temScale is
+            given here in PIXELS difference.
+            That pixel difference needs to be translated in a realative-to-the-node value since boxes are scale type
+            relative.
+            TODO: Maybe there's a better way or naming for "tempScale".
+        */
+        if (isLayoutHorizontal)
+        {
+            const float fbOffset = fbLayout.tempScale.x / nodeTrScale.x;
+            const float sbOffset = sbLayout.tempScale.x / nodeTrScale.x;
+
+            /* Min/Max bounds checks shall go here. */
+
+            /* Apply the relative offsets. */
+            fbLayout.newScale.x.value += fbOffset;
+            sbLayout.newScale.x.value += sbOffset;
+
+            /* Reset the tempScale as we don't need the previous values. */
+            fbLayout.tempScale.x = 0.0f;
+            sbLayout.tempScale.x = 0.0f;
+        }
+        else if (!isLayoutHorizontal)
+        {
+            const float fbOffset = fbLayout.tempScale.y / nodeTrScale.y;
+            const float sbOffset = sbLayout.tempScale.y / nodeTrScale.y;
+
+            /* Min/Max bounds checks shall go here. */
+
+            /* Apply the relative offsets. */
+            fbLayout.newScale.y.value += fbOffset;
+            sbLayout.newScale.y.value += sbOffset;
+
+            /* Reset the tempScale as we don't need the previous values. */
+            fbLayout.tempScale.y = 0.0f;
+            sbLayout.tempScale.y = 0.0f;
+        }
+    }
+
+    return Result<Void>{};
 }
 
 #undef SKIP_COMPOSED_DIRECTIONS

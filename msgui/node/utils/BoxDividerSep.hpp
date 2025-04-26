@@ -1,5 +1,7 @@
 #pragma once
 
+#include "msgui/events/MouseEnter.hpp"
+#include "msgui/events/MouseExit.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
@@ -20,7 +22,7 @@ public:
     BoxDividerSep& setColor(const glm::vec4 color);
     BoxDividerSep& setBorderColor(const glm::vec4 color);
 
-    bool getIsActiveSeparator();
+    bool checkIfActiveThenReset();
     BoxPtr getFirstBox();
     BoxPtr getSecondBox();
 
@@ -34,6 +36,8 @@ private:
     void onMouseRelease(const events::LMBRelease& evt);
     void onMouseReleaseNotHovered(const events::LMBReleaseNotHovered& evt);
     void onMouseDrag(const events::LMBDrag& evt);
+    void onMouseEnter(const events::MouseEnter& evt);
+    void onMouseExit(const events::MouseExit& evt);
 
     void setupLayoutReloadables();
 

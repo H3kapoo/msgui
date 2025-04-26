@@ -4,6 +4,7 @@
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/RMBRelease.hpp"
 #include "msgui/node/Box.hpp"
+#include "msgui/node/BoxDivider.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/WindowFrame.hpp"
@@ -28,34 +29,30 @@ int main()
     rootBox->getLayout()
         // .setPadding({5, 10, 5, 10})
         // .setBorder({4})
-        .setType(Layout::Type::GRID)
-        // .setAllowOverflow({true, true})
-        .setGridDistrib({{1_fr, 1_fr}, {1_fr, 1_fr}})
         ;
 
-    for (int32_t i = 0; i < 2; ++i)
-    {
-        for (int32_t j = 0; j < 2; ++j)
-        {
-            BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
-            bigbox->getLayout()
-                .setGridPosRC({i, j})
-                .setMargin({5})
-                // .setAlignSelf(Layout::CENTER_BOTTOM)
-                .setAlignSelf(Layout::CENTER)
-                .setNewScale({1_fill})
-                // .setNewScale({100_px})
-                // .setNewScale({1_fill})
-            ;
-    
-            bigbox->setColor(Utils::randomRGB());
-    
-            rootBox->append(bigbox);
-        }
-    }
+    BoxDividerPtr div = Utils::make<BoxDivider>("bd");
+    div->getLayout().setNewScale({1_fill}).setType(Layout::Type::VERTICAL);
+    const float cnt = 3;
+    const float eq = 1.0f / cnt;
+    div->createSlots(cnt, {eq, eq, eq});
+    // for (int32_t i = 0; i < 2; ++i)
+    // {
+    //     BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
+    //     bigbox->getLayout()
+    //         // .setAlignSelf(Layout::CENTER_BOTTOM)
+    //         .setNewScale({1_fill})
+    //         // .setNewScale({100_px})
+    //         // .setNewScale({1_fill})
+    //     ;
 
-    // rootBox->append(bigbox);
-    // rootBox->printTree();
+    //     bigbox->setColor(Utils::randomRGB());
+
+    //     rootBox->append(bigbox);
+    // }
+
+    rootBox->append(div);
+    rootBox->printTree();
 
     /* Blocks from here on */
     app.run();

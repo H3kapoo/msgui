@@ -27,13 +27,22 @@ void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercS
     for (uint32_t i = 0; i < slotCount; i++)
     {
         auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
+        ref->setColor(Utils::randomRGB());
         if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            ref->getLayout().scale = {initialPercSize[i], 1.0f};
+            ref->getLayout().setNewScale(
+                {
+                    {.type = Layout::ScaleType::REL, .value = initialPercSize[i]},
+                    1.0_rel
+            });
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            ref->getLayout().scale = {1.0f, initialPercSize[i]};
+            ref->getLayout().setNewScale(
+                {
+                    1.0_rel,
+                    {.type = Layout::ScaleType::REL, .value = initialPercSize[i]}
+            });
         }
     }
 
@@ -62,9 +71,6 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
         auto thisBoxIt = std::next(boxes.begin(), i);
         AbstractNode::append(*thisBoxIt);
 
-        (*thisBoxIt)->getLayout()
-            .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::REL});
-
         if (i == 0 || i != size - 1)
         {
             auto nextBoxIt = std::next(boxes.begin(), i + 1);
@@ -86,6 +92,7 @@ void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
 
 void BoxDivider::setupLayoutReloadables()
 {
+    return;
     layout_.onTypeChange = [this]()
     {
         for (auto& ch : getChildren())
@@ -104,14 +111,6 @@ void BoxDivider::setupLayoutReloadables()
 
         MAKE_LAYOUT_DIRTY
     };
-
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY };
-
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onMarginChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onScaleChange = updateCb;
 }
 
 BoxWPtr BoxDivider::getSlot(uint32_t slotNumber)

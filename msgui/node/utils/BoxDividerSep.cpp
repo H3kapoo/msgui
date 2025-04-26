@@ -1,5 +1,6 @@
 #include "BoxDividerSep.hpp"
 
+#include "msgui/events/MouseEnter.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
 #include "msgui/node/AbstractNode.hpp"
@@ -8,6 +9,7 @@
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBReleaseNotHovered.hpp"
+#include <GLFW/glfw3.h>
 
 namespace msgui
 {
@@ -29,10 +31,15 @@ BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, co
         std::bind(&BoxDividerSep::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<events::LMBRelease, events::InputChannel>(
         std::bind(&BoxDividerSep::onMouseRelease, this, std::placeholders::_1));
-        getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
-            std::bind(&BoxDividerSep::onMouseReleaseNotHovered, this, std::placeholders::_1));
+    getEvents().listen<events::MouseEnter, events::InputChannel>(
+        std::bind(&BoxDividerSep::onMouseEnter, this, std::placeholders::_1));
+    getEvents().listen<events::MouseExit, events::InputChannel>(
+        std::bind(&BoxDividerSep::onMouseExit, this, std::placeholders::_1));
+    getEvents().listen<events::LMBReleaseNotHovered, events::InputChannel>(
+        std::bind(&BoxDividerSep::onMouseReleaseNotHovered, this, std::placeholders::_1));
     getEvents().listen<events::LMBDrag, events::InputChannel>(
         std::bind(&BoxDividerSep::onMouseDrag, this, std::placeholders::_1));
+
 }
 
 void BoxDividerSep::setShaderAttributes()
@@ -61,6 +68,24 @@ void BoxDividerSep::onMouseClick(const events::LMBClick&)
 
 void BoxDividerSep::onMouseRelease(const events::LMBRelease&)
 {
+    getState()->currentCursorId = GLFW_ARROW_CURSOR;
+}
+
+void BoxDividerSep::onMouseEnter(const events::MouseEnter& evt)
+{
+    if (layout_.type == utils::Layout::Type::HORIZONTAL)
+    {
+        getState()->currentCursorId = GLFW_HRESIZE_CURSOR;
+    }
+    else if (layout_.type == utils::Layout::Type::VERTICAL)
+    {
+        getState()->currentCursorId = GLFW_VRESIZE_CURSOR;
+    }
+}
+
+void BoxDividerSep::onMouseExit(const events::MouseExit& evt)
+{
+    if (getState()->mouseButtonState[GLFW_MOUSE_BUTTON_LEFT]) { return; }
     getState()->currentCursorId = GLFW_ARROW_CURSOR;
 }
 
@@ -94,53 +119,19 @@ void BoxDividerSep::onMouseDrag(const events::LMBDrag&)
     MAKE_LAYOUT_DIRTY
 }
 
-// void BoxDividerSep::onMouseDragNotify()
-// {
-//     Layout& left = firstBox_->getLayout();
-//     Layout& right = secondBox_->getLayout();
-//     // Temp is used here as we don't want to modify the original scale supplied by the user
-//     // Maybe there's a better way to do it..later.
-
-//     if (layout_.type == utils::Layout::Type::HORIZONTAL)
-//     {
-//         float diff = getState()->mouseX - getState()->lastMouseX;
-//         left.tempScale.x += diff;
-//         right.tempScale.x -= diff;
-//     }
-//     else if (layout_.type == utils::Layout::Type::VERTICAL)
-//     {
-//         float diff = getState()->mouseY - getState()->lastMouseY;
-//         left.tempScale.y += diff;
-//         right.tempScale.y -= diff;
-//     }
-
-//     isActiveSeparator_ = true;
-//     MAKE_LAYOUT_DIRTY
-// }
-
 void BoxDividerSep::setupLayoutReloadables()
 {
     layout_.onTypeChange = [this]()
     {
         if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            layout_.scaleType = {utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL};
-            layout_.scale = {10, 1.0f};
+            layout_.setNewScale({10_px, 1.0_rel});
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            layout_.scaleType = {utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX};
-            layout_.scale = {1.0f, 10};
+            layout_.setNewScale({1.0_rel, 10_px});
         }
     };
-
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME };
-
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onMarginChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onScaleChange = updateCb;
 }
 
 BoxDividerSep& BoxDividerSep::setColor(const glm::vec4 color)
@@ -155,7 +146,7 @@ BoxDividerSep& BoxDividerSep::setBorderColor(const glm::vec4 color)
     return *this;
 }
 
-bool BoxDividerSep::getIsActiveSeparator()
+bool BoxDividerSep::checkIfActiveThenReset()
 {
     bool val = isActiveSeparator_;
     isActiveSeparator_ = false;
