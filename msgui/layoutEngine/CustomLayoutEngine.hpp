@@ -45,7 +45,11 @@ private:
 
     /* BoxDivider */
     Result<Void> handleBoxDividerNode(const AbstractNodePtr& node);
-
+    Result<Void> computeBoxDividerSubNodesScale(const AbstractNodePtr& node,
+        const glm::vec2 usableNodeSpace);
+    Result<Void> computeBoxDividerSubNodesPos(const AbstractNodePtr& node);
+    Result<Void> tryToSatisfyMinMaxBoxDividerValues(const AbstractNodePtr& node,
+        const glm::vec2 usableNodeSpace);
 
 private:
     Logger log_{"CustomLayoutEngine"};

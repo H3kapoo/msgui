@@ -12,12 +12,12 @@ public:
     BoxDivider(const std::string& name);
 
     /**
-        Creates *slotCount* slots (panes) of initialPercSize specified size each (depending on index).
+        Creates *slotCount* slots (panes) of initialScale specified REL size each (depending on index).
 
         @param slotCount Number of slots (panes) to be created
-        @param initialPercSize Array specifying initial percentage size of each pane (0<x<1)
+        @param initialScale Array specifying initial percentage size of each pane in REL units
     */
-    void createSlots(uint32_t slotCount, std::vector<float> initialPercSize);
+    void createSlots(const std::vector<Layout::Scale>& initialScale);
 
     BoxDivider& setColor(const glm::vec4& color);
     BoxDivider& setBorderColor(const glm::vec4& color);

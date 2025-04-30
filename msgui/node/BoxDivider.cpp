@@ -6,7 +6,6 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
-#include <memory>
 
 namespace msgui
 {
@@ -16,33 +15,29 @@ BoxDivider::BoxDivider(const std::string& name) : AbstractNode(name, NodeType::B
     setMesh(loaders::MeshLoader::loadQuad());
     log_ = ("BoxDivider(" + name + ")");
 
-    //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 }
 
-void BoxDivider::createSlots(uint32_t slotCount, std::vector<float> initialPercSize)
+void BoxDivider::createSlots(const std::vector<Layout::Scale>& initialScale)
 {
-    //TODO: When this gets called again (although it shouldn't for now) reset all children.
+    if (getChildren().size())
+    {
+        log_.infoLn("Resetting slots to new ones..");
+        removeAll();
+    }
+
     std::vector<BoxPtr> boxes;
-    for (uint32_t i = 0; i < slotCount; i++)
+    for (uint32_t i = 0; i < initialScale.size(); i++)
     {
         auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
         ref->setColor(Utils::randomRGB());
         if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            ref->getLayout().setNewScale(
-                {
-                    {.type = Layout::ScaleType::REL, .value = initialPercSize[i]},
-                    1.0_rel
-            });
+            ref->getLayout().setNewScale({initialScale[i], 0.9_rel});
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
-            ref->getLayout().setNewScale(
-                {
-                    1.0_rel,
-                    {.type = Layout::ScaleType::REL, .value = initialPercSize[i]}
-            });
+            ref->getLayout().setNewScale({1.0_rel, initialScale[i]});
         }
     }
 
@@ -63,29 +58,35 @@ void BoxDivider::setShaderAttributes()
 
 void BoxDivider::appendBoxContainers(const std::vector<BoxPtr>& boxes)
 {
-    // Minimum of 2 containers needed
-    // Order is BOX SEP BOX SEP BOX.. always ending with a box.
+    /*
+        Minimum of 2 containers needed.
+        The order is always BOX SEP BOX SEP BOX ..
+    */
+    if (boxes.size() < 2) { return; }
+
     int32_t size = boxes.size();
     for (int32_t i = 0; i < size; i++)
     {
         auto thisBoxIt = std::next(boxes.begin(), i);
-        AbstractNode::append(*thisBoxIt);
+        append(*thisBoxIt);
 
         if (i == 0 || i != size - 1)
         {
             auto nextBoxIt = std::next(boxes.begin(), i + 1);
 
-            // Each separator holds ref to current and next box in order to modify their relative
-            // scale accoding to mouse movement from user.
-            // Unfortunatelly we cannot parent them directly to Sep node as we need ref to both current
-            // and previous node for each sep.. and current node can be the prev of the next sep.
-            // We cannot parent nodes to 2 nodes.
+            /*
+                Each separator holds a reference to the current and next box in order to modify their relative
+                scale accoding to mouse movement from user.
+                Unfortunatelly we cannot parent them directly to BoxDividerSep node as we need ref to both current
+                and previous node for each separator and current box node can be the previous of the next separator.
+                We cannot parent nodes to 2 nodes.
+            */
             BoxDividerSepPtr sep = std::make_shared<BoxDividerSep>(
                 "BoxDividerSep" + std::to_string(i),
                 *thisBoxIt,
                 *nextBoxIt);
             sep->getLayout().setType(layout_.type);
-            AbstractNode::append(sep);
+            append(sep);
         }
     }
 }
@@ -119,7 +120,7 @@ BoxWPtr BoxDivider::getSlot(uint32_t slotNumber)
     if (idx < children_.size())
     {
         /* Guaranteed to be Box type */
-        return Utils::ref<Box>(std::static_pointer_cast<Box>(children_[idx]));
+        return Utils::ref<Box>(Utils::as<Box>(children_[idx]));
     }
     return Utils::ref<Box>();
 }
@@ -130,7 +131,7 @@ BoxDividerSepWPtr BoxDivider::getSepatator(uint32_t sepNumber)
     if (idx < children_.size() - 1)
     {
         /* Guaranteed to be BoxDividerSep type */
-        return Utils::ref<BoxDividerSep>(std::static_pointer_cast<BoxDividerSep>(children_[idx]));
+        return Utils::ref<BoxDividerSep>(Utils::as<BoxDividerSep>(children_[idx]));
     }
     return Utils::ref<BoxDividerSep>();
 }

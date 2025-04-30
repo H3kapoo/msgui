@@ -85,9 +85,8 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
 
     if (nodeType == AbstractNode::NodeType::BOX_DIVIDER)
     {
-        //TODO: BoxDivider shall have it's own positioning & scaling function, use the "common" one for now.
         RETURN_ON_ERROR(handleBoxDividerNode(node), Void);
-        // return Result<Void>{};
+        return Result<Void>{};
     }
 
     /*
@@ -654,6 +653,9 @@ Result<Void> CustomLayoutEngine::alignSubNodes(const AbstractNodePtr& node, cons
         glm::vec3& subNodePos = subNode->getTransform().pos;
         subNodePos.x += positionToAdd.x;
         subNodePos.y += positionToAdd.y;
+
+        subNodePos.x = std::round(subNodePos.x);
+        subNodePos.y = std::round(subNodePos.y);
     }
 
     return Result<Void>{};
@@ -859,7 +861,7 @@ Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node)
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
         const Layout::GridRC& subNodeGridPos = subNodeLayout.gridPosRC;
-        const Layout::GridRC& subNodeGridSpan = subNodeLayout.gridSpanRC;
+        // const Layout::GridRC& subNodeGridSpan = subNodeLayout.gridSpanRC;
         glm::vec3& subNodeTrPos = subNode->getTransform().pos;
         glm::vec3& subNodeTrScale = subNode->getTransform().scale;
 
@@ -1181,7 +1183,6 @@ void CustomLayoutEngine::handlerSliderNode(const AbstractNodePtr& node)
     const bool dynamicKnob = castSlider->isDyanmicKnobEnabled();
     const float sliderPercOffset = castSlider->getOffsetPerc();
     const float sliderMaxValue = castSlider->getSlideTo();
-    const float sliderCurrentValue = castSlider->getSlideCurrentValue();
     auto knob = castSlider->getKnob().lock();
     auto& knobPos = knob->getTransform().pos;
     auto& knobScale = knob->getTransform().scale;
@@ -1230,21 +1231,49 @@ void CustomLayoutEngine::handlerSliderNode(const AbstractNodePtr& node)
     shall move the separators.
     The user can set min and max values for each box inside the divider and the boxDivider will try to
     obey the min/max rules as best as it can by spreading values to the other boxes as well.
+    One requirement for this to have at least one slot without set min/max value, otherwise the layout will break.
 */
 Result<Void> CustomLayoutEngine::handleBoxDividerNode(const AbstractNodePtr& node)
 {
-    /* 
+    /*
         Go through the boxDivider's subNodes and search for Separator nodes. If the separator is active aka
         it is currently being dragged by the user, find by how much the user has dragged it and update the
         REL scale of the two boxes the separator controls.
     */
-    const bool isLayoutHorizontal = node->getLayout().type == Layout::Type::HORIZONTAL;
-    const glm::vec2& nodeTrScale = node->getTransform().scale;
+    const Layout& layout = node->getLayout();
+    const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
     AbstractNodePVec subNodes = node->getChildren();
     int32_t subNodeCnt = subNodes.size();
+
+    /* Compute separators size in order to know how much usable relative space we have left. */
+    glm::vec2 separatorsTotalSize{0, 0};
+    for (const AbstractNodePtr& subNode : subNodes)
+    {
+        if (subNode->getType() != AbstractNode::NodeType::BOX_DIVIDER_SEP){ continue; }
+
+        if (isLayoutHorizontal)
+        {
+            separatorsTotalSize.x += subNode->getLayout().newScale.x.value;
+        }
+        else if (!isLayoutHorizontal)
+        {
+            separatorsTotalSize.y += subNode->getLayout().newScale.y.value;
+        }
+    }
+
+    const glm::vec2& nodeTrScale = node->getTransform().scale;
+    glm::vec2 usableNodeSpace = glm::vec2{
+        nodeTrScale.x
+            - layout.padding.left - layout.padding.right
+            - layout.border.left - layout.border.right - separatorsTotalSize.x,
+        nodeTrScale.y 
+            - layout.padding.top - layout.padding.bot
+            - layout.border.top - layout.border.bot - separatorsTotalSize.y
+    };
+
     for (int32_t i = 0; i < subNodeCnt - 1; ++i)
     {
-        if (subNodes[i]->getType() != AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+        if (subNodes[i]->getType() != AbstractNode::NodeType::BOX_DIVIDER_SEP){ continue; }
 
         /* Only handle the currently under drag separator. */
         BoxDividerSepPtr separator = Utils::as<BoxDividerSep>(subNodes[i]);
@@ -1265,14 +1294,23 @@ Result<Void> CustomLayoutEngine::handleBoxDividerNode(const AbstractNodePtr& nod
         */
         if (isLayoutHorizontal)
         {
-            const float fbOffset = fbLayout.tempScale.x / nodeTrScale.x;
-            const float sbOffset = sbLayout.tempScale.x / nodeTrScale.x;
+            const float fbOffset = fbLayout.tempScale.x / usableNodeSpace.x;
+            const float sbOffset = sbLayout.tempScale.x / usableNodeSpace.x;
+            const float fbMinScaleRel = fbLayout.minScale.x / usableNodeSpace.x;
+            const float sbMinScaleRel = sbLayout.minScale.x / usableNodeSpace.x;
+            const float fbMaxScaleRel = fbLayout.maxScale.x / usableNodeSpace.x;
+            const float sbMaxScaleRel = sbLayout.maxScale.x / usableNodeSpace.x;
 
             /* Min/Max bounds checks shall go here. */
-
-            /* Apply the relative offsets. */
-            fbLayout.newScale.x.value += fbOffset;
-            sbLayout.newScale.x.value += sbOffset;
+            if (fbOffset + fbLayout.newScale.x.value >= fbMinScaleRel &&
+                sbOffset + sbLayout.newScale.x.value >= sbMinScaleRel &&
+                fbOffset + fbLayout.newScale.x.value <= fbMaxScaleRel &&
+                sbOffset + sbLayout.newScale.x.value <= sbMaxScaleRel)
+            {
+                /* Apply the relative offsets. */
+                fbLayout.newScale.x.value += fbOffset;
+                sbLayout.newScale.x.value += sbOffset;
+            }
 
             /* Reset the tempScale as we don't need the previous values. */
             fbLayout.tempScale.x = 0.0f;
@@ -1293,6 +1331,324 @@ Result<Void> CustomLayoutEngine::handleBoxDividerNode(const AbstractNodePtr& nod
             fbLayout.tempScale.y = 0.0f;
             sbLayout.tempScale.y = 0.0f;
         }
+    }
+
+    /*
+        Try to keep each slot within the minimum and maximum user set values.
+        This is especially important on first runtime pass and on window resizes to ensure the divider
+        always obeys the user's min/max values.
+    */
+    RETURN_ON_ERROR(tryToSatisfyMinMaxBoxDividerValues(node, usableNodeSpace), Void);
+
+    /* Traditionally, compute the scale and position of the BoxDivider's subnodes. */
+    RETURN_ON_ERROR(computeBoxDividerSubNodesScale(node, usableNodeSpace), Void);
+    RETURN_ON_ERROR(computeBoxDividerSubNodesPos(node), Void);
+
+    return Result<Void>{};
+}
+
+/*
+    Function is similar to the common variant "computeSubNodesScale" however it's explicitly made to
+    work only for box dividers.
+    There's no support for aligning subNodes or self aligning subNodes.
+    No support for wrapping as there will be none.
+    No overflow will be generated so no support for that either.
+    Subnode's margins and node's padding+border will be taken into consideration for subNode scaling and
+    positioning. Also the separators size will be subtracted and accounted for.
+    The only accepted scaleType for the slots (boxes) is REL, however the separators can be PX on the
+    boxDivider's layout direction.
+*/
+Result<Void> CustomLayoutEngine::computeBoxDividerSubNodesScale(const AbstractNodePtr& node,
+    const glm::vec2 usableNodeSpace)
+{
+    const Layout& layout = node->getLayout();
+    const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
+
+    glm::vec2 fillAvailableScale{usableNodeSpace};
+    glm::vec2 maxMarginOnAxis{0, 0};
+    glm::ivec2 fillSubNodesCnt{0, 0};
+    int32_t slotCnt{0};
+    AbstractNodePVec& subNodes = node->getChildren();
+    for (const AbstractNodePtr& subNode : subNodes)
+    {
+        const Layout& subNodeLayout = subNode->getLayout();
+        const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
+        const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
+        const glm::vec2& subNodeMin = subNodeLayout.minScale;
+        const glm::vec2& subNodeMax = subNodeLayout.maxScale;
+        const bool isXPx = subNodeScale.x.type == Layout::ScaleType::PX;
+        const bool isYPx = subNodeScale.y.type == Layout::ScaleType::PX;
+        const bool isXRel = subNodeScale.x.type == Layout::ScaleType::REL;
+        const bool isYRel = subNodeScale.y.type == Layout::ScaleType::REL;
+        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
+
+        /* Ligh validity checks. */
+        if (subNode->getType() == AbstractNode::NodeType::BOX)
+        {
+            slotCnt++;
+            if (isLayoutHorizontal && subNodeLayout.newScale.x.type != Layout::ScaleType::REL)
+            {
+                return Result<Void>{
+                    .error = std::format("Subnode '{}' inside box divider is not scaleType REL on X axis!",
+                        subNode->getName())
+                };
+            }
+            else if (!isLayoutHorizontal && subNodeLayout.newScale.y.type != Layout::ScaleType::REL)
+            {
+                return Result<Void>{
+                    .error = std::format("Subnode '{}' inside box divider is not scaleType REL on Y axis!",
+                        subNode->getName())
+                };
+            }
+        }
+
+        /* PX nodes get scaled "as is". */
+        if (isXPx) { subNodeTrScale.x = std::clamp(subNodeScale.x.value, subNodeMin.x, subNodeMax.x); }
+        if (isYPx) { subNodeTrScale.y = std::clamp(subNodeScale.y.value, subNodeMin.y, subNodeMax.y); }
+
+        /* REL subNode scale needs to account for subNode's magins (subtract that). */
+        if (isXRel)
+        {
+            subNodeTrScale.x = (subNodeScale.x.value * usableNodeSpace.x)
+                - (subNodeMargin.left + subNodeMargin.right);
+        }
+        if (isYRel)
+        {
+            subNodeTrScale.y = (subNodeScale.y.value * usableNodeSpace.y)
+                - (subNodeMargin.top + subNodeMargin.bot);
+        }
+
+        /* Sometimes things don't fit quite perfectly to the pixel grid, so we need to do some rounding. */
+        // subNodeTrScale.x = std::round(subNodeTrScale.x);
+        // subNodeTrScale.y = std::round(subNodeTrScale.y);
+    }
+
+    if (slotCnt < 2)
+    {
+        return Result<Void>{.error = "Box divider cannot work with less than 2 slots!"};
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function is similar to the "computeSubNodesPos" function just that this works exclusively for the
+    boxDivider node.
+    Takes into account node's padding and borders as well as subNodes margin.
+*/
+Result<Void> CustomLayoutEngine::computeBoxDividerSubNodesPos(const AbstractNodePtr& node)
+{
+    const Layout& layout = node->getLayout();
+    const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
+    const glm::vec3& nodeTrPos = node->getTransform().pos;
+    const glm::vec2& nodePosOffsets = glm::vec2{
+        layout.padding.left + layout.border.left,
+        layout.padding.top + layout.border.top
+    };
+
+    if (layout.allowWrap)
+    {
+        return Result<Void>{.error = "Wrapping is not allowed on BoxDividers as it is useless! Disable it."};
+    }
+
+    glm::vec2 startPos{nodePosOffsets.x, nodePosOffsets.y};
+    AbstractNodePVec& subNodes = node->getChildren();
+    for (const AbstractNodePtr& subNode : subNodes)
+    {
+        const Layout& subNodeLayout = subNode->getLayout();
+        const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
+        glm::vec3& trPos = subNode->getTransform().pos;
+        glm::vec3& trScale = subNode->getTransform().scale;
+
+        /* 
+            Push nodes into position relative to the parent's padding+border + subNode's margins but
+            NOT relative to the node's position just yey.
+        */
+        trPos = glm::vec3{startPos.x + subNodeMargin.left, startPos.y + subNodeMargin.top, trPos.z};
+
+        /* Compute the start position for the next subNode & update maximum on axis if needed. */
+        const float lrMargin = subNodeLayout.margin.left + subNodeLayout.margin.right;
+        const float tbMargin = subNodeLayout.margin.top + subNodeLayout.margin.bot;
+        if (isLayoutHorizontal)
+        {
+            startPos.x += trScale.x + lrMargin;
+        }
+        else if (!isLayoutHorizontal)
+        {
+            startPos.y += trScale.y + tbMargin;
+        }
+
+        /*
+            Change reference frame for each subNode to the node's frame aka subNodes are now relative
+            to the parent's position.
+        */
+        trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
+
+        // trPos.x = std::round(trPos.x);
+        // trPos.y = std::round(trPos.y);
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function aims to satify as best as it can the min/max requirements per each slot set by the user.
+    It will do this by capping and distributing relative values to the slots that can take those values
+    without violating their min/max.
+*/
+Result<Void> CustomLayoutEngine::tryToSatisfyMinMaxBoxDividerValues(const AbstractNodePtr& node,
+    const glm::vec2 usableNodeSpace)
+{
+    const bool isLayoutHorizontal = node->getLayout().type == Layout::Type::HORIZONTAL;
+    const AbstractNodePVec& subNodes = node->getChildren();
+    
+    /*
+        Compute by how much we are off in satisfying the min/max requirements of the subNodes.
+        If the total relative scales computed get under the value of 1.0f (100%) then it means that
+        the layout has capped one or more subNode boxes (due to their minimum) and now there's some
+        empty relative space that the rest of the nodes need to stretch an fill.
+        The same is true (but reversed) for the layout getting over 1.0f but now due to one or more
+        boxes being max capped.
+    */
+    glm::vec2 totalRelative{0, 0};
+    for (const AbstractNodePtr& subNode : subNodes)
+    {
+        /* Don't care if it's just a separator. */
+        if (subNode->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+        Layout& subNodeLayout = subNode->getLayout();
+
+        /*
+            Convert the minimums expressed in PIXELS to values expressed in REL. If the current scale is
+            greater than the minimum, accumulate the difference.
+        */
+        if (isLayoutHorizontal)
+        {
+            const float relMinX = subNodeLayout.minScale.x / usableNodeSpace.x;
+            const float relMaxX = subNodeLayout.maxScale.x / usableNodeSpace.x;
+            subNodeLayout.newScale.x.value = std::clamp(subNodeLayout.newScale.x.value, relMinX, relMaxX);
+            totalRelative.x += subNodeLayout.newScale.x.value;
+        }
+        else if (!isLayoutHorizontal)
+        {
+            const float relMinY = subNodeLayout.minScale.y / usableNodeSpace.y;
+            const float relMaxY = subNodeLayout.maxScale.y / usableNodeSpace.y;
+            subNodeLayout.newScale.y.value = std::clamp(subNodeLayout.newScale.y.value, relMinY, relMaxY);
+            totalRelative.y += subNodeLayout.newScale.y.value;
+        }
+    }
+
+    /*
+        If the total relative scale is greater than 1.0f, it means that we need to shrink some boxes in order
+        to satisfy the layout being always 1.0f.
+        If the total relative scale is less than 1.0f, it means that we need to grow some boxes in order
+        to satisfy the layout being always 1.0f.
+        The amount to grow and shrink have been converted to the positive, greater than 0 domain.
+    */
+    glm::vec2 minLeftToSatisfy = totalRelative - 1.0f;
+    glm::vec2 maxLeftToSatisfy = 1.0f - totalRelative;
+    for (const AbstractNodePtr& subNode : subNodes)
+    {
+        /* Don't care if it's just a separator. */
+        if (subNode->getType() == AbstractNode::NodeType::BOX_DIVIDER_SEP) { continue; }
+
+        Layout& subNodeLayout = subNode->getLayout();
+
+        if (isLayoutHorizontal)
+        {
+            const float relMinX = subNodeLayout.minScale.x / usableNodeSpace.x;
+            const float relMaxX = subNodeLayout.maxScale.x / usableNodeSpace.x;
+            const float distanceToMinX = subNodeLayout.newScale.x.value - relMinX;
+            const float distanceToMaxX = relMaxX - subNodeLayout.newScale.x.value;
+    
+            /* If there's space to spread the minimum to this subNode, then the distance is positive. */
+            if (distanceToMinX > 0 && minLeftToSatisfy.x > 0.0f)
+            {
+                /*
+                    If there's more unsatisfied minimum space than this subNode can take then give this
+                    subNode the full amount of spread it can take, but not all.
+                */
+                if (minLeftToSatisfy.x - distanceToMinX > 0)
+                {
+                    subNodeLayout.newScale.x.value -= distanceToMinX;
+                    minLeftToSatisfy.x -= distanceToMinX;
+                }
+                /*
+                    Otherwise it means that this subNode can take all the unsatisfied minimum without
+                    violating min req.
+                */
+                else
+                {
+                    subNodeLayout.newScale.x.value -= minLeftToSatisfy.x;
+                    minLeftToSatisfy.x = 0;
+                }
+            }
+    
+            if (distanceToMaxX > 0 && maxLeftToSatisfy.x > 0)
+            {
+                if (maxLeftToSatisfy.x - distanceToMaxX > 0)
+                {
+                    subNodeLayout.newScale.x.value += distanceToMaxX;
+                    maxLeftToSatisfy.x -= distanceToMaxX;
+                }
+                else
+                {
+                    subNodeLayout.newScale.x.value += maxLeftToSatisfy.x;
+                    maxLeftToSatisfy.x = 0;
+                }
+            }
+        }
+        else if (!isLayoutHorizontal)
+        {
+            const float relMinY = subNodeLayout.minScale.y / usableNodeSpace.y;
+            const float relMaxY = subNodeLayout.maxScale.y / usableNodeSpace.y;
+            const float distanceToMinY = subNodeLayout.newScale.y.value - relMinY;
+            const float distanceToMaxY = relMaxY - subNodeLayout.newScale.y.value;
+    
+            if (distanceToMinY > 0 && minLeftToSatisfy.y > 0.0f)
+            {
+                if (minLeftToSatisfy.y - distanceToMinY > 0)
+                {
+                    subNodeLayout.newScale.y.value -= distanceToMinY;
+                    minLeftToSatisfy.y -= distanceToMinY;
+                }
+                else
+                {
+                    subNodeLayout.newScale.y.value -= minLeftToSatisfy.y;
+                    minLeftToSatisfy.y = 0;
+                }
+            }
+    
+            if (distanceToMaxY > 0 && maxLeftToSatisfy.y > 0)
+            {
+                if (maxLeftToSatisfy.y - distanceToMaxY > 0)
+                {
+                    subNodeLayout.newScale.y.value += distanceToMaxY;
+                    maxLeftToSatisfy.y -= distanceToMaxY;
+                }
+                else
+                {
+                    subNodeLayout.newScale.y.value += maxLeftToSatisfy.y;
+                    maxLeftToSatisfy.y = 0;
+                }
+            }
+        }
+    }
+
+    /*
+        If there's some unsatisfied min/max at this stage, it means the layout is in an invalid state as we cannot
+        obey user's requirements.
+    */
+    if (minLeftToSatisfy.x > 0)
+    {
+        return Result<Void>{
+            .error = "Minimum values for the slots cannot be satisfied! Consider relaxing the minimums."};
+    }
+
+    if (maxLeftToSatisfy.x > 0)
+    {
+        return Result<Void>{
+            .error = "Maximum values for the slots cannot be satisfied! Consider relaxing the maximums."};
     }
 
     return Result<Void>{};
