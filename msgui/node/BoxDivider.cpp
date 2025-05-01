@@ -9,11 +9,12 @@
 
 namespace msgui
 {
-BoxDivider::BoxDivider(const std::string& name) : AbstractNode(name, NodeType::BOX_DIVIDER)
+BoxDivider::BoxDivider(const std::string& name)
+    : AbstractNode("BoxDivider(" + name + ")", NodeType::BOX_DIVIDER)
 {
+    log_ = Logger(getName());
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    log_ = ("BoxDivider(" + name + ")");
 
     setupLayoutReloadables();
 }
@@ -27,18 +28,26 @@ void BoxDivider::createSlots(const std::vector<Layout::Scale>& initialScale)
     }
 
     std::vector<BoxPtr> boxes;
+    float totalScale{0.0};
     for (uint32_t i = 0; i < initialScale.size(); i++)
     {
         auto ref = boxes.emplace_back(std::make_shared<Box>("Box" + std::to_string(i)));
         ref->setColor(Utils::randomRGB());
         if (layout_.type == utils::Layout::Type::HORIZONTAL)
         {
-            ref->getLayout().setNewScale({initialScale[i], 0.9_rel});
+            ref->getLayout().setNewScale({initialScale[i], 1.0_rel});
         }
         else if (layout_.type == utils::Layout::Type::VERTICAL)
         {
             ref->getLayout().setNewScale({1.0_rel, initialScale[i]});
         }
+        totalScale += initialScale[i].value;
+    }
+
+    if (totalScale != 1.0f)
+    {
+        log_.errorLn("Slots distribution does not add up to 1.0f! Actual: %f", totalScale);
+        return;
     }
 
     appendBoxContainers(boxes);

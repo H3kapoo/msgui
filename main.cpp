@@ -7,6 +7,7 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/BoxDivider.hpp"
 #include "msgui/node/Button.hpp"
+#include "msgui/node/Slider.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/WindowFrame.hpp"
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
@@ -27,67 +28,60 @@ int main()
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
 
     BoxPtr rootBox = window->getRoot();
-    rootBox->setColor(Utils::hexToVec4("#6e6e6eff"));
+    rootBox->setColor(Utils::hexToVec4("#ffffffff"));
     rootBox->getLayout()
         .setAlignChild(Layout::Align::CENTER)
         // .setPadding({5, 10, 5, 10})
         // .setBorder({4})
+        .setPadding({1})
         ;
-    BoxPtr container = Utils::make<Box>("the box");
-    container->getLayout()
-        .setNewScale({0.90_rel})
-        .setType(Layout::Type::HORIZONTAL);
+    
+    int x = 3;
+    for (int i = 0; i < x; ++i)
+    {
+        BoxPtr box = Utils::make<Box>("box");
+        box->setColor(Utils::randomRGB());
+        box->getLayout().setNewScale({0.25_rel, 1.0_rel});
+        box->getLayout().newScale.x.value = 1.0f / x;
+        
+        rootBox->append(box);
+    }
+    // BoxDividerPtr div = Utils::make<BoxDivider>("bd");
+    // div->getLayout()
+    //     .setNewScale({1_fill})
+    //     // .setNewScale({0.9_rel})
+    //     // .setNewScale({1000_px, 500_px})
+    //     .setType(Layout::Type::HORIZONTAL)
+    //     .setPadding({1})
+    //     ;
+    // div->createSlots({0.5_rel, 0.25_rel, 0.25_rel});
+    // // div->createSlots({0.5_rel, 0.5_rel});
 
-    BoxDividerPtr div = Utils::make<BoxDivider>("bd");
-    div->getLayout()
-        .setNewScale({1_fill})
-        .setType(Layout::Type::HORIZONTAL)
-        // .setBorder({5})
-        // .setAllowOverflow({true, true})
-        ;
-    // div->createSlots(cnt, {eq, eq, eq});
-    div->createSlots({0.25_rel, 0.5_rel, 0.25_rel});
+    // BoxPtr slot0 = div->getSlot(0).lock();
+    // BoxPtr slot1 = div->getSlot(1).lock();
+    // // BoxPtr slot2 = div->getSlot(2).lock();
 
-    BoxPtr slot0 = div->getSlot(0).lock();
-    BoxPtr slot1 = div->getSlot(1).lock();
-    BoxPtr slot2 = div->getSlot(2).lock();
+    // slot0->getLayout()
+    //     .setMinScale({100, 1})
+    //     // .setMaxScale({300, 10000})
+    // ;
 
-    slot0->getLayout()
-        .setMinScale({200, 1})
-        .setMaxScale({300, 10000})
-    ;
-    // slot1->getLayout()
-    //     .setMinScale({200, 1})
-    //     .setMaxScale({300, 10000})
-    ;
-    slot2->getLayout()
-        .setMinScale({200, 1})
-        .setMaxScale({300, 10000})
-    ;
-    // slot1->getLayout().setMinScale({200, 1});
-    // slot2->getLayout().setMinScale({200, 1});
-    // slot1->getLayout().setMargin({5});
+    // // slot2->getLayout()
+    // //     .setMinScale({200, 1})
+    //     // .setMaxScale({300, 10000})
+    // // ;
 
-    // BoxDividerSepPtr sep1 = div->getSepatator(0).lock();
-    // sep1->setColor(Utils::COLOR_CYAN);
-    // sep1->getLayout().setMargin({5});
-    // for (int32_t i = 0; i < 2; ++i)
-    // {
-    //     BoxPtr bigbox = Utils::make<Box>("mybox" + std::to_string(i));
-    //     bigbox->getLayout()
-    //         // .setAlignSelf(Layout::CENTER_BOTTOM)
-    //         .setNewScale({1_fill})
-    //         // .setNewScale({100_px})
-    //         // .setNewScale({1_fill})
+    // BoxDividerPtr divLeft = Utils::make<BoxDivider>("leftbox");
+    // divLeft->getLayout()
+    //     .setNewScale({1_fill})
+    //     .setType(Layout::Type::VERTICAL)
     //     ;
 
-    //     bigbox->setColor(Utils::randomRGB());
+    // divLeft->createSlots({0.5_rel, 0.5_rel});
 
-    //     rootBox->append(bigbox);
-    // }
+    // slot0->append(divLeft);
 
-    container->append(div);
-    rootBox->append(container);
+    // rootBox->append(div);
     rootBox->printTree();
 
     /* Blocks from here on */

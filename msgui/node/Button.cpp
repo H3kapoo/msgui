@@ -17,11 +17,11 @@
 
 namespace msgui
 {
-Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
+Button::Button(const std::string& name)
+    : AbstractNode("Button(" + name + ")", NodeType::COMMON)
 {
     /* Setup defaults */
-    log_ = ("Button(" + name + ")");
-
+    log_ = Logger(getName());
     setType(AbstractNode::NodeType::COMMON);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());

@@ -31,7 +31,7 @@ private:
 private:
     glm::vec4 color_{Utils::hexToVec4("#000000ff")};
     glm::vec4 borderColor_{Utils::hexToVec4("#ff0000ff")};
-    Logger log_{"SliderKnob"};
+    Logger log_;
 };
 using SliderKnobPtr = std::shared_ptr<SliderKnob>;
 using SliderKnobWPtr = std::weak_ptr<SliderKnob>;

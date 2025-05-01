@@ -10,13 +10,14 @@
 
 namespace msgui
 {
-Image::Image(const std::string& name) : AbstractNode(name, NodeType::COMMON)
+Image::Image(const std::string& name)
+    : AbstractNode("Image(" + name + ")", NodeType::COMMON)
 {
+    /* Defaults */
+    log_ = Logger(getName());
     setShader(loaders::ShaderLoader::loadShader("assets/shader/basicTex.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    log_ = ("Image(" + name + ")");
 
-    /* Defaults */
     color_ = Utils::hexToVec4("#f9f8f7ff");
 
     layout_.setNewScale({100_px, 100_px});

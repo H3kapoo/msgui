@@ -176,6 +176,8 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
     glm::vec2 fillAvailableScale{usableNodeSpace};
     glm::vec2 maxMarginOnAxis{0, 0};
     glm::ivec2 fillSubNodesCnt{0, 0};
+    glm::vec2 totalInt{0, 0};
+    glm::vec2 totalFloat{0, 0};
     AbstractNodePVec& subNodes = node->getChildren();
     for (const AbstractNodePtr& subNode : subNodes)
     {
@@ -229,12 +231,18 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
             subNodeTrScale.x = (subNodeScale.x.value * usableNodeSpace.x)
                 - (subNodeMargin.left + subNodeMargin.right);
             subNodeTrScale.x = std::clamp(subNodeTrScale.x, subNodeMin.x, subNodeMax.x);
+            totalFloat.x += subNodeTrScale.x;
+            subNodeTrScale.x = std::round(subNodeTrScale.x);
+            totalInt.x += subNodeTrScale.x;
         }
         if (isYRel)
         {
             subNodeTrScale.y = (subNodeScale.y.value * usableNodeSpace.y)
                 - (subNodeMargin.top + subNodeMargin.bot);
             subNodeTrScale.y = std::clamp(subNodeTrScale.y, subNodeMin.y, subNodeMax.y);
+            totalFloat.y += subNodeTrScale.y;
+            subNodeTrScale.y = std::round(subNodeTrScale.y);
+            totalInt.y += subNodeTrScale.y;
         }
 
         /*
@@ -254,10 +262,6 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
             subNodeTrScale.y = isYFit ? fitScale.value.y : subNodeTrScale.y;
         }
 
-        /* Sometimes things don't fit quite perfectly to the pixel grid, so we need to do some rounding. */
-        subNodeTrScale.x = std::round(subNodeTrScale.x);
-        subNodeTrScale.y = std::round(subNodeTrScale.y);
-
         if (!isXFill && isLayoutHorizontal) { fillAvailableScale.x -= subNodeScale.x.value; }
         if (!isYFill && !isLayoutHorizontal) { fillAvailableScale.y -= subNodeScale.y.value; }
 
@@ -274,6 +278,9 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         fillAvailableScale.x -= isLayoutHorizontal ? subNodeMargin.left + subNodeMargin.right : 0;
         fillAvailableScale.y -= isLayoutHorizontal ? 0 : subNodeMargin.top + subNodeMargin.bot;
     }
+
+    /* Sometimes things don't fit quite perfectly to the pixel grid, so we need to do some rounding. */
+    resolveCumulativeError(node, totalInt, totalFloat);
 
     /* Don't bother do to more FILL related suff if we don't have any. */
     if (fillSubNodesCnt.x <= 0 && fillSubNodesCnt.y <= 0) { return Result<Void>{}; }
@@ -304,8 +311,8 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
         if (isYFill) { trScale.y = fillEqualPart.y; }
 
         /* Sometimes things don't fit quite perfectly to the pixel grid, so we need to do some rounding. */
-        trScale.x = std::round(trScale.x);
-        trScale.y = std::round(trScale.y);
+        // trScale.x = std::round(trScale.x);
+        // trScale.y = std::round(trScale.y);
     }
 
     return Result<Void>{};
@@ -654,8 +661,8 @@ Result<Void> CustomLayoutEngine::alignSubNodes(const AbstractNodePtr& node, cons
         subNodePos.x += positionToAdd.x;
         subNodePos.y += positionToAdd.y;
 
-        subNodePos.x = std::round(subNodePos.x);
-        subNodePos.y = std::round(subNodePos.y);
+        // subNodePos.x = std::round(subNodePos.x);
+        // subNodePos.y = std::round(subNodePos.y);
     }
 
     return Result<Void>{};
@@ -718,8 +725,8 @@ Result<Void> CustomLayoutEngine::selfAlignSubNodeSlice(const AbstractNodePtr& no
         }
 
         /* Your rounding may vary.. */
-        subNodePos.x = std::round(subNodePos.x);
-        subNodePos.y = std::round(subNodePos.y);
+        // subNodePos.x = std::round(subNodePos.x);
+        // subNodePos.y = std::round(subNodePos.y);
     }
 
     return Result<Void>{};
@@ -1365,7 +1372,8 @@ Result<Void> CustomLayoutEngine::computeBoxDividerSubNodesScale(const AbstractNo
     const bool isLayoutHorizontal = layout.type == Layout::Type::HORIZONTAL;
 
     glm::vec2 fillAvailableScale{usableNodeSpace};
-    glm::vec2 maxMarginOnAxis{0, 0};
+    glm::vec2 totalInt{0, 0};
+    glm::vec2 totalFloat{0, 0};
     glm::ivec2 fillSubNodesCnt{0, 0};
     int32_t slotCnt{0};
     AbstractNodePVec& subNodes = node->getChildren();
@@ -1411,17 +1419,22 @@ Result<Void> CustomLayoutEngine::computeBoxDividerSubNodesScale(const AbstractNo
         {
             subNodeTrScale.x = (subNodeScale.x.value * usableNodeSpace.x)
                 - (subNodeMargin.left + subNodeMargin.right);
+            totalFloat.x += subNodeTrScale.x;
+            subNodeTrScale.x = std::round(subNodeTrScale.x);
+            totalInt.x += subNodeTrScale.x;
         }
         if (isYRel)
         {
             subNodeTrScale.y = (subNodeScale.y.value * usableNodeSpace.y)
                 - (subNodeMargin.top + subNodeMargin.bot);
+            totalFloat.y += subNodeTrScale.y;
+            subNodeTrScale.y = std::round(subNodeTrScale.y);
+            totalInt.y += subNodeTrScale.y;
         }
-
-        /* Sometimes things don't fit quite perfectly to the pixel grid, so we need to do some rounding. */
-        // subNodeTrScale.x = std::round(subNodeTrScale.x);
-        // subNodeTrScale.y = std::round(subNodeTrScale.y);
     }
+
+    /* Relative scales can create off by one errors. Resolve them. */
+    resolveCumulativeError(node, totalInt, totalFloat);
 
     if (slotCnt < 2)
     {
@@ -1483,9 +1496,6 @@ Result<Void> CustomLayoutEngine::computeBoxDividerSubNodesPos(const AbstractNode
             to the parent's position.
         */
         trPos += glm::vec3{nodeTrPos.x, nodeTrPos.y, 0};
-
-        // trPos.x = std::round(trPos.x);
-        // trPos.y = std::round(trPos.y);
     }
 
     return Result<Void>{};
@@ -1639,19 +1649,51 @@ Result<Void> CustomLayoutEngine::tryToSatisfyMinMaxBoxDividerValues(const Abstra
         If there's some unsatisfied min/max at this stage, it means the layout is in an invalid state as we cannot
         obey user's requirements.
     */
-    if (minLeftToSatisfy.x > 0)
+    if ((isLayoutHorizontal && minLeftToSatisfy.x > 0) || (!isLayoutHorizontal && minLeftToSatisfy.y > 0))
     {
         return Result<Void>{
             .error = "Minimum values for the slots cannot be satisfied! Consider relaxing the minimums."};
     }
 
-    if (maxLeftToSatisfy.x > 0)
+    if ((isLayoutHorizontal && maxLeftToSatisfy.x > 0) || (!isLayoutHorizontal && maxLeftToSatisfy.y > 0))
     {
         return Result<Void>{
             .error = "Maximum values for the slots cannot be satisfied! Consider relaxing the maximums."};
     }
 
     return Result<Void>{};
+}
+
+void CustomLayoutEngine::resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,
+    const glm::vec2 totalFloat)
+{
+    AbstractNodePVec& subNodes = node->getChildren();
+    glm::vec2 diff = {std::round(totalFloat.x - totalInt.x), std::round(totalFloat.y - totalInt.y)};
+    for (AbstractNodePtr& subNode : subNodes)
+    {
+        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
+        if (diff.x == 0 && diff.y == 0) { break; }
+        if (diff.x > 0)
+        {
+            subNodeTrScale.x += 1.0f;
+            diff.x -= 1.0f;
+        }
+        else if (diff.x < 0)
+        {
+            subNodeTrScale.x -= 1.0f;
+            diff.x += 1.0f;
+        }
+        if (diff.y > 0)
+        {
+            subNodeTrScale.y += 1.0f;
+            diff.y -= 1.0f;
+        }
+        else if (diff.y < 0)
+        {
+            subNodeTrScale.y -= 1.0f;
+            diff.y += 1.0f;
+        }
+    }
 }
 
 #undef SKIP_COMPOSED_DIRECTIONS

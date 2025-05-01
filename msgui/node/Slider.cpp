@@ -16,10 +16,11 @@
 
 namespace msgui
 {
-Slider::Slider(const std::string& name) : AbstractNode(name, NodeType::SLIDER)
+Slider::Slider(const std::string& name)
+    : AbstractNode("Slider(" + name + ")", NodeType::SLIDER)
 {
     /* Setup defaults */
-    log_ = Logger("Slider(" + name + ")");
+    log_ = Logger(getName());
 
     setType(AbstractNode::NodeType::SLIDER);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));

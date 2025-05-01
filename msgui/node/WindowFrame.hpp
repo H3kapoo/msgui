@@ -84,7 +84,7 @@ private:
     void resolveOnMouseMoveFromInput(const int32_t x, const int32_t y);
     void resolveOnMouseWheelFromInput(const int32_t x, const int32_t y);
     void resolveOnMouseEnterExitFromInput(const bool entered);
-    void resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight);
+    void resolveOnWindowResizeFromInput(const int32_t newWidth, const int32_t newHeight);
 
 private:
     Logger log_;

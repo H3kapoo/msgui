@@ -52,7 +52,7 @@ WindowFrame::WindowFrame(const std::string& windowName, const uint32_t width, co
         frameBox_->transform_.vScale = {newWidth, newHeight};
         window_.setTitle(std::to_string(newWidth) + " " + std::to_string(newHeight));
         window_.onResizeEvent(newWidth, newHeight);
-        resolveOnWindowReizeFromInput(newWidth, newHeight);
+        resolveOnWindowResizeFromInput(newWidth, newHeight);
     });
 
     input_.onKeyPress([this](int32_t key, int32_t scanCode, int32_t mods)
@@ -451,13 +451,14 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
         {
             if (node != frameState_->hoveredNodePtr.lock())
             {
-                events::MouseEnter evtEnter;
-                node->getEvents().notifyAllChannels(evtEnter);
                 if (auto prevHoveredNode = frameState_->hoveredNodePtr.lock())
                 {
                     events::MouseExit evtExit;
                     prevHoveredNode->getEvents().notifyAllChannels(evtExit);
                 }
+
+                events::MouseEnter evtEnter;
+                node->getEvents().notifyAllChannels(evtEnter);
 
                 frameState_->hoveredNodePtr = node;
             }
@@ -533,7 +534,7 @@ void WindowFrame::resolveOnMouseEnterExitFromInput(const bool entered)
     }
 }
 
-void WindowFrame::resolveOnWindowReizeFromInput(const int32_t newWidth, const int32_t newHeight)
+void WindowFrame::resolveOnWindowResizeFromInput(const int32_t newWidth, const int32_t newHeight)
 {
     frameState_->layoutPassActions = ELayoutPass::EVERYTHING_NODE;
     frameState_->frameSize = {newWidth, newHeight};

@@ -64,7 +64,7 @@ private:
     glm::vec4 color_{Utils::hexToVec4("#ffffffff")};
     glm::vec4 borderColor_{Utils::hexToVec4("#ffffffff")};
     float slideFrom_{0};
-    float slideTo_{0};
+    float slideTo_{100};
     float slideValue_{0};
     float sensitivity_{4};
     bool isViewValueEnabled_{true};

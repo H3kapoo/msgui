@@ -1,6 +1,5 @@
 #include "Box.hpp"
 
-#include "msgui/common/Constants.hpp"
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
@@ -12,9 +11,10 @@
 
 namespace msgui
 {
-Box::Box(const std::string& name) : AbstractNode(name, NodeType::BOX)
+Box::Box(const std::string& name)
+    : AbstractNode("Box(" + name +")", NodeType::BOX)
 {
-    log_ = Logger("Box(" + name +")");
+    log_ = Logger(getName());
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 

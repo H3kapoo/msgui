@@ -14,14 +14,13 @@
 namespace msgui
 {
 BoxDividerSep::BoxDividerSep(const std::string& name, const BoxPtr& firstBox, const BoxPtr& secondBox)
-    : AbstractNode(name, NodeType::BOX_DIVIDER_SEP)
+    : AbstractNode("BoxDividerSep(" + name + ")", NodeType::BOX_DIVIDER_SEP)
     , firstBox_(firstBox)
     , secondBox_(secondBox)
 {
-    log_ = ("BoxDividerSep(" + name + ")");
+    log_ = Logger(getName());
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    //TODO: Box divider should not be "active" with < 2 boxes
     setupLayoutReloadables();
 
     color_ = Utils::hexToVec4("#52161bff");

@@ -51,6 +51,10 @@ private:
     Result<Void> tryToSatisfyMinMaxBoxDividerValues(const AbstractNodePtr& node,
         const glm::vec2 usableNodeSpace);
 
+    /* Helpers */
+    void resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,
+        const glm::vec2 totalFloat);
+
 private:
     Logger log_{"CustomLayoutEngine"};
 };

@@ -14,10 +14,10 @@ namespace msgui
 {
 using namespace loaders;
 
-TextLabel::TextLabel(const std::string& name) : AbstractNode(name, NodeType::COMMON)
+TextLabel::TextLabel(const std::string& name)
+    : AbstractNode("TextLabel(" + name + ")", NodeType::COMMON)
 {
-    log_ = ("TextLabel(" + name + ")");
-
+    log_ = Logger(getName());
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
