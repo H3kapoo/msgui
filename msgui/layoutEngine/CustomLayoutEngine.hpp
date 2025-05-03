@@ -41,7 +41,7 @@ private:
 
     /* Scrollbars */
     Result<ScrollContribution> computeScrollNodeContribution(const AbstractNodePtr& node);
-    void handlerSliderNode(const AbstractNodePtr& node);
+    void handleSliderNode(const AbstractNodePtr& node);
 
     /* BoxDivider */
     Result<Void> handleBoxDividerNode(const AbstractNodePtr& node);
@@ -50,6 +50,9 @@ private:
     Result<Void> computeBoxDividerSubNodesPos(const AbstractNodePtr& node);
     Result<Void> tryToSatisfyMinMaxBoxDividerValues(const AbstractNodePtr& node,
         const glm::vec2 usableNodeSpace);
+    
+    /* Dropdown */
+    Result<Void> handleDropdown(const AbstractNodePtr& node);
 
     /* Helpers */
     void resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,

@@ -7,6 +7,7 @@
 #include "msgui/node/Box.hpp"
 #include "msgui/node/BoxDivider.hpp"
 #include "msgui/node/Button.hpp"
+#include "msgui/node/Dropdown.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/TreeView.hpp"
 #include "msgui/node/WindowFrame.hpp"
@@ -28,24 +29,55 @@ int main()
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
 
     BoxPtr rootBox = window->getRoot();
-    rootBox->setColor(Utils::hexToVec4("#ffffffff"));
+    rootBox->setColor(Utils::hexToVec4("#363636ff"));
     rootBox->getLayout()
-        .setAlignChild(Layout::Align::CENTER)
-        // .setPadding({5, 10, 5, 10})
-        // .setBorder({4})
         .setPadding({1})
         ;
-    
-    int x = 3;
-    for (int i = 0; i < x; ++i)
+
+
+{
+    DropdownPtr dd = Utils::make<Dropdown>("mydd");
+    dd->setExpandDirection(Dropdown::Expand::BOTTOM);
+    dd->setColor(Utils::hexToVec4("#3ab955ff"));
+    dd->setText("Menu");
+    dd->setItemSize({150_px, 34_px});
+    dd->getLayout().setBorder({1});
+    dd->getContainer().lock()->getLayout().setPadding({1, 0, 1, 1});
+
     {
-        BoxPtr box = Utils::make<Box>("box");
-        box->setColor(Utils::randomRGB());
-        box->getLayout().setNewScale({0.25_rel, 1.0_rel});
-        box->getLayout().newScale.x.value = 1.0f / x;
-        
-        rootBox->append(box);
+        ButtonPtr b = dd->createMenuItem<Button>().lock();
+        b->setColor(Utils::randomRGB());
+        b->setText("New");
+        b->getLayout().setMargin({0, 1, 0, 0});
     }
+
+    {
+        ButtonPtr b = dd->createMenuItem<Button>().lock();
+        b->setColor(Utils::randomRGB());
+        b->getLayout().setMargin({0, 1, 0, 0});
+        b->getEvents().listen<events::LMBRelease>([mainLogger](const auto&)
+        {
+            mainLogger.infoLn("i've been released");
+        });
+
+        DropdownPtr dd2 = dd->createSubMenuItem().lock();
+        dd2->getLayout().setMargin({0, 1, 0, 0});
+        dd2->setExpandDirection(Dropdown::Expand::RIGHT);
+        {
+            ButtonPtr c = dd2->createMenuItem<Button>().lock();
+            c->setColor(Utils::randomRGB());
+        }
+    }
+
+    {
+        ButtonPtr b = dd->createMenuItem<Button>().lock();
+        b->setColor(Utils::randomRGB());
+        b->getLayout().setMargin({0, 1, 0, 0});
+    }
+
+    rootBox->append(dd);
+}
+
     // BoxDividerPtr div = Utils::make<BoxDivider>("bd");
     // div->getLayout()
     //     .setNewScale({1_fill})

@@ -17,11 +17,10 @@
 
 namespace msgui
 {
-Button::Button(const std::string& name)
-    : AbstractNode("Button(" + name + ")", NodeType::COMMON)
+Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
 {
     /* Setup defaults */
-    log_ = Logger(getName());
+    log_ = Logger("Button(" + name + ")");
     setType(AbstractNode::NodeType::COMMON);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
@@ -63,7 +62,7 @@ void Button::onMouseClick(const events::LMBClick&)
 {
     currentColor_ = pressedColor_;
 
-    layout_.shrink = {2, 2};
+    // layout_.shrink = {2, 2};
     MAKE_LAYOUT_DIRTY;
 }
 
@@ -71,7 +70,7 @@ void Button::onMouseRelease(const events::LMBRelease&)
 {
     currentColor_ = color_;
 
-    layout_.shrink = {0, 0};
+    // layout_.shrink = {0, 0};
     MAKE_LAYOUT_DIRTY;
 }
 

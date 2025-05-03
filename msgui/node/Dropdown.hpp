@@ -36,9 +36,7 @@ public:
     std::weak_ptr<T> createMenuItem()
     {
         std::shared_ptr<T> nodeItem = Utils::make<T>("DropdownItem");
-        nodeItem->getLayout()
-            .setScaleType(utils::Layout::ScaleType::PX)
-            .setScale(itemSize_);
+        nodeItem->getLayout().setNewScale(itemSize_);
         nodeItem->getEvents().template listen<events::LMBRelease, events::InternalChannel>([this](const auto&)
         {
             /* Close any open downwards and upwards dropdowns from here. */
@@ -87,13 +85,13 @@ public:
 
     Dropdown& setDropdownOpen(const bool value);
     Dropdown& setPressedColor(const glm::vec4& color);
-    Dropdown& setItemSize(const glm::ivec2& size);
+    Dropdown& setItemSize(const Layout::ScaleXY& size);
     Dropdown& setExpandDirection(const Expand expand);
 
     bool isDropdownOpen() const;
     uint32_t getDropdownId() const;
     BoxWPtr getContainer();
-    glm::ivec2 getItemSize();
+    Layout::ScaleXY getItemSize();
     Expand getExpandDirection() const;
 
 private:
@@ -111,10 +109,9 @@ private:
 
     void closeDropdownsOnTheSameLevelAsMe();
     void recursivelyCloseDropdownsUpwards();
-    void setupLayoutReloadables();
 
 private:
-    glm::ivec2 itemSize_{0};
+    Layout::ScaleXY itemSize_{70_px, 34_px};
     Expand expandDir_{Expand::BOTTOM};
     uint32_t dropdownId_{0};
     bool dropdownOpen_{false};

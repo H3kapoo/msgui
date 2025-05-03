@@ -266,9 +266,7 @@ void WindowFrame::updateLayout()
                 /* Dropdown's box child needs to ignore using the BB of the parent to compute viewable area. Use
                    the area of the window itself instead. Also FloatingBox shall be unafected by viewarea. */
                 if (parent->getType() == AbstractNode::NodeType::DROPDOWN
-                || node->getType() == AbstractNode::NodeType::FLOATING_BOX
-            )
-                // if (node->getType() == AbstractNode::NodeType::FLOATING_BOX)
+                || node->getType() == AbstractNode::NodeType::FLOATING_BOX)
                 {
                     auto frameBoxIdx = allFrameChildNodes_.size() - 1;
                     node->transform_.computeViewableArea(allFrameChildNodes_[frameBoxIdx]->transform_, utils::Layout::TBLR{0});

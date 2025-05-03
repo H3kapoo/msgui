@@ -3,10 +3,9 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
 #include "msgui/node/Slider.hpp"
+#include "msgui/node/Dropdown.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
-#include <cmath>
-#include <format>
 
 namespace msgui
 {
@@ -48,6 +47,9 @@ using Void = CustomLayoutEngine::Void;
 #define SKIP_SCROLL_NODE(node)\
     if (node->getType() == AbstractNode::NodeType::SCROLL) { continue; }\
 
+#define SKIP_DROPDOWN_CONTAINER_NODE(node)\
+    if (node->getType() == AbstractNode::NodeType::DROPDOWN_CONTAINTER) { continue; }\
+
 /*
     This function aims to calculate position and scale of the subNodes of "node" and runs under the assumption that
     "node" position and scale has already been calculated.
@@ -79,7 +81,7 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     /* Handling of uncommon node types */
     if (nodeType == AbstractNode::NodeType::SCROLL || nodeType == AbstractNode::NodeType::SLIDER)
     {
-        handlerSliderNode(node);
+        handleSliderNode(node);
         return Result<Void>{};
     }
 
@@ -120,6 +122,14 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     else
     {
         return Result<Void>{.error = "Unsupported layout type"};
+    }
+
+    /* Handling of uncommon node types AFTER resolving their common subNodes */
+
+    if (node->getType() == AbstractNode::NodeType::DROPDOWN)
+    {
+        RETURN_ON_ERROR(handleDropdown(node), Void);
+        return Result<Void>{};
     }
 
     return Result<Void>{};
@@ -181,6 +191,7 @@ Result<Void> CustomLayoutEngine::computeSubNodesScale(const AbstractNodePtr& nod
     AbstractNodePVec& subNodes = node->getChildren();
     for (const AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
@@ -347,6 +358,7 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
     for (const AbstractNodePtr& subNode : subNodes)
     {
         SKIP_SCROLL_NODE(subNode);
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::ScaleXY& subNodeScale = subNodeLayout.newScale;
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
@@ -504,6 +516,8 @@ Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& 
     AbstractNodePVec& subNodes = node->getChildren();
     for (const AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
+
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
         glm::vec3& trPos = subNode->getTransform().pos;
@@ -656,6 +670,7 @@ Result<Void> CustomLayoutEngine::alignSubNodes(const AbstractNodePtr& node, cons
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
         glm::vec3& subNodePos = subNode->getTransform().pos;
         subNodePos.x += positionToAdd.x;
@@ -682,6 +697,7 @@ Result<Void> CustomLayoutEngine::selfAlignSubNodeSlice(const AbstractNodePtr& no
     AbstractNodePVec& subNodes = node->getChildren();
     for (uint32_t i = startIdx; i < endIdx; ++i)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNodes[i]);
         SKIP_SCROLL_NODE(subNodes[i]);
         const glm::vec3& subNodeScale = subNodes[i]->getTransform().scale;
         const Layout& subNodeLayout = subNodes[i]->getLayout();
@@ -756,6 +772,7 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
         subNode->getTransform().pos -= glm::vec3{sc.offset.x, sc.offset.y, 0};
     }
@@ -788,6 +805,7 @@ glm::vec2 CustomLayoutEngine::computeOverflow(const AbstractNodePtr& node, const
     glm::vec2 maximumPoints{0, 0};
     for (const AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
         const Layout::TBLR& subNodeMargin = subNode->getLayout().margin;
         const glm::vec2& subNodeScale = {
@@ -863,6 +881,7 @@ Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node)
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
 
         const Layout& subNodeLayout = subNode->getLayout();
@@ -1181,7 +1200,7 @@ Result<CustomLayoutEngine::ScrollContribution> CustomLayoutEngine::computeScroll
     Function will calculate the slider's knob position as well as scale. The knob scale can be dynamic aka
     it will update depending on the slider's size and slide-to value.
 */
-void CustomLayoutEngine::handlerSliderNode(const AbstractNodePtr& node)
+void CustomLayoutEngine::handleSliderNode(const AbstractNodePtr& node)
 {
     const SliderPtr& castSlider = Utils::as<Slider>(node);
     const glm::vec2& nodePos = node->getTransform().pos;
@@ -1664,6 +1683,63 @@ Result<Void> CustomLayoutEngine::tryToSatisfyMinMaxBoxDividerValues(const Abstra
     return Result<Void>{};
 }
 
+/*
+    Function will align the subItems container of a dropdown node in a user preferred position:
+     -> TOP, BOTTOM, LEFT, RIGHT of the Dropdown node itself.
+    In case the user chosen position cannot show the entire sub items container on the screen, the next
+    best position that will satisfy this condition will be chosen. (to be implemented sometime later)
+    If there's no such place, the last checked position will be used even if it goes out of the screen.
+*/
+Result<Void> CustomLayoutEngine::handleDropdown(const AbstractNodePtr& node)
+{
+    const DropdownPtr& dropdown = Utils::as<Dropdown>(node);
+
+    /* Nothing to be done is the dropdown is not open. */
+    if (!dropdown->isDropdownOpen()) { return Result<Void>{}; }
+
+    /* Dropdown is always guarnateed here to have one subNode. */
+    AbstractNodePtr& subItemsContainer = dropdown->getChildren()[0];
+
+    const Result<glm::vec2>& res = computeFitScale(subItemsContainer);
+    RETURN_ON_ERROR(res, Void);
+
+    const glm::vec3& dropdownPos = dropdown->getTransform().pos;
+    const glm::vec3& dropdownScale = dropdown->getTransform().scale;
+    glm::vec3& containerPos = subItemsContainer->getTransform().pos;
+    glm::vec3& containerScale = subItemsContainer->getTransform().scale;
+    containerScale.x = res.value.x;
+    containerScale.y = res.value.y;
+
+    const Dropdown::Expand expandDir = dropdown->getExpandDirection();
+    switch (expandDir)
+    {
+        case Dropdown::Expand::LEFT:
+            containerPos.x = dropdownPos.x - containerScale.x;
+            containerPos.y = dropdownPos.y;
+            break;
+        case Dropdown::Expand::RIGHT:
+            containerPos.x = dropdownPos.x + dropdownScale.x;
+            containerPos.y = dropdownPos.y;
+            break;
+        case Dropdown::Expand::TOP:
+            containerPos.x = dropdownPos.x;
+            containerPos.y = dropdownPos.y - containerScale.y;
+            break;
+        case Dropdown::Expand::BOTTOM:
+            containerPos.x = dropdownPos.x;
+            containerPos.y = dropdownPos.y + dropdownScale.y;
+            break;
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function aims to distribute the rounding errors accumulated so far in a layout, mostly due to relative
+    subNodes scaling.
+    This is achieved by distributing one pixel to each subNode until there's no more error to distribute.
+    It is possible now for some nodes to be +/- 1 pixel off when rendering but it's a tradeoff to be taken.
+*/
 void CustomLayoutEngine::resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,
     const glm::vec2 totalFloat)
 {
@@ -1671,27 +1747,21 @@ void CustomLayoutEngine::resolveCumulativeError(const AbstractNodePtr& node, con
     glm::vec2 diff = {std::round(totalFloat.x - totalInt.x), std::round(totalFloat.y - totalInt.y)};
     for (AbstractNodePtr& subNode : subNodes)
     {
-        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
         if (diff.x == 0 && diff.y == 0) { break; }
-        if (diff.x > 0)
+
+        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
+        if (diff.x)
         {
-            subNodeTrScale.x += 1.0f;
-            diff.x -= 1.0f;
+            const bool negDiffX = std::signbit(diff.x);
+            subNodeTrScale.x = negDiffX ? subNodeTrScale.x - 1.0f : subNodeTrScale.x + 1.0f;
+            diff.x = negDiffX ? diff.x + 1 : diff.x - 1;
         }
-        else if (diff.x < 0)
+
+        if (diff.y)
         {
-            subNodeTrScale.x -= 1.0f;
-            diff.x += 1.0f;
-        }
-        if (diff.y > 0)
-        {
-            subNodeTrScale.y += 1.0f;
-            diff.y -= 1.0f;
-        }
-        else if (diff.y < 0)
-        {
-            subNodeTrScale.y -= 1.0f;
-            diff.y += 1.0f;
+            const bool negDiffY = std::signbit(diff.y);
+            subNodeTrScale.y = negDiffY ? subNodeTrScale.y - 1.0f : subNodeTrScale.y + 1.0f;
+            diff.y = negDiffY ? diff.y + 1 : diff.y - 1;
         }
     }
 }
@@ -1700,5 +1770,6 @@ void CustomLayoutEngine::resolveCumulativeError(const AbstractNodePtr& node, con
 #undef SKIP_HORIZONTAL_DIRECTIONS
 #undef SKIP_VERTICAL_DIRECTIONS
 #undef SKIP_SCROLL_NODE
+#undef SKIP_DROPDOWN_CONTAINER_NODE
 #undef RETURN_ON_ERROR
 } // namespace msgui::layoutengine
