@@ -42,6 +42,7 @@ public:
             /* Close any open downwards and upwards dropdowns from here. */
             setDropdownOpen(false);
             recursivelyCloseDropdownsUpwards();
+            currentColor_ = color_;
         });
 
         nodeItem->getEvents().template listen<events::FocusLost, events::InternalChannel>([this](const auto& evt)
@@ -84,7 +85,6 @@ public:
     void toggleDropdown();
 
     Dropdown& setDropdownOpen(const bool value);
-    Dropdown& setPressedColor(const glm::vec4& color);
     Dropdown& setItemSize(const Layout::ScaleXY& size);
     Dropdown& setExpandDirection(const Expand expand);
 

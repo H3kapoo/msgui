@@ -29,54 +29,66 @@ int main()
     WindowFramePtr& window = app.createFrame("MainWindow", 1280, 720);
 
     BoxPtr rootBox = window->getRoot();
-    rootBox->setColor(Utils::hexToVec4("#363636ff"));
+    rootBox->setColor(Utils::hexToVec4("#282828ff"));
     rootBox->getLayout()
         .setPadding({1})
         ;
 
-
-{
     DropdownPtr dd = Utils::make<Dropdown>("mydd");
     dd->setExpandDirection(Dropdown::Expand::BOTTOM);
-    dd->setColor(Utils::hexToVec4("#3ab955ff"));
+    dd->setColor(Utils::hexToVec4("#282828ff"));
     dd->setText("Menu");
+    dd->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
     dd->setItemSize({150_px, 34_px});
     dd->getLayout().setBorder({1});
     dd->getContainer().lock()->getLayout().setPadding({1, 0, 1, 1});
 
     {
         ButtonPtr b = dd->createMenuItem<Button>().lock();
-        b->setColor(Utils::randomRGB());
+        b->setColor(Utils::hexToVec4("#282828ff"));
         b->setText("New");
+        b->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
         b->getLayout().setMargin({0, 1, 0, 0});
+        b->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
     }
 
     {
         ButtonPtr b = dd->createMenuItem<Button>().lock();
-        b->setColor(Utils::randomRGB());
+        b->setColor(Utils::hexToVec4("#282828ff"));
         b->getLayout().setMargin({0, 1, 0, 0});
+        b->setText("Open");
+        b->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
         b->getEvents().listen<events::LMBRelease>([mainLogger](const auto&)
         {
             mainLogger.infoLn("i've been released");
         });
 
         DropdownPtr dd2 = dd->createSubMenuItem().lock();
+        dd2->setItemSize({150_px, 34_px});
+        dd2->setText("More..");
+        dd2->setColor(Utils::hexToVec4("#282828ff"));
+        dd2->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
         dd2->getLayout().setMargin({0, 1, 0, 0});
         dd2->setExpandDirection(Dropdown::Expand::RIGHT);
+        dd2->getContainer().lock()->getLayout().setPadding({1});
         {
             ButtonPtr c = dd2->createMenuItem<Button>().lock();
-            c->setColor(Utils::randomRGB());
+            c->setColor(Utils::hexToVec4("#282828ff"));
+            c->setText("Option");
+            c->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
         }
     }
 
     {
         ButtonPtr b = dd->createMenuItem<Button>().lock();
-        b->setColor(Utils::randomRGB());
+        b->setText("Exit");
+        b->getTextLabel().lock()->setTextColor(Utils::hexToVec4("#bebdb7ff"));
+        // b->setEnabled(false);
+        b->setColor(Utils::hexToVec4("#282828ff"));
         b->getLayout().setMargin({0, 1, 0, 0});
     }
 
     rootBox->append(dd);
-}
 
     // BoxDividerPtr div = Utils::make<BoxDivider>("bd");
     // div->getLayout()

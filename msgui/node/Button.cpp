@@ -92,9 +92,10 @@ void Button::onMouseExit(const events::MouseExit&)
 }
 
 Button& Button::setColor(const glm::vec4& color)
-{   
+{
     color_ = color;
     currentColor_ = color;
+    pressedColor_ = Utils::lighten(color_, 0.5f);
     REQUEST_NEW_FRAME;
     return *this;
 }

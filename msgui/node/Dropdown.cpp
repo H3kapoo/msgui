@@ -41,8 +41,8 @@ Dropdown::Dropdown(const std::string& name) : Button(name)
         std::bind(&Dropdown::onMouseClick, this, std::placeholders::_1));
     getEvents().listen<events::FocusLost, events::InputChannel>(
     std::bind(&Dropdown::onFocusLost, this, std::placeholders::_1));
-    // getEvents().listen<events::MouseEnter, events::InputChannel>([](const auto&){});
-    // getEvents().listen<events::MouseExit, events::InputChannel>([](const auto&){});
+    getEvents().listen<events::MouseEnter, events::InputChannel>([](const auto&){});
+    getEvents().listen<events::MouseExit, events::InputChannel>([](const auto&){});
 
     container_ = Utils::make<Box>("ItemsContainer");
     container_->setType(AbstractNode::NodeType::DROPDOWN_CONTAINTER);
@@ -202,6 +202,7 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
             }
         }
 
+        currentColor_ = color_;
         remove(container_->getId());
     }
     /* Dropdown shall open. */
@@ -213,13 +214,6 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
         }
     }
 
-    return *this;
-}
-
-Dropdown& Dropdown::setPressedColor(const glm::vec4& color)
-{
-    pressedColor_ = color;
-    REQUEST_NEW_FRAME;
     return *this;
 }
 
