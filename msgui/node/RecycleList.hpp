@@ -2,26 +2,28 @@
 
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
-#include "msgui/node/Slider.hpp"
-#include "msgui/events/Scroll.hpp"
+#include "msgui/node/utils/ListItem.hpp"
 
 namespace msgui
 {
+class CustomLayoutEngine;
+
 /* Node used for efficiently handling lists with a large amount of entries. */
-class RecycleList : public AbstractNode
+class RecycleList : public Box
 {
+struct Internals;
+
+
+
 public:
     RecycleList(const std::string& name);
 
     /**
         Adds a new item to the list.
 
-        @note @todo For now items are just colors, but when text rendering will be implemented, the items
-                    will be able to display both text, colors and images.
-
         @param color Color of the item
     */
-    void addItem(const glm::vec4& color);
+    void addItem(const node::utils::ListItem& item);
 
     /**
         Removes the item located at a specified index.
@@ -35,7 +37,7 @@ public:
 
         @param pred Predicate to be satisfied
     */
-    void removeItemsBy(const std::function<bool(const glm::vec4&)> pred);
+    void removeItemsBy(const std::function<bool(const node::utils::ListItem&)> pred);
 
     RecycleList& setColor(const glm::vec4& color);
     RecycleList& setBorderColor(const glm::vec4& color);
@@ -50,20 +52,15 @@ public:
     utils::Layout::TBLR getItemMargin() const;
     utils::Layout::TBLR getItemBorder() const;
     utils::Layout::TBLR getItemBorderRadius() const;
-    SliderWPtr getSlider();
-    BoxWPtr getContainer();
+    Internals& getInternalsRef();
 
 private: // friend
+    friend CustomLayoutEngine;
     friend WindowFrame;
-    void onLayoutUpdateNotify();
+    void onLayoutDirtyPost();
 
 private:
     void setShaderAttributes() override;
-
-    void onSliderValueChanged(const events::Scroll& evt);
-
-    void updateNodePositions();
-    void setupLayoutReloadables();
 
 private:
     glm::vec4 color_{1.0f};
@@ -72,15 +69,23 @@ private:
     utils::Layout::TBLR itemMargin_{0};
     utils::Layout::TBLR itemBorder_{0};
     utils::Layout::TBLR itemBorderRadius_{0};
-    std::vector<glm::vec4> listItems_;
+    std::vector<node::utils::ListItem> listItems_;
 
-    SliderPtr slider_{nullptr};
-    BoxPtr boxCont_{nullptr};
-
-    bool listIsDirty_{true};
-    int32_t oldTopOfList_{-1};
-    int32_t oldVisibleNodes_{0};
-    float lastScaleY_{0};
+    struct Internals
+    {
+        bool isDirty{true};
+        int32_t topOfListIdx{0};
+        int32_t oldTopOfListIdx{-1};
+        int32_t oldVisibleNodes{0};
+        int32_t visibleNodes{0};
+        int32_t maxDepth_{0};
+        uint32_t marginFactor_{30};
+        float lastScaleY{0};
+        float lastScaleX{0};
+        int32_t elementsCount{0};
+        glm::ivec2 overflow{0, 0};
+    };
+    Internals internals_;
 };
 
 using RecycleListPtr = std::shared_ptr<RecycleList>;

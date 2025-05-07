@@ -74,8 +74,6 @@ private:
 
 private:
     void setShaderAttributes() override;
-    void updateNodePositions();
-    void setupLayoutReloadables();
 
 private:
     glm::vec4 color_{1.0f};
@@ -84,11 +82,10 @@ private:
     utils::Layout::TBLR itemMargin_{0};
     utils::Layout::TBLR itemBorder_{0};
     utils::Layout::TBLR itemBorderRadius_{0};
-    std::vector<TreeItem> listItems_;
-    
+
     TreeItemPtrVec treeItems_;
     TreeItemPtrVec flattenedTreeBuffer; //TODO: Consider using a list instead
-    
+
     struct Internals
     {
         bool isDirty{true};
@@ -104,7 +101,6 @@ private:
         glm::ivec2 overflow{0, 0};
     };
     Internals internals_;
-
 };
 
 using TreeViewPtr = std::shared_ptr<TreeView>;

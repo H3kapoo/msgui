@@ -12,7 +12,6 @@
 #include "msgui/node/TextLabel.hpp"
 #include "msgui/events/LMBRelease.hpp"
 #include "msgui/events/LMBTreeItemRelease.hpp"
-#include "msgui/renderer/Types.hpp"
 
 namespace msgui
 {
@@ -23,8 +22,6 @@ TreeView::TreeView(const std::string& name) : Box(name)
     setMesh(loaders::MeshLoader::loadQuad());
 
     log_ = ("TreeView(" + name + ")");
-
-    setupLayoutReloadables();
 
     /* Defaults */
     color_ = Utils::hexToVec4("#42056bff");
@@ -145,29 +142,6 @@ void TreeView::onLayoutDirtyPost()
                 });
         }
     }
-}
-
-void TreeView::setupLayoutReloadables()
-{
-    layout_.onTypeChange = [this]()
-    {
-        MAKE_LAYOUT_DIRTY;
-    };
-
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME; };
-
-    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
-    layout_.onMarginChange = updateCb;
-    layout_.onPaddingChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onBorderRadiusChange = updateCb;
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onGridPosRCChange = updateCb;
-    layout_.onGridSpanRCChange = updateCb;
-    layout_.onScaleChange = updateCb;
-    layout_.onMinScaleChange = updateCb;
-    layout_.onMaxScaleChange = updateCb;
 }
 
 TreeView& TreeView::setColor(const glm::vec4& color)

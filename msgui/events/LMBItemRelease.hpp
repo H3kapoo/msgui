@@ -1,17 +1,16 @@
 #pragma once
 
-#include <cstdint>
-
 #include "msgui/events/INodeEvent.hpp"
+#include "msgui/node/utils/ListItem.hpp"
 
 namespace msgui::events
 {
 struct LMBItemRelease : public INEvent
 {
-    explicit LMBItemRelease(int32_t indexIn)
-        : index{indexIn}
+    explicit LMBItemRelease(node::utils::ListItem* itemIn)
+        : item{itemIn}
     {}
 
-    int32_t index{0};
+    node::utils::ListItem* item;
 };
 } // namespace msgui::events

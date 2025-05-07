@@ -21,7 +21,7 @@ Box::Box(const std::string& name)
     /* Defaults */
     color_ = Utils::hexToVec4("#F9F8F7FF");
 
-    layout_.setScale({200, 100});
+    layout_.setNewScale({200_px, 100_px});
 
     setupReloadables();
 
@@ -39,10 +39,10 @@ DropdownWPtr Box::createContextMenu()
     if (!ctxMenuFloatingBox_)
     {
         DropdownPtr ctxDd = Utils::make<Dropdown>("ContextMenuDropdown");
-        ctxDd->getLayout().setScale({0, 0});
+        ctxDd->getLayout().setNewScale({0_px, 0_px});
 
         auto fb = Utils::make<FloatingBox>("ContextMenuFloatingBox");
-        fb->getLayout().setScale({0, 0});
+        fb->getLayout().setNewScale({0_px, 0_px});
         fb->append(ctxDd);
         ctxMenuFloatingBox_ = fb;
         append(ctxMenuFloatingBox_);
@@ -72,12 +72,14 @@ void Box::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void Box::onLMBRelease(const events::LMBRelease&)
+void Box::onLMBRelease(const events::LMBRelease& ev)
 {
     /* Nothing to be done if no context menu is assigned. */
     if (!ctxMenuFloatingBox_) { return; }
     
     FloatingBoxPtr fb = Utils::as<FloatingBox>(ctxMenuFloatingBox_);
+    fb->setPreferredPosition(ev.pos);
+
     auto& ddd = fb->getChildren()[0];
     Utils::as<Dropdown>(ddd)->setDropdownOpen(false);
 }

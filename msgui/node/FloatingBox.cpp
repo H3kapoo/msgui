@@ -2,7 +2,6 @@
 
 #include "msgui/loaders/MeshLoader.hpp"
 #include "msgui/loaders/ShaderLoader.hpp"
-#include "msgui/node/Box.hpp"
 #include "msgui/node/FrameState.hpp"
 
 namespace msgui
@@ -10,22 +9,16 @@ namespace msgui
 FloatingBox::FloatingBox(const std::string& name)
     : AbstractNode(name, NodeType::FLOATING_BOX)
 {
+    /* Defaults */
     log_ = Logger("FloatingBox(" + name +")");
     setType(AbstractNode::NodeType::FLOATING_BOX);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    /* Defaults */
-    // box_ = Utils::make<Box>("InternalBox");
-    // box_->getLayout().setScaleType(utils::Layout::ScaleType::REL)
-    //     .setScale({1.0f, 1.0f})
-    //     .setAlignChild(utils::Layout::Align::CENTER);
-    // append(box_);
-
     color_ = Utils::hexToVec4("#ce7f30ff");
     borderColor_ = Utils::hexToVec4("#ce7f30ff");
 
-    layout_.setScale({200, 100});
+    layout_.setNewScale({200_px, 100_px});
 
     /* Register only the events you need. */
     getEvents().listen<events::LMBRelease, events::InputChannel>(
@@ -46,7 +39,6 @@ void FloatingBox::setShaderAttributes()
 
 void FloatingBox::onMouseRelease(const events::LMBRelease& evt)
 {
-    setPreferredPosition({getState()->mouseX, getState()->mouseY});
 }
 
 FloatingBox& FloatingBox::setPreferredPosition(const glm::vec2& pos)

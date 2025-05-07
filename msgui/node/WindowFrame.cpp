@@ -252,12 +252,6 @@ void WindowFrame::updateLayout()
                 return;
             }
 
-            /* Currently only BOX type nodes support overflow handling */
-            // if (node->getType() == AbstractNode::NodeType::BOX)
-            // {
-            //     Utils::as<Box>(node)->updateOverflow(result.value);
-            // }
-    
             /* TODO: This shall be moved into layout process(). */
             /* After updating the node layout, we need to update the viewable area of the node based on the parent's
                viewable area. Raw parent is used for better performance (compared to locking each time). */
@@ -480,6 +474,7 @@ void WindowFrame::resolveOnMouseMoveFromInput(const int32_t x, const int32_t y)
             frameState_->nearScrollNodePtr = p;
         }
         else if (p->getType() == AbstractNode::NodeType::BOX
+            || p->getType() == AbstractNode::NodeType::RECYCLE_LIST
             || p->getType() == AbstractNode::NodeType::TREEVIEW) // TODO: || NodeType is TreeView/RecycleList
         {
             auto box = Utils::as<Box>(p);

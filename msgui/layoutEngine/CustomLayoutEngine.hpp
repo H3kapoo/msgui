@@ -27,7 +27,7 @@ private:
 
     /* Common */
     Result<Void> computeSubNodesScale(const AbstractNodePtr& node, const ScrollContribution& sc);
-    Result<Void> computeSubNodesPosition(const AbstractNodePtr& node, const ScrollContribution& sc);
+    Result<glm::vec2> computeSubNodesPosition(const AbstractNodePtr& node, const ScrollContribution& sc);
     Result<glm::vec2> computeFitScale(const AbstractNodePtr& node);
     Result<Void> alignSubNodes(const AbstractNodePtr& node, const glm::vec2 computedOverflow);
     Result<Void> selfAlignSubNodeSlice(const AbstractNodePtr& node, const glm::vec2 maximum,
@@ -50,9 +50,15 @@ private:
     Result<Void> computeBoxDividerSubNodesPos(const AbstractNodePtr& node);
     Result<Void> tryToSatisfyMinMaxBoxDividerValues(const AbstractNodePtr& node,
         const glm::vec2 usableNodeSpace);
-    
+
     /* Dropdown */
     Result<Void> handleDropdown(const AbstractNodePtr& node);
+
+    /* FloatingBox*/
+    Result<Void> handleFloatingBox(const AbstractNodePtr& node);
+
+    /* FloatingBox*/
+    Result<Void> handleRecycleList(const AbstractNodePtr& node);
 
     /* Helpers */
     void resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,

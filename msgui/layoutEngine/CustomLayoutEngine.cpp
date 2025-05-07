@@ -2,6 +2,8 @@
 #include "msgui/layoutEngine/utils/LayoutData.hpp"
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Box.hpp"
+#include "msgui/node/FloatingBox.hpp"
+#include "msgui/node/RecycleList.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/Dropdown.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
@@ -49,6 +51,9 @@ using Void = CustomLayoutEngine::Void;
 
 #define SKIP_DROPDOWN_CONTAINER_NODE(node)\
     if (node->getType() == AbstractNode::NodeType::DROPDOWN_CONTAINTER) { continue; }\
+
+#define SKIP_FLOATING_BOX_NODE(node)\
+    if (node->getType() == AbstractNode::NodeType::FLOATING_BOX) { continue; }\
 
 /*
     This function aims to calculate position and scale of the subNodes of "node" and runs under the assumption that
@@ -105,12 +110,13 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     if (!sc.error.empty()) { return Result<Void>{.error = sc.error}; }
 
     /* Handling of common Horizontal and Verical layouts */
+    
     if (isLayoutHorizontal || isLayoutVertical)
     {
         const Result<Void>& scaleResult = computeSubNodesScale(node, sc.value);
         RETURN_ON_ERROR(scaleResult, Void);
 
-        const Result<Void>& posResult = computeSubNodesPosition(node, sc.value);
+        const Result<glm::vec2>& posResult = computeSubNodesPosition(node, sc.value);
         RETURN_ON_ERROR(posResult, Void);
     }
     /* Handling of grid layouts */
@@ -125,10 +131,21 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     }
 
     /* Handling of uncommon node types AFTER resolving their common subNodes */
-
     if (node->getType() == AbstractNode::NodeType::DROPDOWN)
     {
         RETURN_ON_ERROR(handleDropdown(node), Void);
+        return Result<Void>{};
+    }
+
+    if (node->getType() == AbstractNode::NodeType::FLOATING_BOX)
+    {
+        RETURN_ON_ERROR(handleFloatingBox(node), Void);
+        return Result<Void>{};
+    }
+
+    if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
+    {
+        RETURN_ON_ERROR(handleRecycleList(node), Void);
         return Result<Void>{};
     }
 
@@ -489,7 +506,7 @@ Result<glm::vec2> CustomLayoutEngine::computeFitScale(const AbstractNodePtr& nod
 
     Scrollbars will also be positioned at this stage as they are subNodes of Box derived nodes.
 */
-Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& node,
+Result<glm::vec2> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& node,
     const ScrollContribution& sc)
 {
     const Layout& layout = node->getLayout();
@@ -517,6 +534,7 @@ Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& 
     for (const AbstractNodePtr& subNode : subNodes)
     {
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
+        SKIP_FLOATING_BOX_NODE(subNode);
 
         const Layout& subNodeLayout = subNode->getLayout();
         const Layout::TBLR& subNodeMargin = subNodeLayout.margin;
@@ -614,7 +632,7 @@ Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& 
 
     /* Compute overflow as it is needed in order to satisfy node's alignSubNodes policy. */
     const glm::vec2 overflow = computeOverflow(node, sc);
-    RETURN_ON_ERROR(alignSubNodes(node, overflow), Void);
+    RETURN_ON_ERROR(alignSubNodes(node, overflow), glm::vec2);
 
     /* 
         Apply any overflow shifting as needed. Only Box and Box derived types support overflow handling.
@@ -622,7 +640,7 @@ Result<Void> CustomLayoutEngine::computeSubNodesPosition(const AbstractNodePtr& 
     */
     applyOverflowAndScrollOffsets(node, overflow, sc);
 
-    return Result<Void>{};
+    return Result<glm::vec2>{.value = overflow};
 }
 
 /*
@@ -670,6 +688,7 @@ Result<Void> CustomLayoutEngine::alignSubNodes(const AbstractNodePtr& node, cons
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_FLOATING_BOX_NODE(subNode);
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
         glm::vec3& subNodePos = subNode->getTransform().pos;
@@ -697,6 +716,7 @@ Result<Void> CustomLayoutEngine::selfAlignSubNodeSlice(const AbstractNodePtr& no
     AbstractNodePVec& subNodes = node->getChildren();
     for (uint32_t i = startIdx; i < endIdx; ++i)
     {
+        SKIP_FLOATING_BOX_NODE(subNodes[i]);
         SKIP_DROPDOWN_CONTAINER_NODE(subNodes[i]);
         SKIP_SCROLL_NODE(subNodes[i]);
         const glm::vec3& subNodeScale = subNodes[i]->getTransform().scale;
@@ -761,7 +781,7 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
     }
 
     const BoxPtr& box = Utils::as<Box>(node);
-    box->setOverflow(overflow);
+    // box->setOverflow(overflow);
 
     if (sc.offset.x < 0 && sc.offset.y < 0)
     {
@@ -772,9 +792,10 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_FLOATING_BOX_NODE(subNode);
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
-        subNode->getTransform().pos -= glm::vec3{sc.offset.x, sc.offset.y, 0};
+        // subNode->getTransform().pos -= glm::vec3{sc.offset.x, sc.offset.y, 0};
     }
 }
 
@@ -805,6 +826,7 @@ glm::vec2 CustomLayoutEngine::computeOverflow(const AbstractNodePtr& node, const
     glm::vec2 maximumPoints{0, 0};
     for (const AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_FLOATING_BOX_NODE(subNode);
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
         const Layout::TBLR& subNodeMargin = subNode->getLayout().margin;
@@ -881,6 +903,7 @@ Result<Void> CustomLayoutEngine::computeGridLayout(const AbstractNodePtr& node)
     AbstractNodePVec& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
+        SKIP_FLOATING_BOX_NODE(subNode);
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
 
@@ -1133,7 +1156,8 @@ Result<CustomLayoutEngine::ScrollContribution> CustomLayoutEngine::computeScroll
     const AbstractNodePtr& node)
 {
     ScrollContribution sc;
-    if (node->getType() != AbstractNode::NodeType::BOX)
+    if (node->getType() != AbstractNode::NodeType::BOX
+        && node->getType() != AbstractNode::NodeType::RECYCLE_LIST)
     {
         return Result<ScrollContribution>{.value = sc};
     }
@@ -1729,6 +1753,96 @@ Result<Void> CustomLayoutEngine::handleDropdown(const AbstractNodePtr& node)
             containerPos.x = dropdownPos.x;
             containerPos.y = dropdownPos.y + dropdownScale.y;
             break;
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function deals with a box that's "floating" above all the other nodes. Generally used as a pop-up window
+    or a context menu when right clicking.
+    The layout is calculted just as a normal Box, but at the end the final position is user supplied.
+*/
+Result<Void> CustomLayoutEngine::handleFloatingBox(const AbstractNodePtr& node)
+{
+    FloatingBoxPtr floatingBoxPtr = Utils::as<FloatingBox>(node);
+
+    const auto& preferredPos = floatingBoxPtr->getPreferredPos();
+    auto& pos = floatingBoxPtr->getTransform().pos;
+    pos = {preferredPos.x, preferredPos.y, pos.z};
+
+    node->getTransform().pos.x = pos.x;
+    node->getTransform().pos.y = pos.y;
+    node->getChildren()[0]->getTransform().pos.x = pos.x;
+    node->getChildren()[0]->getTransform().pos.y = pos.y;
+
+    return Result<Void>{};
+}
+
+/*
+    Function handles mainly overflow control (Scrollbars) of recycle lists. Additionally computes what element
+    index is the new top of the list such that the recycle list can remove old items and append new ones.
+*/
+Result<Void> CustomLayoutEngine::handleRecycleList(const AbstractNodePtr& node)
+{
+    const RecycleListPtr& rlPtr = Utils::as<RecycleList>(node);
+    const int32_t rowSize = rlPtr->getRowSize();
+    const glm::vec3& trPos = node->getTransform().pos;
+    const glm::vec3& trScale = node->getTransform().scale;
+    const Layout::TBLR& itemMargin = rlPtr->getItemMargin();
+    RecycleList::Internals& internalsRef = rlPtr->getInternalsRef();
+
+    const int32_t rowSizeAndMargin = rowSize + itemMargin.top + itemMargin.bot;
+    const int32_t maxDisplayAmt = trScale.y / rowSizeAndMargin + 1;
+    const SliderPtr vBar = rlPtr->getVBar().lock();
+    const SliderPtr hBar = rlPtr->getHBar().lock();
+    internalsRef.topOfListIdx = vBar->getSlideCurrentValue() / rowSizeAndMargin;
+    internalsRef.visibleNodes = maxDisplayAmt + 1;
+
+    /* Trigger nodes readdition if top of the list changed or if the list has new changes. */
+    if (internalsRef.isDirty || internalsRef.topOfListIdx != internalsRef.oldTopOfListIdx
+        || internalsRef.oldVisibleNodes != internalsRef.visibleNodes)
+    {
+        internalsRef.isDirty = false;
+        rlPtr->onLayoutDirtyPost();
+    }
+
+    const int32_t hBarActiveSize = rlPtr->isScrollBarActive(Layout::Type::HORIZONTAL)
+        ? hBar->getLayout().newScale.y.value : 0;
+    const int32_t vBarActiveSize = rlPtr->isScrollBarActive(Layout::Type::VERTICAL)
+        ? vBar->getLayout().newScale.x.value : 0;
+
+    /* Compute overflow value now that elements are in place. */
+    float maxX{0};
+    float runningY{0};
+    auto& subNodes = node->getChildren();
+    for (AbstractNodePtr& subNode : subNodes)
+    {
+        SKIP_SCROLL_NODE(subNode);
+        const glm::vec2& subNodeTrScale = subNode->getTransform().scale;
+        maxX = std::max(maxX, subNodeTrScale.x);
+    }
+    // log_.debugLn("scale %f", runningY);
+
+    internalsRef.overflow.x = maxX - trScale.x + vBarActiveSize;
+    internalsRef.overflow.x = std::max(0, internalsRef.overflow.x + 2);
+    internalsRef.overflow.y = internalsRef.elementsCount * rowSizeAndMargin - trScale.y + hBarActiveSize;
+    internalsRef.overflow.y = std::max(0, internalsRef.overflow.y + 2);
+
+    /* Update internals. */
+    rlPtr->setOverflow(internalsRef.overflow);
+
+    internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
+    internalsRef.oldVisibleNodes = internalsRef.visibleNodes;
+    internalsRef.lastScaleY = trScale.y;
+    internalsRef.lastScaleX = trScale.x;
+
+    /* Apply the scroll offset. */
+    for (AbstractNodePtr& subNode : subNodes)
+    {
+        SKIP_SCROLL_NODE(subNode);
+        subNode->getTransform().pos.y -= (int32_t)vBar->getSlideCurrentValue() % rowSizeAndMargin;
+        subNode->getTransform().pos.x -= hBar->getSlideCurrentValue();
     }
 
     return Result<Void>{};

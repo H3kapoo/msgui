@@ -25,7 +25,6 @@ private:
     glm::vec4 borderColor_{1.0f};
     std::string imagePath_;
     TexturePtr btnTex_{nullptr};
-    uint32_t id_{0};
 };
 using ImagePtr = std::shared_ptr<Image>;
 using ImageWPtr = std::weak_ptr<Image>;

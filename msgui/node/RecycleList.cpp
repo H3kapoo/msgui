@@ -5,71 +5,46 @@
 #include "msgui/node/AbstractNode.hpp"
 #include "msgui/node/Button.hpp"
 #include "msgui/node/FrameState.hpp"
-#include "msgui/node/Slider.hpp"
 #include "msgui/events/LMBItemRelease.hpp"
-#include "msgui/events/LMBRelease.hpp"
-#include "msgui/events/Scroll.hpp"
-#include <vector>
 
 namespace msgui
 {
-RecycleList::RecycleList(const std::string& name) : AbstractNode(name, NodeType::RECYCLE_LIST)
+RecycleList::RecycleList(const std::string& name) : Box(name)
 {
+    /* Defaults */
+    log_ = Logger("RecycleList(" + name + ")");
+    setType(AbstractNode::NodeType::RECYCLE_LIST);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    log_ = ("RecycleList(" + name + ")");
 
-    setupLayoutReloadables();
-
-    /* Defaults */
-    color_ = Utils::hexToVec4("#F9F8F7");
-
-    layout_.setScale({100, 100});
-
-    /* RL has a slider to scroll the items. This needs to exist but doesn't need to be appended if not needed. */
-    slider_ = std::make_shared<Slider>("RLSlider");
-    slider_->getLayout()
-        .setType(utils::Layout::Type::VERTICAL)
-        .setScaleType({utils::Layout::ScaleType::PX, utils::Layout::ScaleType::REL})
-        .setScale({20, 1.0f});
-    slider_->setColor(Utils::hexToVec4("#ddaaffff"));
-    slider_->setSlideFrom(0);
-    slider_->getEvents().listen<events::Scroll>(
-        std::bind(&RecycleList::onSliderValueChanged, this, std::placeholders::_1));
-
-    /* RL has a box container to hold the items. This has to be appended from the start. */
-    boxCont_ = std::make_shared<Box>("RLBox");
-    boxCont_->getLayout()
-        .setAllowOverflow({false, false}) /* In this context, it shall never have overflow enabled */
-        .setType(utils::Layout::Type::VERTICAL)
-        .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::PX})
-        .setScale({1.0f, 1.0f});
-    boxCont_->setColor(Utils::hexToVec4("#42056bff"));
-    append(boxCont_);
+    color_ = Utils::hexToVec4("#ffffffff");
+    layout_.setAllowOverflow({true, true})
+        .setType(Layout::Type::VERTICAL)
+        .setNewScale({100_px, 100_px});
 }
 
-void RecycleList::addItem(const glm::vec4& color)
+void RecycleList::addItem(const node::utils::ListItem& item)
 {
-    listItems_.emplace_back(color);
+    listItems_.emplace_back(item);
 
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY;
 }
 
 void RecycleList::removeItemIdx(const int32_t idx)
-{   
+{
     if (idx < 0 || idx > (int32_t)listItems_.size() - 1) { return; }
     listItems_.erase(listItems_.begin() + idx);
 
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY;
 }
 
-void RecycleList::removeItemsBy(const std::function<bool(const glm::vec4&)> pred)
+void RecycleList::removeItemsBy(const std::function<bool(const node::utils::ListItem&)> pred)
 {
     if (std::erase_if(listItems_, pred))
     {
-        listIsDirty_ = true;
+        internals_.isDirty = true;
         MAKE_LAYOUT_DIRTY;
     }
 }
@@ -86,114 +61,45 @@ void RecycleList::setShaderAttributes()
     shader->setVec2f("uResolution", glm::vec2{transform_.scale.x, transform_.scale.y});
 }
 
-void RecycleList::onLayoutUpdateNotify()
+void RecycleList::onLayoutDirtyPost()
 {
-    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
-    const auto& boxLayout = boxCont_->getLayout();
-    float scaleY = boxCont_->getTransform().scale.y - boxLayout.border.top - boxLayout.border.bot
-        - boxLayout.padding.top - boxLayout.padding.bot;
-    if (listIsDirty_ || lastScaleY_ != scaleY)
+    removeAll();
+
+    internals_.elementsCount = listItems_.size();
+    for (int32_t i = 0; i < internals_.visibleNodes; i++)
     {
-        int32_t totalElements = listItems_.size();
-        slider_->setSlideTo(std::max(totalElements * rowSizeAndMargin - scaleY, 0.0f));
-
-        if (slider_->getSlideTo() == 0 && children_.size() == 2)
+        int32_t index = internals_.topOfListIdx + i;
+        if (index < internals_.elementsCount)
         {
-            slider_->setSlideCurrentValue(0);
-            remove(slider_->getId());
-        }
-        else if (slider_->getSlideTo() > 0 && children_.size() == 1)
-        {
-            appendAt(slider_, 0);
-        }
-    }
+            // auto ref = std::make_shared<TextLabel>("TreeViewItem");
+            auto ref = std::make_shared<Button>("Item");
+            ref->setColor(listItems_[index].color)
+                .setText(listItems_[index].text);
 
-    int32_t maxDisplayAmt = scaleY / rowSizeAndMargin + 1;
-    int32_t topOfListIdx = slider_->getSlideCurrentValue() / rowSizeAndMargin;
-    int32_t botOfListIdx = topOfListIdx + maxDisplayAmt;
-    int32_t visibleNodes = botOfListIdx - topOfListIdx + 1;
+            ref->getLayout()
+                .setMargin(itemMargin_)
+                .setBorder(itemBorder_)
+                .setNewScale({300_px, {.value = (float)rowSize_}});
+            // ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
 
-    if (listIsDirty_ || topOfListIdx != oldTopOfList_ || oldVisibleNodes_ != visibleNodes)
-    {
-        listIsDirty_ = false;
-        int32_t itemSize = listItems_.size();
-        boxCont_->removeAll();
-        for (int32_t i = 0; i < visibleNodes; i++)
-        {
-            if (topOfListIdx + i < itemSize)
-            {
-                auto ref = Utils::make<Button>("ListItem");
-                ref->getLayout()
-                    .setMargin(itemMargin_)
-                    .setBorder(itemBorder_)
-                    .setBorderRadius(itemBorderRadius_)
-                    .setScaleType({utils::Layout::ScaleType::REL, utils::Layout::ScaleType::REL})
-                    .setScale({1.0f, rowSize_});
-                ref->setColor(listItems_[topOfListIdx + i]);
+            append(ref);
 
-                ref->getEvents().listen<events::LMBRelease>([this, index = topOfListIdx + i](const auto&)
+            ref->getEvents().listen<events::LMBRelease>(
+                [this, index](const auto&)
                 {
-                    events::LMBItemRelease evt{index};
+                    internals_.isDirty = true;
+                    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+
+                    events::LMBItemRelease evt{&listItems_[index]};
                     getEvents().notifyEvent<events::LMBItemRelease>(evt);
                 });
-                boxCont_->append(ref);
-            }
         }
     }
-
-    updateNodePositions();
-
-    oldTopOfList_ = topOfListIdx;
-    oldVisibleNodes_ = visibleNodes;
-    lastScaleY_ = scaleY;
-}
-
-void RecycleList::onSliderValueChanged(const events::Scroll& evt)
-{
-    (void)evt.value;
-    updateNodePositions();
-}
-
-void RecycleList::updateNodePositions()
-{
-    if (slider_->getSlideCurrentValue() == 0) { return; }
-
-    auto& children = boxCont_->getChildren();
-    uint32_t size = children.size();
-    int32_t rowSizeAndMargin = rowSize_ + itemMargin_.top + itemMargin_.bot;
-    for (uint32_t i = 0; i < size; i++)
-    {
-        children[i]->getTransform().pos.y -= (int32_t)slider_->getSlideCurrentValue() % rowSizeAndMargin;
-    }
-}
-
-void RecycleList::setupLayoutReloadables()
-{
-    layout_.onTypeChange = [this]()
-    {
-        MAKE_LAYOUT_DIRTY;
-    };
-
-    auto updateCb = [this ](){ MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME; };
-
-    /* Layout will auto recalculate and new frame will be requested on layout data changes. */
-    layout_.onMarginChange = updateCb;
-    layout_.onPaddingChange = updateCb;
-    layout_.onBorderChange = updateCb;
-    layout_.onBorderRadiusChange = updateCb;
-    layout_.onAlignSelfChange = updateCb;
-    layout_.onScaleTypeChange = updateCb;
-    layout_.onGridPosRCChange = updateCb;
-    layout_.onGridSpanRCChange = updateCb;
-    layout_.onScaleChange = updateCb;
-    layout_.onMinScaleChange = updateCb;
-    layout_.onMaxScaleChange = updateCb;
 }
 
 RecycleList& RecycleList::setColor(const glm::vec4& color)
 {
     color_ = color;
-    boxCont_->setColor(color);
     REQUEST_NEW_FRAME;
     return *this;
 }
@@ -210,7 +116,7 @@ RecycleList& RecycleList::setRowSize(const int32_t rowSize)
     if (rowSize < 2 || rowSize > 200) { return *this ; }
 
     rowSize_ = rowSize;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -218,7 +124,7 @@ RecycleList& RecycleList::setRowSize(const int32_t rowSize)
 RecycleList& RecycleList::setItemMargin(const utils::Layout::TBLR margin)
 {
     itemMargin_ = margin;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -226,7 +132,7 @@ RecycleList& RecycleList::setItemMargin(const utils::Layout::TBLR margin)
 RecycleList& RecycleList::setItemBorder(const utils::Layout::TBLR border)
 {
     itemBorder_ = border;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -234,7 +140,7 @@ RecycleList& RecycleList::setItemBorder(const utils::Layout::TBLR border)
 RecycleList& RecycleList::setItemBorderRadius(const utils::Layout::TBLR borderRadius)
 {
     itemBorderRadius_ = borderRadius;
-    listIsDirty_ = true;
+    internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
@@ -251,8 +157,5 @@ utils::Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
 
 utils::Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
 
-SliderWPtr RecycleList::getSlider() { return slider_; }
-
-BoxWPtr RecycleList::getContainer() { return boxCont_; }
-
+RecycleList::Internals& RecycleList::getInternalsRef() { return internals_; }
 } // msgui
