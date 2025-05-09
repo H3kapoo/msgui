@@ -25,11 +25,12 @@ Button::Button(const std::string& name) : AbstractNode(name, NodeType::COMMON)
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    color_ = Utils::hexToVec4("#F9F8F7FF");
-    pressedColor_ = Utils::hexToVec4("#dadadaff");
+    baseColor_ = Utils::hexToVec4("#F9F8F7FF");
+    pressedColor_ = Utils::darken(baseColor_, 0.5f);
+    hoveredColor_ = Utils::darken(baseColor_, 0.25f);
+    disabledColor_ = Utils::hexToVec4("#353535ff");
     borderColor_ = Utils::hexToVec4("#D2CCC8ff");
-    disabledColor_ = Utils::hexToVec4("#bbbbbbff");
-    currentColor_ = color_;
+    currentColor_ = baseColor_;
 
     layout_.setNewScale({70_px, 34_px});
 
@@ -68,7 +69,7 @@ void Button::onMouseClick(const events::LMBClick&)
 
 void Button::onMouseRelease(const events::LMBRelease&)
 {
-    currentColor_ = color_;
+    currentColor_ = baseColor_;
 
     // layout_.shrink = {0, 0};
     MAKE_LAYOUT_DIRTY;
@@ -83,19 +84,18 @@ void Button::onMouseReleaseNotHovered(const events::LMBReleaseNotHovered&)
 
 void Button::onMouseEnter(const events::MouseEnter&)
 {
-    currentColor_ = Utils::darken(color_, 0.2f);
+    currentColor_ = hoveredColor_;
 }
 
 void Button::onMouseExit(const events::MouseExit&)
 {
-    currentColor_ = Utils::lighten(color_, 0.2f);
+    currentColor_ = baseColor_;
 }
 
 Button& Button::setColor(const glm::vec4& color)
 {
-    color_ = color;
+    baseColor_ = color;
     currentColor_ = color;
-    pressedColor_ = Utils::lighten(color_, 0.5f);
     REQUEST_NEW_FRAME;
     return *this;
 }
@@ -119,7 +119,7 @@ Button& Button::setEnabled(const bool value)
     isEnabled_ = value;
     if (isEnabled_)
     {
-        currentColor_ = color_;
+        currentColor_ = baseColor_;
         getEvents().pauseAllEvents(false);
     }
     else
@@ -186,7 +186,7 @@ Button& Button::setImagePath(const std::string& path)
     return *this;
 }
 
-glm::vec4 Button::getColor() const { return color_; }
+glm::vec4 Button::getColor() const { return baseColor_; }
 
 glm::vec4 Button::getBorderColor() const { return borderColor_; }
 

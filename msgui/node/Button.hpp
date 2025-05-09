@@ -47,11 +47,12 @@ protected:
     void onMouseExit(const events::MouseExit& evt);
 
 protected:
-    glm::vec4 color_{1.0f};
     glm::vec4 currentColor_{1.0f};
+    glm::vec4 baseColor_{1.0f};
     glm::vec4 pressedColor_{1.0f};
-    glm::vec4 borderColor_{1.0f};
+    glm::vec4 hoveredColor_{1.0f};
     glm::vec4 disabledColor_{1.0f};
+    glm::vec4 borderColor_{1.0f};
 
     bool isEnabled_{true};
 

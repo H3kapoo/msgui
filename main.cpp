@@ -40,20 +40,23 @@ int main()
         ;
 
     RecycleListPtr rl = Utils::make<RecycleList>("rl");
-    rl->getLayout().setNewScale({0.5_rel, 0.5_rel}).setPadding({1});
+    rl->getLayout().setNewScale({400_px, 0.5_rel}).setBorder({1});
+    rl->setItemScale({300_px, 15_px});
 
-    for (int32_t i = 0; i < 100; i++)
+    for (int32_t i = 0; i < 10; i++)
     {
         rl->addItem({Utils::randomRGB(), std::to_string(i)});
     }
 
-    rl->getEvents().listen<events::LMBItemRelease>([mainLogger](const auto& ev)
-    {
-        mainLogger.debugLn("item %s", ev.item->text.c_str());
-        ev.item->text = "ceva";
-    });
+    rl->getEvents().listen<events::LMBItemRelease>(
+        [mainLogger](const auto& ev)
+        {
+            mainLogger.debugLn("item %s", ev.item->text.c_str());
+            ev.item->text = "ceva";
+        });
 
     rootBox->append(rl);
+
     rootBox->printTree();
 
     /* Blocks from here on */

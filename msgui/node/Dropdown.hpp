@@ -42,7 +42,7 @@ public:
             /* Close any open downwards and upwards dropdowns from here. */
             setDropdownOpen(false);
             recursivelyCloseDropdownsUpwards();
-            currentColor_ = color_;
+            currentColor_ = baseColor_;
         });
 
         nodeItem->getEvents().template listen<events::FocusLost, events::InternalChannel>([this](const auto& evt)

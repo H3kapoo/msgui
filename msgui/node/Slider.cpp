@@ -26,7 +26,7 @@ Slider::Slider(const std::string& name)
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    color_ = Utils::hexToVec4("#f9f8f7ff");
+    color_ = Utils::hexToVec4("#f9f8f749");
     layout_.setNewScale({200_px, 20_px});
 
     textViewPred_ = [](float val) -> std::string

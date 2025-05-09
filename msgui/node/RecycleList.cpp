@@ -26,9 +26,15 @@ RecycleList::RecycleList(const std::string& name) : Box(name)
 void RecycleList::addItem(const node::utils::ListItem& item)
 {
     listItems_.emplace_back(item);
-
     internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY;
+
+    /* Small helper to trigger addition of a node the first time RecycleList starts. */
+    if (internals_.visibleNodes == 0)
+    {
+        internals_.visibleNodes = 1;
+        onLayoutDirtyPost();
+    }
 }
 
 void RecycleList::removeItemIdx(const int32_t idx)
@@ -69,31 +75,30 @@ void RecycleList::onLayoutDirtyPost()
     for (int32_t i = 0; i < internals_.visibleNodes; i++)
     {
         int32_t index = internals_.topOfListIdx + i;
-        if (index < internals_.elementsCount)
-        {
-            // auto ref = std::make_shared<TextLabel>("TreeViewItem");
-            auto ref = std::make_shared<Button>("Item");
-            ref->setColor(listItems_[index].color)
-                .setText(listItems_[index].text);
+        if (index >= internals_.elementsCount) { break; }
 
-            ref->getLayout()
-                .setMargin(itemMargin_)
-                .setBorder(itemBorder_)
-                .setNewScale({300_px, {.value = (float)rowSize_}});
-            // ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
+        // auto ref = std::make_shared<TextLabel>("TreeViewItem");
+        auto ref = std::make_shared<Button>("Item");
+        ref->setColor(listItems_[index].color)
+            .setText(listItems_[index].text);
 
-            append(ref);
+        ref->getLayout()
+            .setMargin(itemMargin_)
+            .setBorder(itemBorder_)
+            .setNewScale(itemScale_);
+        // ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
 
-            ref->getEvents().listen<events::LMBRelease>(
-                [this, index](const auto&)
-                {
-                    internals_.isDirty = true;
-                    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+        append(ref);
 
-                    events::LMBItemRelease evt{&listItems_[index]};
-                    getEvents().notifyEvent<events::LMBItemRelease>(evt);
-                });
-        }
+        ref->getEvents().listen<events::LMBRelease>(
+            [this, index](const auto&)
+            {
+                internals_.isDirty = true;
+                MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
+
+                events::LMBItemRelease evt{&listItems_[index]};
+                getEvents().notifyEvent<events::LMBItemRelease>(evt);
+            });
     }
 }
 
@@ -111,11 +116,9 @@ RecycleList& RecycleList::setBorderColor(const glm::vec4& color)
     return *this;
 }
 
-RecycleList& RecycleList::setRowSize(const int32_t rowSize)
+RecycleList& RecycleList::setItemScale(const Layout::ScaleXY newScale)
 {
-    if (rowSize < 2 || rowSize > 200) { return *this ; }
-
-    rowSize_ = rowSize;
+    itemScale_ = newScale;
     internals_.isDirty = true;
     MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
@@ -149,13 +152,13 @@ glm::vec4 RecycleList::getColor() const { return color_; }
 
 glm::vec4 RecycleList::getBorderColor() const { return borderColor_; }
 
-int32_t RecycleList::getRowSize() const { return rowSize_; }
+Layout::ScaleXY RecycleList::getItemScale() const { return itemScale_; }
 
-utils::Layout::TBLR RecycleList::getItemMargin() const { return itemMargin_; }
+Layout::TBLR RecycleList::getItemMargin() const { return itemMargin_; }
 
-utils::Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
+Layout::TBLR RecycleList::getItemBorder() const { return itemBorder_; }
 
-utils::Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
+Layout::TBLR RecycleList::getItemBorderRadius() const { return itemBorderRadius_; }
 
 RecycleList::Internals& RecycleList::getInternalsRef() { return internals_; }
 } // msgui

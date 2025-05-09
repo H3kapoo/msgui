@@ -1786,7 +1786,7 @@ Result<Void> CustomLayoutEngine::handleFloatingBox(const AbstractNodePtr& node)
 Result<Void> CustomLayoutEngine::handleRecycleList(const AbstractNodePtr& node)
 {
     const RecycleListPtr& rlPtr = Utils::as<RecycleList>(node);
-    const int32_t rowSize = rlPtr->getRowSize();
+    const int32_t rowSize = rlPtr->getItemScale().y.value;
     const glm::vec3& trPos = node->getTransform().pos;
     const glm::vec3& trScale = node->getTransform().scale;
     const Layout::TBLR& itemMargin = rlPtr->getItemMargin();
@@ -1814,17 +1814,16 @@ Result<Void> CustomLayoutEngine::handleRecycleList(const AbstractNodePtr& node)
 
     /* Compute overflow value now that elements are in place. */
     float maxX{0};
-    float runningY{0};
     auto& subNodes = node->getChildren();
     for (AbstractNodePtr& subNode : subNodes)
     {
         SKIP_SCROLL_NODE(subNode);
-        const glm::vec2& subNodeTrScale = subNode->getTransform().scale;
+        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
+        subNodeTrScale.x -= vBarActiveSize;
         maxX = std::max(maxX, subNodeTrScale.x);
     }
-    // log_.debugLn("scale %f", runningY);
 
-    internalsRef.overflow.x = maxX - trScale.x + vBarActiveSize;
+    internalsRef.overflow.x = maxX - trScale.x;
     internalsRef.overflow.x = std::max(0, internalsRef.overflow.x + 2);
     internalsRef.overflow.y = internalsRef.elementsCount * rowSizeAndMargin - trScale.y + hBarActiveSize;
     internalsRef.overflow.y = std::max(0, internalsRef.overflow.y + 2);

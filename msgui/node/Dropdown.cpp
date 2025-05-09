@@ -23,12 +23,6 @@ Dropdown::Dropdown(const std::string& name) : Button(name)
     setType(AbstractNode::NodeType::DROPDOWN);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
-    
-    color_ = Utils::hexToVec4("#c7c7c7ff");
-    pressedColor_ = Utils::hexToVec4("#dadadaff");
-    borderColor_ = Utils::hexToVec4("#D2CCC8ff");
-    disabledColor_ = Utils::hexToVec4("#bbbbbbff");
-    currentColor_ = color_;
 
     layout_.setNewScale({70_px, 34_px});
 
@@ -86,7 +80,7 @@ void Dropdown::onMouseRelease(const events::LMBRelease&)
     }
     else
     {
-        currentColor_ = color_;
+        currentColor_ = baseColor_;
     }
 
     layout_.shrink = {0, 0};
@@ -118,7 +112,7 @@ void Dropdown::onFocusLost(const events::FocusLost&)
 DropdownWPtr Dropdown::createSubMenuItem()
 {
     DropdownPtr subMenu = Utils::make<Dropdown>("SubDropdown");
-    subMenu->setColor(color_);
+    subMenu->setColor(baseColor_);
     subMenu->getLayout().setNewScale(itemSize_);
     subMenu->dropdownId_ = dropdownId_;
     container_->append(subMenu);
@@ -202,7 +196,7 @@ Dropdown& Dropdown::setDropdownOpen(const bool value)
             }
         }
 
-        currentColor_ = color_;
+        currentColor_ = baseColor_;
         remove(container_->getId());
     }
     /* Dropdown shall open. */
