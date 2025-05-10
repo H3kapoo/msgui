@@ -54,11 +54,14 @@ private:
     /* Dropdown */
     Result<Void> handleDropdown(const AbstractNodePtr& node);
 
-    /* FloatingBox*/
+    /* FloatingBox */
     Result<Void> handleFloatingBox(const AbstractNodePtr& node);
 
-    /* FloatingBox*/
+    /* RecycleList */
     Result<Void> handleRecycleList(const AbstractNodePtr& node);
+
+    /* TreeView */
+    Result<Void> handleTreeView(const AbstractNodePtr& node);
 
     /* Helpers */
     void resolveCumulativeError(const AbstractNodePtr& node, const glm::vec2 totalInt,

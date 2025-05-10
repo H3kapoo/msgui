@@ -77,7 +77,6 @@ void RecycleList::onLayoutDirtyPost()
         int32_t index = internals_.topOfListIdx + i;
         if (index >= internals_.elementsCount) { break; }
 
-        // auto ref = std::make_shared<TextLabel>("TreeViewItem");
         auto ref = std::make_shared<Button>("Item");
         ref->setColor(listItems_[index].color)
             .setText(listItems_[index].text);
@@ -86,7 +85,6 @@ void RecycleList::onLayoutDirtyPost()
             .setMargin(itemMargin_)
             .setBorder(itemBorder_)
             .setNewScale(itemScale_);
-        // ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
 
         append(ref);
 

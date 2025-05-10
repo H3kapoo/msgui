@@ -7,7 +7,7 @@
 namespace msgui
 {
 
-class BasicLayoutEngine;
+class CustomLayoutEngine;
 
 /* Node used for efficiently handling lists with a large amount of entries. */
 class TreeView : public Box
@@ -49,7 +49,7 @@ public:
 
     TreeView& setColor(const glm::vec4& color);
     TreeView& setBorderColor(const glm::vec4& color);
-    TreeView& setRowSize(const int32_t rowSize);
+    TreeView& setItemScale(const Layout::ScaleXY scale);
     TreeView& setItemMargin(const utils::Layout::TBLR margin);
     TreeView& setItemBorder(const utils::Layout::TBLR border);
     TreeView& setItemBorderRadius(const utils::Layout::TBLR borderRadius);
@@ -57,7 +57,7 @@ public:
     
     glm::vec4 getColor() const;
     glm::vec4 getBorderColor() const;
-    int32_t getRowSize() const;
+    Layout::ScaleXY getItemScale() const;
     utils::Layout::TBLR getItemMargin() const;
     utils::Layout::TBLR getItemBorder() const;
     utils::Layout::TBLR getItemBorderRadius() const;
@@ -65,7 +65,7 @@ public:
     Internals& getInternalsRef();
 
 private: // friend
-    friend BasicLayoutEngine;
+    friend CustomLayoutEngine;
     friend WindowFrame;
     void onLayoutDirtyPost();
 
@@ -78,7 +78,7 @@ private:
 private:
     glm::vec4 color_{1.0f};
     glm::vec4 borderColor_{1.0f};
-    int32_t rowSize_{20};
+    Layout::ScaleXY itemScale_{200_px, 20_px};
     utils::Layout::TBLR itemMargin_{0};
     utils::Layout::TBLR itemBorder_{0};
     utils::Layout::TBLR itemBorderRadius_{0};
@@ -97,7 +97,7 @@ private:
         uint32_t marginFactor_{30};
         float lastScaleY{0};
         float lastScaleX{0};
-        int32_t flatTreeElements{0};
+        int32_t elementsCount{0};
         glm::ivec2 overflow{0, 0};
     };
     Internals internals_;

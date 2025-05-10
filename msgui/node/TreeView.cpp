@@ -17,22 +17,22 @@ namespace msgui
 {
 TreeView::TreeView(const std::string& name) : Box(name)
 {
+    /* Defaults */
+    log_ = Logger("TreeView(" + name + ")");
     setType(AbstractNode::NodeType::TREEVIEW);
     setShader(loaders::ShaderLoader::loadShader("assets/shader/sdfRect.glsl"));
     setMesh(loaders::MeshLoader::loadQuad());
 
-    log_ = ("TreeView(" + name + ")");
-
-    /* Defaults */
     color_ = Utils::hexToVec4("#42056bff");
     layout_.setAllowOverflow({true, true})
-        .setType(utils::Layout::Type::VERTICAL)
-        .setScale({100, 100});
+        .setType(Layout::Type::VERTICAL)
+        .setNewScale({100_px, 100_px});
 }
 
 void TreeView::addRootItem(const TreeItemPtr& tree)
 {
     treeItems_.emplace_back(tree);
+
     refreshTree();
 }
 
@@ -110,23 +110,21 @@ void TreeView::onLayoutDirtyPost()
 {
     removeAll();
 
-    internals_.flatTreeElements = flattenedTreeBuffer.size();
+    internals_.elementsCount = flattenedTreeBuffer.size();
     for (int32_t i = 0; i < internals_.visibleNodes; i++)
     {
         int32_t index = internals_.topOfListIdx + i;
-        if (index < internals_.flatTreeElements)
+        if (index < internals_.elementsCount)
         {
-            // auto ref = std::make_shared<TextLabel>("TreeViewItem");
-            auto ref = std::make_shared<Button>("TreeViewItem");
+            auto ref = std::make_shared<Button>("Item");
             ref->setColor(flattenedTreeBuffer[index]->color)
-                .setText(flattenedTreeBuffer[index]->stringInfo);
+                .setText(flattenedTreeBuffer[index]->text);
 
             ref->getLayout()
                 .setMargin(itemMargin_)
                 .setBorder(itemBorder_)
-                .setScale({flattenedTreeBuffer[index]->stringInfo.size()*5+60, rowSize_});
+                .setNewScale(itemScale_);
             ref->getLayout().margin.left += flattenedTreeBuffer[index]->depth*internals_.marginFactor_;
-
             append(ref);
 
             ref->getEvents().listen<events::LMBRelease>(
@@ -158,15 +156,14 @@ TreeView& TreeView::setBorderColor(const glm::vec4& color)
     return *this;
 }
 
-TreeView& TreeView::setRowSize(const int32_t rowSize)
+TreeView& TreeView::setItemScale(const Layout::ScaleXY newScale)
 {
-    if (rowSize < 2 || rowSize > 200) { return *this ; }
-
-    rowSize_ = rowSize;
+    itemScale_ = newScale;
     internals_.isDirty = true;
-    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME
+    MAKE_LAYOUT_DIRTY_AND_REQUEST_NEW_FRAME;
     return *this;
 }
+
 
 TreeView& TreeView::setItemMargin(const utils::Layout::TBLR margin)
 {
@@ -203,7 +200,7 @@ glm::vec4 TreeView::getColor() const { return color_; }
 
 glm::vec4 TreeView::getBorderColor() const { return borderColor_; }
 
-int32_t TreeView::getRowSize() const { return rowSize_; }
+Layout::ScaleXY TreeView::getItemScale() const { return itemScale_; }
 
 utils::Layout::TBLR TreeView::getItemMargin() const { return itemMargin_; }
 

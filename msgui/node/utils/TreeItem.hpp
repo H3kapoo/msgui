@@ -38,7 +38,7 @@ struct TreeItem : std::enable_shared_from_this<TreeItem>
 
     /* User set payload */
     glm::vec4 color;
-    std::string stringInfo; //TODO: For when text gets implemented
+    std::string text;
 
     /* Internal management */
     int32_t depth{0};

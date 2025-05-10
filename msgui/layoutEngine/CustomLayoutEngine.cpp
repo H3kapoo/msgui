@@ -6,6 +6,7 @@
 #include "msgui/node/RecycleList.hpp"
 #include "msgui/node/Slider.hpp"
 #include "msgui/node/Dropdown.hpp"
+#include "msgui/node/TreeView.hpp"
 #include "msgui/node/utils/BoxDividerSep.hpp"
 #include "msgui/node/utils/SliderKnob.hpp"
 
@@ -146,6 +147,12 @@ Result<Void> CustomLayoutEngine::process(const AbstractNodePtr& node)
     if (node->getType() == AbstractNode::NodeType::RECYCLE_LIST)
     {
         RETURN_ON_ERROR(handleRecycleList(node), Void);
+        return Result<Void>{};
+    }
+
+    if (node->getType() == AbstractNode::NodeType::TREEVIEW)
+    {
+        RETURN_ON_ERROR(handleTreeView(node), Void);
         return Result<Void>{};
     }
 
@@ -781,7 +788,7 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
     }
 
     const BoxPtr& box = Utils::as<Box>(node);
-    // box->setOverflow(overflow);
+    box->setOverflow(overflow);
 
     if (sc.offset.x < 0 && sc.offset.y < 0)
     {
@@ -795,7 +802,7 @@ void CustomLayoutEngine::applyOverflowAndScrollOffsets(const AbstractNodePtr& no
         SKIP_FLOATING_BOX_NODE(subNode);
         SKIP_DROPDOWN_CONTAINER_NODE(subNode);
         SKIP_SCROLL_NODE(subNode);
-        // subNode->getTransform().pos -= glm::vec3{sc.offset.x, sc.offset.y, 0};
+        subNode->getTransform().pos -= glm::vec3{sc.offset.x, sc.offset.y, 0};
     }
 }
 
@@ -1157,7 +1164,8 @@ Result<CustomLayoutEngine::ScrollContribution> CustomLayoutEngine::computeScroll
 {
     ScrollContribution sc;
     if (node->getType() != AbstractNode::NodeType::BOX
-        && node->getType() != AbstractNode::NodeType::RECYCLE_LIST)
+        && node->getType() != AbstractNode::NodeType::RECYCLE_LIST
+        && node->getType() != AbstractNode::NodeType::TREEVIEW)
     {
         return Result<ScrollContribution>{.value = sc};
     }
@@ -1830,6 +1838,74 @@ Result<Void> CustomLayoutEngine::handleRecycleList(const AbstractNodePtr& node)
 
     /* Update internals. */
     rlPtr->setOverflow(internalsRef.overflow);
+
+    internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
+    internalsRef.oldVisibleNodes = internalsRef.visibleNodes;
+    internalsRef.lastScaleY = trScale.y;
+    internalsRef.lastScaleX = trScale.x;
+
+    /* Apply the scroll offset. */
+    for (AbstractNodePtr& subNode : subNodes)
+    {
+        SKIP_SCROLL_NODE(subNode);
+        subNode->getTransform().pos.y -= (int32_t)vBar->getSlideCurrentValue() % rowSizeAndMargin;
+        subNode->getTransform().pos.x -= hBar->getSlideCurrentValue();
+    }
+
+    return Result<Void>{};
+}
+
+/*
+    Function handles mainly overflow control (Scrollbars) of tree view. Additionally computes what element
+    index is the new top of the list such that the tree view can remove old items and append new ones.
+*/
+Result<Void> CustomLayoutEngine::handleTreeView(const AbstractNodePtr& node)
+{
+    const TreeViewPtr& twPtr = Utils::as<TreeView>(node);
+    const int32_t rowSize = twPtr->getItemScale().y.value;
+    const glm::vec3& trPos = node->getTransform().pos;
+    const glm::vec3& trScale = node->getTransform().scale;
+    const Layout::TBLR& itemMargin = twPtr->getItemMargin();
+    TreeView::Internals& internalsRef = twPtr->getInternalsRef();
+
+    const int32_t rowSizeAndMargin = rowSize + itemMargin.top + itemMargin.bot;
+    const int32_t maxDisplayAmt = trScale.y / rowSizeAndMargin + 1;
+    const SliderPtr vBar = twPtr->getVBar().lock();
+    const SliderPtr hBar = twPtr->getHBar().lock();
+    internalsRef.topOfListIdx = vBar->getSlideCurrentValue() / rowSizeAndMargin;
+    internalsRef.visibleNodes = maxDisplayAmt + 1;
+
+    /* Trigger nodes readdition if top of the list changed or if the list has new changes. */
+    if (internalsRef.isDirty || internalsRef.topOfListIdx != internalsRef.oldTopOfListIdx
+        || internalsRef.oldVisibleNodes != internalsRef.visibleNodes)
+    {
+        internalsRef.isDirty = false;
+        twPtr->onLayoutDirtyPost();
+    }
+
+    const int32_t hBarActiveSize = twPtr->isScrollBarActive(Layout::Type::HORIZONTAL)
+        ? hBar->getLayout().newScale.y.value : 0;
+    const int32_t vBarActiveSize = twPtr->isScrollBarActive(Layout::Type::VERTICAL)
+        ? vBar->getLayout().newScale.x.value : 0;
+
+    /* Compute overflow value now that elements are in place. */
+    float maxX{0};
+    auto& subNodes = node->getChildren();
+    for (AbstractNodePtr& subNode : subNodes)
+    {
+        SKIP_SCROLL_NODE(subNode);
+        glm::vec3& subNodeTrScale = subNode->getTransform().scale;
+        subNodeTrScale.x -= vBarActiveSize;
+        maxX = std::max(maxX, subNodeTrScale.x);
+    }
+
+    internalsRef.overflow.x = maxX - trScale.x;
+    internalsRef.overflow.x = std::max(0, internalsRef.overflow.x + 2);
+    internalsRef.overflow.y = internalsRef.elementsCount * rowSizeAndMargin - trScale.y + hBarActiveSize;
+    internalsRef.overflow.y = std::max(0, internalsRef.overflow.y + 2);
+
+    /* Update internals. */
+    twPtr->setOverflow(internalsRef.overflow);
 
     internalsRef.oldTopOfListIdx = internalsRef.topOfListIdx;
     internalsRef.oldVisibleNodes = internalsRef.visibleNodes;

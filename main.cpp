@@ -36,27 +36,82 @@ int main()
     BoxPtr rootBox = window->getRoot();
     rootBox->setColor(Utils::hexToVec4("#282828ff"));
     rootBox->getLayout()
-        .setAlignChild(Layout::Align::CENTER)
+        // .setAlignChild(Layout::Align::CENTER)
         ;
 
-    RecycleListPtr rl = Utils::make<RecycleList>("rl");
-    rl->getLayout().setNewScale({400_px, 0.5_rel}).setBorder({1});
-    rl->setItemScale({300_px, 15_px});
-
-    for (int32_t i = 0; i < 10; i++)
+    RecycleListPtr rlLeft = Utils::make<RecycleList>("rlLeft");
+    rlLeft->getLayout().setNewScale({1_fill, 1.0_rel});
+    for (int32_t i = 0; i < 10; ++i)
     {
-        rl->addItem({Utils::randomRGB(), std::to_string(i)});
+        rlLeft->addItem({Utils::randomRGB(), std::to_string(i)});
     }
 
-    rl->getEvents().listen<events::LMBItemRelease>(
-        [mainLogger](const auto& ev)
+    TreeViewPtr tw = Utils::make<TreeView>("tw");
+    tw->getLayout().setNewScale({1_fill, 1.0_rel});
+
+    TreeItemPtr root = Utils::make<TreeItem>();
+    root->color = Utils::randomRGB();
+    root->text = "Root";
+    tw->addRootItem(root);
+
+    for (int32_t i = 0; i < 10; ++i)
+    {
+        TreeItemPtr item = Utils::make<TreeItem>();
+        item->color = Utils::randomRGB();
+        item->text = std::to_string(i);
+        root->addItem(item);
+    }
+
+    tw->getEvents().listen<events::LMBTreeItemRelease>(
+        [mainLogger](const events::LMBTreeItemRelease& ev)
         {
-            mainLogger.debugLn("item %s", ev.item->text.c_str());
-            ev.item->text = "ceva";
+            ev.item.lock()->text = "new text";
+
+            // TreeItemPtr item = Utils::make<TreeItem>();
+            // item->color = Utils::randomRGB();
+            // item->text = "stefu";
+            // ev.item.lock()->addItem(item);
         });
 
-    rootBox->append(rl);
+    TreeViewPtr twr = Utils::make<TreeView>("twr");
+    twr->getLayout().setNewScale({1_fill, 1.0_rel});
 
+    TreeItemPtr root2 = Utils::make<TreeItem>();
+    root2->color = Utils::randomRGB();
+    root2->text = "Root";
+    twr->addRootItem(root2);
+
+    for (int32_t i = 0; i < 1000; ++i)
+    {
+        TreeItemPtr item = Utils::make<TreeItem>();
+        item->color = Utils::randomRGB();
+        item->text = std::to_string(i);
+        root2->addItem(item);
+    }
+
+    twr->getEvents().listen<events::LMBTreeItemRelease>(
+        [mainLogger](const events::LMBTreeItemRelease& ev)
+        {
+            ev.item.lock()->text = "new text";
+
+            // TreeItemPtr item = Utils::make<TreeItem>();
+            // item->color = Utils::randomRGB();
+            // item->text = "stefu";
+            // ev.item.lock()->addItem(item);
+        });
+
+
+    BoxDividerPtr bd = Utils::make<BoxDivider>("bd");
+    bd->getLayout().setNewScale({1_fill});
+    bd->createSlots({0.25_rel, 0.5_rel, 0.25_rel});
+    bd->getSlot(0).lock()->append(rlLeft);
+    bd->getSlot(1).lock()->append(tw);
+    bd->getSlot(2).lock()->append(twr);
+    // rootBox->append(rlLeft);
+    // rootBox->append(tw);
+    // rootBox->append(twr);
+
+    rootBox->append(bd);
     rootBox->printTree();
 
     /* Blocks from here on */
